@@ -1,0 +1,131 @@
+{
+  "enemy": {
+    "name": "異時層フラットハンド(第二形態)",
+    "dp": 350000.0,
+    "hp": 8625000.0,
+    "dr": 10.0,
+    "stat": 320.0,
+    "category": "異時層",
+    "detail_url": "https://twitter.com/gazou774/status/1649233956565585921",
+    "weapon_mult": {
+      "斬": 1.0,
+      "突": 1.0,
+      "打": 1.0
+    },
+    "element_mult": {
+      "火": 1.0,
+      "氷": 1.0,
+      "雷": 1.0,
+      "光": 1.5,
+      "闇": 1.5,
+      "無": 1.0
+    }
+  },
+  "estimated_damage": 886624987.5,
+  "relative_score": 886.6249875,
+  "turn_plan": [
+    "Turn1: SSしもべ(魔王に仕えし混沌の謀臣) -> ドミネーション・グラビティ / SS御稲荷[雷](豊楽ノ神秘) -> 御稲荷神話 / SS基本衣装[配布](閃光のサーキットバースト) -> [単独発動]アーク・オブ・ヴィクトリア",
+    "Turn2: 敵 異時層フラットハンド(第二形態) の弱点倍率に合わせて属性/武器を調整 / SS基本衣装[雷](希望の暁) -> トリニティ・ブレイジング でDPブレイクを狙う",
+    "Turn3: SS基本衣装[雷](希望の暁) -> トリニティ・ブレイジング でHPフェーズをフィニッシュ"
+  ],
+  "team": [
+    {
+      "style_name": "SS基本衣装[雷](希望の暁)",
+      "character": "手塚咲",
+      "rarity": "SS",
+      "role": "attacker",
+      "total_score": 144.2,
+      "attack_score": 135.23999999999998,
+      "support_score": 12.8,
+      "debuff_score": 0.0,
+      "breaker_skill": "トリニティ・ブレイジング",
+      "finisher_skill": "トリニティ・ブレイジング",
+      "support_skill": "トリニティ・ブレイジング",
+      "debuff_skill": null,
+      "weakness_factor": 1.15,
+      "web_info": null
+    },
+    {
+      "style_name": "SSしもべ(魔王に仕えし混沌の謀臣)",
+      "character": "佐月マリ",
+      "rarity": "SS",
+      "role": "debuffer",
+      "total_score": 115.388,
+      "attack_score": 12.0,
+      "support_score": 0.8,
+      "debuff_score": 4.04,
+      "breaker_skill": "ドミネーション・グラビティ",
+      "finisher_skill": "ドミネーション・グラビティ",
+      "support_skill": null,
+      "debuff_skill": "ドミネーション・グラビティ",
+      "weakness_factor": 1.0,
+      "web_info": null
+    },
+    {
+      "style_name": "SS御稲荷[雷](豊楽ノ神秘)",
+      "character": "桐生美也",
+      "rarity": "SS",
+      "role": "debuffer",
+      "total_score": 22.587999999999997,
+      "attack_score": 15.0,
+      "support_score": 2.0,
+      "debuff_score": 8.84,
+      "breaker_skill": "御稲荷神話",
+      "finisher_skill": "御稲荷神話",
+      "support_skill": "御稲荷神話",
+      "debuff_skill": "御稲荷神話",
+      "weakness_factor": 1.0,
+      "web_info": null
+    },
+    {
+      "style_name": "SS基本衣装[配布](閃光のサーキットバースト)",
+      "character": "茅森月歌",
+      "rarity": "SS",
+      "role": "buffer",
+      "total_score": 117.00043799999997,
+      "attack_score": 96.92443799999998,
+      "support_score": 23.88,
+      "debuff_score": 4.8,
+      "breaker_skill": "(闇:弱点)黒曜のオーバーロード",
+      "finisher_skill": "(闇:弱点)黒曜のオーバーロード",
+      "support_skill": "[単独発動]アーク・オブ・ヴィクトリア",
+      "debuff_skill": "(火)黒曜のオーバーロード",
+      "weakness_factor": 2.07,
+      "web_info": null
+    },
+    {
+      "style_name": "SS基本衣装(疾風迅速滅亡の狼煙)",
+      "character": "松岡チロル",
+      "rarity": "SS",
+      "role": "buffer",
+      "total_score": 49.21916,
+      "attack_score": 32.69916,
+      "support_score": 23.6,
+      "debuff_score": 0.0,
+      "breaker_skill": "疾黒破弾",
+      "finisher_skill": "疾黒破弾",
+      "support_skill": "[単独発動]アクターズ・スーパーノヴァ",
+      "debuff_skill": null,
+      "weakness_factor": 1.7999999999999998,
+      "web_info": null
+    },
+    {
+      "style_name": "SS基本衣装[闇](剣の冷徹)",
+      "character": "夏目祈",
+      "rarity": "SS",
+      "role": "buffer",
+      "total_score": 133.93229999999997,
+      "attack_score": 129.35429999999997,
+      "support_score": 6.539999999999999,
+      "debuff_score": 0.0,
+      "breaker_skill": "夜嵐[チャージあり]",
+      "finisher_skill": "唯雅粛正[チャージあり]",
+      "support_skill": "残心",
+      "debuff_skill": null,
+      "weakness_factor": 1.15,
+      "web_info": null
+    }
+  ],
+  "unmatched_owned": [],
+  "unmatched_wanted": []
+}

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 96">
+  <defs>
+    <linearGradient id="hull" x1="0" x2="1">
+      <stop offset="0" stop-color="#5a1d16"/>
+      <stop offset="1" stop-color="#ff6d48"/>
+    </linearGradient>
+    <radialGradient id="heart" cx="0.5" cy="0.3" r="0.75">
+      <stop offset="0" stop-color="#ffe0d6"/>
+      <stop offset="1" stop-color="#ff7d5e"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#glow)">
+    <path d="M8 27h112l-7 43H15z" fill="url(#hull)" stroke="#ffc2ae" stroke-width="3"/>
+    <path d="M18 27 64 8l46 19z" fill="#ff8f72" stroke="#ffd2c5" stroke-width="3"/>
+    <path d="M42 34h44l7 13-7 12H42l-7-12z" fill="url(#heart)" stroke="#ffe7e0" stroke-width="2"/>
+    <rect x="48" y="62" width="32" height="10" rx="4" fill="#7d291d" stroke="#ffd6cb" stroke-width="2"/>
+    <circle cx="27" cy="49" r="7" fill="#ffe2d9"/>
+    <circle cx="101" cy="49" r="7" fill="#ffe2d9"/>
+  </g>
+</svg>

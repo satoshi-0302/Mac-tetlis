@@ -1,0 +1,2450 @@
+{
+  "夏目祈|SS基本衣装[闇](剣の冷徹)": {
+    "style_name": "SS基本衣装[闇](剣の冷徹)",
+    "character": "夏目祈",
+    "page_url": "https://game8.jp/heavenburnsred/499846",
+    "image_url": "https://img.game8.jp/7480897/c6a08dbebe7d73604c0336495f502ae6.png/show",
+    "page_title": "【ヘブバン】SS夏目祈(剣の冷徹)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "",
+    "source": "Game8",
+    "fetched_at": 1771241318.478188
+  },
+  "佐月マリ|SSしもべ(魔王に仕えし混沌の謀臣)": {
+    "style_name": "SSしもべ(魔王に仕えし混沌の謀臣)",
+    "character": "佐月マリ",
+    "page_url": "https://game8.jp/heavenburnsred/712353",
+    "image_url": "https://img.game8.jp/11695786/1de10e7bfd1874bb3e89ff62f611a134.webp/original",
+    "page_title": "【ヘブバン】SS佐月マリ(しもべ)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31C",
+    "tier_overall": "1",
+    "tier_roles": "デバフ:Tier1 / サポート:Tier1",
+    "source": "Game8",
+    "fetched_at": 1771246918.598985
+  },
+  "手塚咲|SS基本衣装[雷](希望の暁)": {
+    "style_name": "SS基本衣装[雷](希望の暁)",
+    "character": "手塚咲",
+    "page_url": "https://game8.jp/heavenburnsred/755194",
+    "image_url": "https://img.game8.jp/12310243/8944b6bed7a36c043b133ecefe6ab46f.webp/show",
+    "page_title": "【ヘブバン】SSレゾナンス手塚咲の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "司令部",
+    "tier_overall": "1",
+    "tier_roles": "",
+    "source": "Game8",
+    "fetched_at": 1771243447.38682
+  },
+  "蒼井えりか|SSアイドル[火](キララ・究極のアイドル)": {
+    "style_name": "SSアイドル[火](キララ・究極のアイドル)",
+    "character": "蒼井えりか",
+    "page_url": "https://game8.jp/heavenburnsred/585101",
+    "image_url": "https://img.game8.jp/9202377/57b4df3db38bc1fd9d5ec4f01e100beb.png/show",
+    "page_title": "【ヘブバン】SS蒼井えりか(アイドル)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31B",
+    "tier_overall": "3",
+    "tier_roles": "サポート:Tier3",
+    "source": "Game8",
+    "fetched_at": 1771241858.2280629
+  },
+  "シャルロッタ・スコポフスカヤ|SS基本衣装[闇](逆境に咲く華)": {
+    "style_name": "SS基本衣装[闇](逆境に咲く華)",
+    "character": "シャルロッタ・スコポフスカヤ",
+    "page_url": "https://game8.jp/heavenburnsred/532628",
+    "image_url": "https://img.game8.jp/8115554/8549c542f9152100d97d618d6e45615b.png/show",
+    "page_title": "【ヘブバン】SSシャルロッタ・スコポフスカヤ(逆境に咲く華)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "",
+    "source": "Game8",
+    "fetched_at": 1771241364.352297
+  },
+  "天音巫呼|SS猫[氷](山脇様の手下：マジカルにゃん)": {
+    "style_name": "SS猫[氷](山脇様の手下：マジカルにゃん)",
+    "character": "天音巫呼",
+    "page_url": "https://game8.jp/heavenburnsred/539113",
+    "image_url": "https://img.game8.jp/8244786/b4bf2333b5177d986e102c6609eb4e29.png/show",
+    "page_title": "【ヘブバン】SS天音巫呼(マジカル)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31C",
+    "tier_overall": "2",
+    "tier_roles": "デバフ:Tier1",
+    "source": "Game8",
+    "fetched_at": 1771243459.5851378
+  },
+  "桐生美也|SS御稲荷[雷](豊楽ノ神秘)": {
+    "style_name": "SS御稲荷[雷](豊楽ノ神秘)",
+    "character": "桐生美也",
+    "page_url": "https://game8.jp/heavenburnsred/548994",
+    "image_url": "https://img.game8.jp/8691934/ddd90ca92d951ae73791e33658ee31b6.png/original",
+    "page_title": "【ヘブバン】SS桐生美也(豊楽ノ神秘)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "30G",
+    "tier_overall": "1",
+    "tier_roles": "デバフ:Tier1",
+    "source": "Game8",
+    "fetched_at": 1771242450.283288
+  },
+  "國見タマ|SS基本衣装(気合一閃エンジェルセイラー)": {
+    "style_name": "SS基本衣装(気合一閃エンジェルセイラー)",
+    "character": "國見タマ",
+    "page_url": "https://game8.jp/heavenburnsred/426202",
+    "image_url": "https://img.game8.jp/10250859/5fdb9f300115ea696089717136d58b9c.png/original",
+    "page_title": "【ヘブバン】SS國見タマ(気合一閃エンジェルセイラー)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31A",
+    "tier_overall": "3",
+    "tier_roles": "",
+    "source": "Game8",
+    "fetched_at": 1771242462.917299
+  },
+  "大島一千子|SS基本衣装[火](果てなき慈愛の守護者)": {
+    "style_name": "SS基本衣装[火](果てなき慈愛の守護者)",
+    "character": "大島一千子",
+    "page_url": "https://game8.jp/heavenburnsred/463894",
+    "image_url": "https://img.game8.jp/10433694/e58805bbc22cae92a7867fd737b0a220.png/original",
+    "page_title": "【ヘブバン】SS大島一千子(果てなき慈愛の守護者)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31E",
+    "tier_overall": "4",
+    "tier_roles": "サポート:Tier1",
+    "source": "Game8",
+    "fetched_at": 1771242474.899812
+  },
+  "アイリーン・レドメイン|SSスチームパンク(霧煙る街の名探偵)": {
+    "style_name": "SSスチームパンク(霧煙る街の名探偵)",
+    "character": "アイリーン・レドメイン",
+    "page_url": "https://game8.jp/heavenburnsred/746397",
+    "image_url": "https://img.game8.jp/12037276/c5f22861febd298aa59bdfb038516bb7.webp/show",
+    "page_title": "【ヘブバン】SSアイリーン・レドメイン(霧煙る街)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31X",
+    "tier_overall": "2",
+    "tier_roles": "デバフ:Tier1 / サポート:Tier1",
+    "source": "Game8",
+    "fetched_at": 1771242600.3148859
+  },
+  "__GAME8_CHARACTER_INDEX__": {
+    "page_url": "https://game8.jp/heavenburnsred/425628",
+    "source": "Game8",
+    "fetched_at": 1771245142.457375,
+    "characters": {
+      "茅森月歌": {
+        "character": "茅森月歌",
+        "squad": "31A",
+        "page_url": "https://game8.jp/heavenburnsred/425648",
+        "image_url": "https://img.game8.jp/6483414/4cd7bf6937598a29fe3fcdceab280268.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.449604,
+        "styles": [
+          {
+            "title": "Glorious Blades",
+            "page_url": "https://game8.jp/heavenburnsred/752168",
+            "image_url": "https://img.game8.jp/12147006/bc4ca37cc85728f6a6ee84eddbcf7ca7.webp/show"
+          },
+          {
+            "title": "白熱！勝利を呼ぶ一球入魂！",
+            "page_url": "https://game8.jp/heavenburnsred/724680",
+            "image_url": "https://img.game8.jp/11827669/8ff5be0c84c1cc7e138254cb97849640.webp/show"
+          },
+          {
+            "title": "The Feel of the Throne",
+            "page_url": "https://game8.jp/heavenburnsred/595464",
+            "image_url": "https://img.game8.jp/11601624/6dcfb1bc4c893beb09867c16faf0f953.webp/show"
+          },
+          {
+            "title": "白き華の歌姫",
+            "page_url": "https://game8.jp/heavenburnsred/657138",
+            "image_url": "https://img.game8.jp/10803349/6375ad5883a5103bd517da8cc11ef8fd.png/show"
+          },
+          {
+            "title": "ナイトクルーズ・エスコート",
+            "page_url": "https://game8.jp/heavenburnsred/511322",
+            "image_url": "https://img.game8.jp/7720506/3be0b689e6b5e2ded594c3fd50ab46b2.png/show"
+          },
+          {
+            "title": "残響のカルディナル",
+            "page_url": "https://game8.jp/heavenburnsred/453073",
+            "image_url": "https://img.game8.jp/6777205/26b690b40686017f06536bbd3ca8ea52.png/show"
+          },
+          {
+            "title": "閃光のサーキットバースト",
+            "page_url": "https://game8.jp/heavenburnsred/426188",
+            "image_url": "https://img.game8.jp/6521804/676595e32bae873d37227db29a869e87.png/show"
+          },
+          {
+            "title": "黎明のエモーショナル・ソウル",
+            "page_url": "https://game8.jp/heavenburnsred/426190",
+            "image_url": "https://img.game8.jp/6521802/da3570e95e3ec266190cbf07a2b50da9.png/show"
+          },
+          {
+            "title": "つかの間の安息",
+            "page_url": "https://game8.jp/heavenburnsred/469576",
+            "image_url": "https://img.game8.jp/7091493/f6bd0a54b7270e5d96ad8857125801b4.png/show"
+          },
+          {
+            "title": "戦場のフレット",
+            "page_url": "https://game8.jp/heavenburnsred/426187",
+            "image_url": "https://img.game8.jp/6521807/5cd951a7b0624268bbd9e53b2c53c9a4.png/show"
+          },
+          {
+            "title": "Attack or Music",
+            "page_url": "https://game8.jp/heavenburnsred/426186",
+            "image_url": "https://img.game8.jp/6521811/7aa3565f5c667253e2776f47297f3d51.png/show"
+          }
+        ]
+      },
+      "和泉ユキ": {
+        "character": "和泉ユキ",
+        "squad": "31A",
+        "page_url": "https://game8.jp/heavenburnsred/425649",
+        "image_url": "https://img.game8.jp/6483412/47b3acf74f3d6c8d5429506229edbaa3.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.449791,
+        "styles": [
+          {
+            "title": "傍らのプリンセス",
+            "page_url": "https://game8.jp/heavenburnsred/643121",
+            "image_url": "https://img.game8.jp/11603313/4a617d2dc76f106131eabcf60a13eac0.webp/show"
+          },
+          {
+            "title": "君を待つ紅玉",
+            "page_url": "https://game8.jp/heavenburnsred/594734",
+            "image_url": "https://img.game8.jp/9582926/0881c50ca8ef1942f985e7de89fc2816.png/show"
+          },
+          {
+            "title": "踊るリンカネーション",
+            "page_url": "https://game8.jp/heavenburnsred/555407",
+            "image_url": "https://img.game8.jp/8789948/6e656d886a415febe5c2673dd843347c.png/show"
+          },
+          {
+            "title": "ナイトクルーズ・アテンダント",
+            "page_url": "https://game8.jp/heavenburnsred/511323",
+            "image_url": "https://img.game8.jp/7720505/61b1c571e5448c73440fd7e960e26549.png/show"
+          },
+          {
+            "title": "夏椿、けうらなる夜光星",
+            "page_url": "https://game8.jp/heavenburnsred/468108",
+            "image_url": "https://img.game8.jp/7032066/61f769424f57e45955707ec198bc6a02.png/show"
+          },
+          {
+            "title": "終いのSpitfire",
+            "page_url": "https://game8.jp/heavenburnsred/426192",
+            "image_url": "https://img.game8.jp/6521805/da8f22bf17c19c1fafb72aca8be562de.png/show"
+          },
+          {
+            "title": "KETSUの休日",
+            "page_url": "https://game8.jp/heavenburnsred/544118",
+            "image_url": "https://img.game8.jp/8505724/e65235ca8e6341dd99dbc6c37d1defcf.png/show"
+          },
+          {
+            "title": "夢幻のSleeping Ocelot",
+            "page_url": "https://game8.jp/heavenburnsred/454858",
+            "image_url": "https://img.game8.jp/6814809/d6a24607d8fb9614b81a3bfb28f851aa.png/show"
+          },
+          {
+            "title": "Attack or March",
+            "page_url": "https://game8.jp/heavenburnsred/426191",
+            "image_url": "https://img.game8.jp/6521801/d7efbeb04ff859519da613ddd1be33b9.png/show"
+          }
+        ]
+      },
+      "逢川めぐみ": {
+        "character": "逢川めぐみ",
+        "squad": "31A",
+        "page_url": "https://game8.jp/heavenburnsred/425650",
+        "image_url": "https://img.game8.jp/6483413/f029fbc037ba6ff97d7e905aef91c9ac.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.449942,
+        "styles": [
+          {
+            "title": "ネバーエンド・サマー",
+            "page_url": "https://game8.jp/heavenburnsred/628230",
+            "image_url": "https://img.game8.jp/10272971/610630410f39037d230436f0857c3c3c.png/show"
+          },
+          {
+            "title": "トワイライト・グロース",
+            "page_url": "https://game8.jp/heavenburnsred/582608",
+            "image_url": "https://img.game8.jp/9156700/5c8cd4c162ad9d4749a32b012e11a0b0.png/show"
+          },
+          {
+            "title": "心、躍るFuel",
+            "page_url": "https://game8.jp/heavenburnsred/525186",
+            "image_url": "https://img.game8.jp/7972248/f410c45658b0a8d8211dde5dde5f3f34.png/show"
+          },
+          {
+            "title": "一夜の夢",
+            "page_url": "https://game8.jp/heavenburnsred/440931",
+            "image_url": "https://img.game8.jp/6731955/af786a5a76ad669c3112a0d596846cde.png/show"
+          },
+          {
+            "title": "Ikki Burst Strike",
+            "page_url": "https://game8.jp/heavenburnsred/426195",
+            "image_url": "https://img.game8.jp/6521810/bf021058e7a17df8a716b405a2bcd347.png/show"
+          },
+          {
+            "title": "Impact Stream",
+            "page_url": "https://game8.jp/heavenburnsred/426194",
+            "image_url": "https://img.game8.jp/6521808/e02417cb6af3274c6bf2b7b9c3901b05.png/show"
+          },
+          {
+            "title": "Plain or Wild",
+            "page_url": "https://game8.jp/heavenburnsred/426193",
+            "image_url": "https://img.game8.jp/6521812/d322728d001ef119320827d876bd0deb.png/show"
+          }
+        ]
+      },
+      "東城つかさ": {
+        "character": "東城つかさ",
+        "squad": "31A",
+        "page_url": "https://game8.jp/heavenburnsred/425651",
+        "image_url": "https://img.game8.jp/6483419/438f610131a16282b1e0f818b772f12d.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.450101,
+        "styles": [
+          {
+            "title": "哀情のラメント",
+            "page_url": "https://game8.jp/heavenburnsred/669859",
+            "image_url": "https://img.game8.jp/11063434/767796f421516f4f0806dee7d19e9c3a.png/show"
+          },
+          {
+            "title": "バニーファイト・デビエーション",
+            "page_url": "https://game8.jp/heavenburnsred/603245",
+            "image_url": "https://img.game8.jp/9866275/854c6f86c1e74445c72b7f476d532303.png/show"
+          },
+          {
+            "title": "シークレットサービス・サイレンス",
+            "page_url": "https://game8.jp/heavenburnsred/544799",
+            "image_url": "https://img.game8.jp/8544938/f64d3d03dff4c5aa466ac9234426dc30.png/show"
+          },
+          {
+            "title": "真夏のPrayer",
+            "page_url": "https://game8.jp/heavenburnsred/469574",
+            "image_url": "https://img.game8.jp/7089658/43645184ef2419ef205264e8b02bd7b9.png/show"
+          },
+          {
+            "title": "メメント・モリの美少女",
+            "page_url": "https://game8.jp/heavenburnsred/426197",
+            "image_url": "https://img.game8.jp/6521803/77a5ab3307db15b4e5efed3b6bec9757.png/show"
+          },
+          {
+            "title": "そよかぜ",
+            "page_url": "https://game8.jp/heavenburnsred/628232",
+            "image_url": "https://img.game8.jp/10274903/2f05342179725d59fb3579f504d3722c.png/show"
+          },
+          {
+            "title": "嗟歎のスリーパー",
+            "page_url": "https://game8.jp/heavenburnsred/438521",
+            "image_url": "https://img.game8.jp/6559548/6f1b93159a94e47148dee116711767d3.png/show"
+          },
+          {
+            "title": "Serious or Stupid",
+            "page_url": "https://game8.jp/heavenburnsred/426196",
+            "image_url": "https://img.game8.jp/6521815/6dc769dc52fb09a1f979df87aed40974.png/show"
+          }
+        ]
+      },
+      "朝倉可憐": {
+        "character": "朝倉可憐",
+        "squad": "31A",
+        "page_url": "https://game8.jp/heavenburnsred/425652",
+        "image_url": "https://img.game8.jp/6483421/7dfc2ccdb5cd0c22afd0c28014297658.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.450284,
+        "styles": [
+          {
+            "title": "CODE:Virtual Killer",
+            "page_url": "https://game8.jp/heavenburnsred/708980",
+            "image_url": "https://img.game8.jp/11656157/928e6ff5da71496febe35af747a88f91.webp/show"
+          },
+          {
+            "title": "Twinkle Eclosion",
+            "page_url": "https://game8.jp/heavenburnsred/757482",
+            "image_url": "https://img.game8.jp/12225802/4622f91a0c950a72cb4c598db01ef8e2.webp/show"
+          },
+          {
+            "title": "盛夏のシャーク・ザ・リッパー",
+            "page_url": "https://game8.jp/heavenburnsred/628231",
+            "image_url": "https://img.game8.jp/10272970/6085a942679d2b1722ade8d9c8d93575.png/show"
+          },
+          {
+            "title": "シークレットサービス・デモリッシュ",
+            "page_url": "https://game8.jp/heavenburnsred/544800",
+            "image_url": "https://img.game8.jp/8544939/fb60caf4871e0adb99a3bd66aacdb5a6.png/show"
+          },
+          {
+            "title": "スカーレット・リベリオン",
+            "page_url": "https://game8.jp/heavenburnsred/461169",
+            "image_url": "https://img.game8.jp/6933642/53157c26c261766f773cccd2d430d73c.png/show"
+          },
+          {
+            "title": "紅蓮月華のKillrazor",
+            "page_url": "https://game8.jp/heavenburnsred/426199",
+            "image_url": "https://img.game8.jp/6521809/6763ac826a40b7b1a5acb8679f11e5c7.png/show"
+          },
+          {
+            "title": "狂悖暴戻のランダムウォーク",
+            "page_url": "https://game8.jp/heavenburnsred/555410",
+            "image_url": "https://img.game8.jp/8789947/b8157c74328928785fc1e3bd5650eaa1.png/show"
+          },
+          {
+            "title": "最前線のブルワーク",
+            "page_url": "https://game8.jp/heavenburnsred/444575",
+            "image_url": "https://img.game8.jp/6727586/4f58da5734dfb9cd6737c5df2f5b12f5.png/show"
+          },
+          {
+            "title": "Laugh or Cry",
+            "page_url": "https://game8.jp/heavenburnsred/426198",
+            "image_url": "https://img.game8.jp/6521814/ca36ce61b7681c257f9d11a1100ad375.png/show"
+          }
+        ]
+      },
+      "國見タマ": {
+        "character": "國見タマ",
+        "squad": "31A",
+        "page_url": "https://game8.jp/heavenburnsred/425654",
+        "image_url": "https://img.game8.jp/6483422/be5335d31ef67a277811c24f8e410c54.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.45049,
+        "styles": [
+          {
+            "title": "ようこそ♪ナイトメア・パレード",
+            "page_url": "https://game8.jp/heavenburnsred/730675",
+            "image_url": "https://img.game8.jp/11868888/9cec9a41904d1d0995a1701747f52cef.webp/show"
+          },
+          {
+            "title": "トワイライト・メモリーズ",
+            "page_url": "https://game8.jp/heavenburnsred/582607",
+            "image_url": "https://img.game8.jp/9156701/e94cc3ad72a94d2715f606933317d9d9.png/show"
+          },
+          {
+            "title": "幻想のコーラル",
+            "page_url": "https://game8.jp/heavenburnsred/544117",
+            "image_url": "https://img.game8.jp/8505722/c53bbb226e5b1bf6e6d66e2ecd8804cc.png/show"
+          },
+          {
+            "title": "激突！！エア・ベース",
+            "page_url": "https://game8.jp/heavenburnsred/506307",
+            "image_url": "https://img.game8.jp/7602470/4e4a32866e6a36c638781c396c171167.png/show"
+          },
+          {
+            "title": "魔法の国のエレメンタル",
+            "page_url": "https://game8.jp/heavenburnsred/444386",
+            "image_url": "https://img.game8.jp/6731957/8afb67a668c0dfd7133a6720e24ca05b.png/show"
+          },
+          {
+            "title": "気合一閃エンジェルセイラー",
+            "page_url": "https://game8.jp/heavenburnsred/426202",
+            "image_url": "https://img.game8.jp/6521806/22c782fe4a55301c4ab6f03605784085.png/show"
+          },
+          {
+            "title": "戦ぐゆりかご",
+            "page_url": "https://game8.jp/heavenburnsred/622827",
+            "image_url": "https://img.game8.jp/10219420/55b31ddb7f849224267a769267d5d58b.png/show"
+          },
+          {
+            "title": "無邪気なデザイア",
+            "page_url": "https://game8.jp/heavenburnsred/468110",
+            "image_url": "https://img.game8.jp/7032067/43d6787a9f114f6b10227e9fb2bf8b6f.png/show"
+          },
+          {
+            "title": "ときめきアークライト",
+            "page_url": "https://game8.jp/heavenburnsred/426201",
+            "image_url": "https://img.game8.jp/6521800/6db34658c1a46c6585f337a196ef8c24.png/show"
+          },
+          {
+            "title": "Truth or Lies",
+            "page_url": "https://game8.jp/heavenburnsred/426200",
+            "image_url": "https://img.game8.jp/6521799/24552e43389d065b2926c5da3ee22175.png/show"
+          }
+        ]
+      },
+      "蒼井えりか": {
+        "character": "蒼井えりか",
+        "squad": "31B",
+        "page_url": "https://game8.jp/heavenburnsred/425655",
+        "image_url": "https://img.game8.jp/6483416/a56f3f35572e70f9344bf4c36feaa4b8.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.4508438,
+        "styles": [
+          {
+            "title": "ツナグ・Legacy",
+            "page_url": "https://game8.jp/heavenburnsred/756804",
+            "image_url": "https://img.game8.jp/12213479/3ae51076b9af61de0e4efc0204a228c7.webp/show"
+          },
+          {
+            "title": "ヒカル・Mermaid Vacation",
+            "page_url": "https://game8.jp/heavenburnsred/706660",
+            "image_url": "https://img.game8.jp/11572103/5068210b4e8d4ca058002380661c923c.webp/show"
+          },
+          {
+            "title": "ヒビケ・Battlecry",
+            "page_url": "https://game8.jp/heavenburnsred/652684",
+            "image_url": "https://img.game8.jp/10699305/96765452bcf48304038e016345897c97.png/show"
+          },
+          {
+            "title": "キララ・究極のアイドル",
+            "page_url": "https://game8.jp/heavenburnsred/585101",
+            "image_url": "https://img.game8.jp/9206033/64dc0e6781c43feb8d83f1d1b70031e6.png/show"
+          },
+          {
+            "title": "トドケ・Miracle",
+            "page_url": "https://game8.jp/heavenburnsred/526137",
+            "image_url": "https://img.game8.jp/8010211/389484cee2262ffba5f45ba49c7e6f51.png/show"
+          },
+          {
+            "title": "ココロ・Inspire",
+            "page_url": "https://game8.jp/heavenburnsred/468107",
+            "image_url": "https://img.game8.jp/7032065/5a587057704db203816bde08cc4aead2.png/show"
+          },
+          {
+            "title": "上達の手応え",
+            "page_url": "https://game8.jp/heavenburnsred/648707",
+            "image_url": "https://img.game8.jp/10651880/bd252d165593ee1763e4d807416d66a8.png/show"
+          },
+          {
+            "title": "セツナ・memory",
+            "page_url": "https://game8.jp/heavenburnsred/426204",
+            "image_url": "https://img.game8.jp/6523251/d45be10e15e684aebe4d8cf661304f3e.png/show"
+          },
+          {
+            "title": "戦場の花散らし",
+            "page_url": "https://game8.jp/heavenburnsred/426203",
+            "image_url": "https://img.game8.jp/6523248/e6cad37dff7896be8cdf4bb59ed271ac.png/show"
+          }
+        ]
+      },
+      "水瀬いちご": {
+        "character": "水瀬いちご",
+        "squad": "31B",
+        "page_url": "https://game8.jp/heavenburnsred/425656",
+        "image_url": "https://img.game8.jp/6483415/257ce5073ff3c04e70fe1705bf2e5049.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.450987,
+        "styles": [
+          {
+            "title": "熱闘！かっとばせホームラン！",
+            "page_url": "https://game8.jp/heavenburnsred/724681",
+            "image_url": "https://img.game8.jp/11847198/854bbf319124513639d55203f52700b8.webp/show"
+          },
+          {
+            "title": "冷艶なるサイレンスキラー",
+            "page_url": "https://game8.jp/heavenburnsred/648706",
+            "image_url": "https://img.game8.jp/10651870/e4a86c9317e90245c9e8968cdfbae5c7.png/show"
+          },
+          {
+            "title": "君の瞳にコロしてる",
+            "page_url": "https://game8.jp/heavenburnsred/585103",
+            "image_url": "https://img.game8.jp/9206034/792ffd2644ec47f9cb2d2ab257e78c42.png/show"
+          },
+          {
+            "title": "嬉々迫るフォール・イン・ラヴ",
+            "page_url": "https://game8.jp/heavenburnsred/442485",
+            "image_url": "https://img.game8.jp/6731956/00890e4ec0b16bcbc275d1e3c762b460.png/show"
+          },
+          {
+            "title": "キラメキ・サマートス",
+            "page_url": "https://game8.jp/heavenburnsred/700753",
+            "image_url": "https://img.game8.jp/11502983/fc0ada82870004135e7a3c7e073c108c.png/show"
+          },
+          {
+            "title": "あなたのために",
+            "page_url": "https://game8.jp/heavenburnsred/526138",
+            "image_url": "https://img.game8.jp/8010210/e6127ebefaedc5e8e37877d3ced9f05a.png/show"
+          },
+          {
+            "title": "戦場の華火",
+            "page_url": "https://game8.jp/heavenburnsred/426205",
+            "image_url": "https://img.game8.jp/6523253/017ef692bdd8b3e305ba3ec33467e615.png/show"
+          }
+        ]
+      },
+      "水瀬すもも": {
+        "character": "水瀬すもも",
+        "squad": "31B",
+        "page_url": "https://game8.jp/heavenburnsred/425657",
+        "image_url": "https://img.game8.jp/6483418/214500fe0529f33a8512d49782207dd8.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.451138,
+        "styles": [
+          {
+            "title": "いたずらブラックキャット",
+            "page_url": "https://game8.jp/heavenburnsred/730690",
+            "image_url": "https://img.game8.jp/11868885/7b6543eb934342abe6bb580c016cb460.webp/show"
+          },
+          {
+            "title": "愛憐の綻び",
+            "page_url": "https://game8.jp/heavenburnsred/648704",
+            "image_url": "https://img.game8.jp/10651873/662ecf6698c9ab569e21cfefd92113c5.png/show"
+          },
+          {
+            "title": "茹だるアサシン",
+            "page_url": "https://game8.jp/heavenburnsred/469575",
+            "image_url": "https://img.game8.jp/7089659/3f577d10af85041f974fce5bcae70138.png/show"
+          },
+          {
+            "title": "残光",
+            "page_url": "https://game8.jp/heavenburnsred/442487",
+            "image_url": "https://img.game8.jp/6732001/f8c74ee7e0eb98e0c87098ffa705aae7.png/show"
+          },
+          {
+            "title": "類は友を呼ぶ",
+            "page_url": "https://game8.jp/heavenburnsred/600351",
+            "image_url": "https://img.game8.jp/10672260/103d08fbce49ebb40b7840ce13030190.png/show"
+          },
+          {
+            "title": "積乱雲",
+            "page_url": "https://game8.jp/heavenburnsred/426207",
+            "image_url": "https://img.game8.jp/6523247/3c08691be72f90a477f8e7820989fcdb.png/show"
+          },
+          {
+            "title": "戦場の焔焔",
+            "page_url": "https://game8.jp/heavenburnsred/437600",
+            "image_url": "https://img.game8.jp/6523250/37845dc83fa3d8591bad21a6dc4c68cb.png/show"
+          }
+        ]
+      },
+      "樋口聖華": {
+        "character": "樋口聖華",
+        "squad": "31B",
+        "page_url": "https://game8.jp/heavenburnsred/425658",
+        "image_url": "https://img.game8.jp/6483417/d72f7413599db6190e243c2dd7ac5237.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.451282,
+        "styles": [
+          {
+            "title": "サンセット・ユートピア",
+            "page_url": "https://game8.jp/heavenburnsred/700752",
+            "image_url": "https://img.game8.jp/11502984/6aa79fb9a738be1f85c9aead88e82ead.png/show"
+          },
+          {
+            "title": "暁のカタルシス",
+            "page_url": "https://game8.jp/heavenburnsred/652687",
+            "image_url": "https://img.game8.jp/10699307/49b8221ff4fdb50e4ca68f1184eb485b.png/show"
+          },
+          {
+            "title": "宙の探究、星の眩耀",
+            "page_url": "https://game8.jp/heavenburnsred/491018",
+            "image_url": "https://img.game8.jp/7351816/c0b4cd71ba03102382985e1d78ab7eef.png/show"
+          },
+          {
+            "title": "生者のホメオスタシス",
+            "page_url": "https://game8.jp/heavenburnsred/426210",
+            "image_url": "https://img.game8.jp/6523246/7a9106ae8bddbfb64a1c8a6cba790586.png/show"
+          },
+          {
+            "title": "青春の発露",
+            "page_url": "https://game8.jp/heavenburnsred/585104",
+            "image_url": "https://img.game8.jp/9206035/7d02026d32348065893deac0086b1dc9.png/show"
+          },
+          {
+            "title": "或る少女の物語",
+            "page_url": "https://game8.jp/heavenburnsred/480770",
+            "image_url": "https://img.game8.jp/7228193/2c34334c4443692205d788b7edc8ce2b.png/show"
+          },
+          {
+            "title": "戦場の科学者",
+            "page_url": "https://game8.jp/heavenburnsred/426208",
+            "image_url": "https://img.game8.jp/6523249/3910e543869cc4df7441c8d8598ad1de.png/show"
+          }
+        ]
+      },
+      "柊木梢": {
+        "character": "柊木梢",
+        "squad": "31B",
+        "page_url": "https://game8.jp/heavenburnsred/425659",
+        "image_url": "https://img.game8.jp/6483423/653f3394961238daba1aff21ec003a58.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.451458,
+        "styles": [
+          {
+            "title": "プールサイド・モーメント",
+            "page_url": "https://game8.jp/heavenburnsred/700751",
+            "image_url": "https://img.game8.jp/11502981/328d5c7ce8bf3a4ec667074ea21b95f4.jpeg/show"
+          },
+          {
+            "title": "ホップ・ステップ・スリップ！",
+            "page_url": "https://game8.jp/heavenburnsred/600349",
+            "image_url": "https://img.game8.jp/9896297/5fdf244bea2dea065fa026df8f644bad.png/show"
+          },
+          {
+            "title": "終劇のナイトフォール",
+            "page_url": "https://game8.jp/heavenburnsred/491017",
+            "image_url": "https://img.game8.jp/7351817/e1adc03263b504b637eea4d699ab35fa.png/show"
+          },
+          {
+            "title": "蒼きノクターン",
+            "page_url": "https://game8.jp/heavenburnsred/461170",
+            "image_url": "https://img.game8.jp/6933641/1a2dd64c4aa4342b75ee817b36c1d246.png/show"
+          },
+          {
+            "title": "在りし日の雑踏",
+            "page_url": "https://game8.jp/heavenburnsred/442504",
+            "image_url": "https://img.game8.jp/6727587/551ffdffe530730d678007bcfc8e25e7.png/show"
+          },
+          {
+            "title": "戦場の聳動",
+            "page_url": "https://game8.jp/heavenburnsred/426211",
+            "image_url": "https://img.game8.jp/6523337/e308f6642be9dbc5dd7b6cacf36a0a54.png/show"
+          }
+        ]
+      },
+      "ビャッコ": {
+        "character": "ビャッコ",
+        "squad": "31B",
+        "page_url": "https://game8.jp/heavenburnsred/425660",
+        "image_url": "https://img.game8.jp/6483420/fcd84ed64b8e039879fb89c55230a026.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.451573,
+        "styles": [
+          {
+            "title": "のもけいしさや",
+            "page_url": "https://game8.jp/heavenburnsred/526136",
+            "image_url": "https://img.game8.jp/8010212/7434402a0a3a81ddbc49eef9094fe281.png/show"
+          },
+          {
+            "title": "レイジング・ビースト",
+            "page_url": "https://game8.jp/heavenburnsred/426226",
+            "image_url": "https://img.game8.jp/6523245/7fe28eb8d42f02c23bd60a8688ce07af.png/show"
+          },
+          {
+            "title": "うたたねビーチサイド",
+            "page_url": "https://game8.jp/heavenburnsred/706661",
+            "image_url": "https://img.game8.jp/11572106/c899c0fce35fcdb0bd6c416ee807577b.webp/show"
+          },
+          {
+            "title": "リラックスサイン",
+            "page_url": "https://game8.jp/heavenburnsred/491022",
+            "image_url": "https://img.game8.jp/7351902/1afeeab354e3ff832be3fefba92dd9cd.png/show"
+          },
+          {
+            "title": "戦場の哮り",
+            "page_url": "https://game8.jp/heavenburnsred/426212",
+            "image_url": "https://img.game8.jp/6543602/ce91e9c8ac6b5ea6a75c54d3812c818f.png/show"
+          }
+        ]
+      },
+      "山脇・ボン・イヴァール": {
+        "character": "山脇・ボン・イヴァール",
+        "squad": "31C",
+        "page_url": "https://game8.jp/heavenburnsred/425661",
+        "image_url": "https://img.game8.jp/6483521/f77364a2a63e4c39b532c7bde13b7c79.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.4520938,
+        "styles": [
+          {
+            "title": "誇り高き魔王の凱旋",
+            "page_url": "https://game8.jp/heavenburnsred/738525",
+            "image_url": "https://img.game8.jp/11992099/4ea81b9a1e71aa7a2b108f12969516dc.webp/show"
+          },
+          {
+            "title": "雲外蒼天",
+            "page_url": "https://game8.jp/heavenburnsred/669858",
+            "image_url": "https://img.game8.jp/11605630/9838882691a557d7575b1017e9a005c5.webp/show"
+          },
+          {
+            "title": "Daydream Believer",
+            "page_url": "https://game8.jp/heavenburnsred/594735",
+            "image_url": "https://img.game8.jp/9582925/963044b1ab28f2964e7ee09323050aa3.png/show"
+          },
+          {
+            "title": "Holy Knight",
+            "page_url": "https://game8.jp/heavenburnsred/504594",
+            "image_url": "https://img.game8.jp/7553576/61a9dcb57c3ac4f3ea828b3851111d57.png/show"
+          },
+          {
+            "title": "Ebon Knight",
+            "page_url": "https://game8.jp/heavenburnsred/440226",
+            "image_url": "https://img.game8.jp/6731959/eedfc98f26563d35f02c89e6d701b55f.png/show"
+          },
+          {
+            "title": "山脇様、ご乱心",
+            "page_url": "https://game8.jp/heavenburnsred/521566",
+            "image_url": "https://img.game8.jp/7915596/38e62adc832ccf3f5ff65b4621825a58.png/show"
+          },
+          {
+            "title": "魔王の帰還",
+            "page_url": "https://game8.jp/heavenburnsred/426228",
+            "image_url": "https://img.game8.jp/6525232/db4e1073291a6198c6d111dfa92d9160.png/show"
+          },
+          {
+            "title": "我が道を行く",
+            "page_url": "https://game8.jp/heavenburnsred/426227",
+            "image_url": "https://img.game8.jp/6525066/33be3573d7b5d5f7689debc9681b92d9.png/show"
+          }
+        ]
+      },
+      "桜庭星羅": {
+        "character": "桜庭星羅",
+        "squad": "31C",
+        "page_url": "https://game8.jp/heavenburnsred/425662",
+        "image_url": "https://img.game8.jp/6483530/a73b403fa38a6b9f03706aace638d819.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.452236,
+        "styles": [
+          {
+            "title": "魔王に仕えし幻影の大魔道士",
+            "page_url": "https://game8.jp/heavenburnsred/686333",
+            "image_url": "https://img.game8.jp/11305350/6d41c92a4475e5ff467da5a55a44466c.png/show"
+          },
+          {
+            "title": "Sanctuary Veil",
+            "page_url": "https://game8.jp/heavenburnsred/615280",
+            "image_url": "https://img.game8.jp/10133836/93e28e6b1564f0e847b7149f074d3442.png/show"
+          },
+          {
+            "title": "対決！！エア・ステージ",
+            "page_url": "https://game8.jp/heavenburnsred/506717",
+            "image_url": "https://img.game8.jp/7623311/dd457c69d817ed57f4d0c84824c838e2.png/show"
+          },
+          {
+            "title": "星の海、たゆたうフォーチュンテラー",
+            "page_url": "https://game8.jp/heavenburnsred/426230",
+            "image_url": "https://img.game8.jp/6528820/b5246bdd79de5fd69b0ff4ce195d64be.png/show"
+          },
+          {
+            "title": "今日のあなたの運勢は",
+            "page_url": "https://game8.jp/heavenburnsred/598333",
+            "image_url": "https://img.game8.jp/9736354/4c324ca17d07b94fe23cc44474689d63.png/show"
+          },
+          {
+            "title": "雨模様、心そうそう",
+            "page_url": "https://game8.jp/heavenburnsred/461171",
+            "image_url": "https://img.game8.jp/6933659/9fb852a027fa7ddc2f5e8d76fbe3a8f5.png/show"
+          },
+          {
+            "title": "クリスタルの導き",
+            "page_url": "https://game8.jp/heavenburnsred/437628",
+            "image_url": "https://img.game8.jp/6525041/353269d0a635b14ef2b36518f6a1071e.png/show"
+          }
+        ]
+      },
+      "天音巫呼": {
+        "character": "天音巫呼",
+        "squad": "31C",
+        "page_url": "https://game8.jp/heavenburnsred/425663",
+        "image_url": "https://img.game8.jp/6483519/baf05752554404e8a4ae6d68706c512a.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.452377,
+        "styles": [
+          {
+            "title": "魔王に仕えし冥界の死霊使い",
+            "page_url": "https://game8.jp/heavenburnsred/686332",
+            "image_url": "https://img.game8.jp/11305348/4a4669f1844f2d49a85dcdefc2871d48.png/show"
+          },
+          {
+            "title": "至高のひととき",
+            "page_url": "https://game8.jp/heavenburnsred/598332",
+            "image_url": "https://img.game8.jp/9736357/b00b99d5ffbe4ae2f8b0a1152087a219.png/show"
+          },
+          {
+            "title": "山脇様の手下：マジカルにゃん",
+            "page_url": "https://game8.jp/heavenburnsred/539113",
+            "image_url": "https://img.game8.jp/8246235/98856e31dd38de9d177caf830f01c2c4.png/show"
+          },
+          {
+            "title": "エクスペリメンタルなキミ",
+            "page_url": "https://game8.jp/heavenburnsred/426232",
+            "image_url": "https://img.game8.jp/6528819/40a70e3318f8d4eebe26539019e2f991.png/show"
+          },
+          {
+            "title": "薄闇に結ぶ調合式",
+            "page_url": "https://game8.jp/heavenburnsred/746400",
+            "image_url": "https://img.game8.jp/12037259/81c37c23f14e998aa7ae11d6def38d4a.webp/show"
+          },
+          {
+            "title": "夢浮橋辿る赤",
+            "page_url": "https://game8.jp/heavenburnsred/504598",
+            "image_url": "https://img.game8.jp/7553574/3e4062e535ab4d8b1afe1efd214a5e9a.png/show"
+          },
+          {
+            "title": "悠久渇望の魔術師",
+            "page_url": "https://game8.jp/heavenburnsred/426231",
+            "image_url": "https://img.game8.jp/6525038/f9a61e16b2260f20245a231c5fbb559a.png/show"
+          }
+        ]
+      },
+      "豊後弥生": {
+        "character": "豊後弥生",
+        "squad": "31C",
+        "page_url": "https://game8.jp/heavenburnsred/425664",
+        "image_url": "https://img.game8.jp/6483529/35d4c4fc8678ad53404da847cc6f4a4b.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.452516,
+        "styles": [
+          {
+            "title": "悪の軍団進軍開始でゲス！",
+            "page_url": "https://game8.jp/heavenburnsred/683118",
+            "image_url": "https://img.game8.jp/11601627/f232b9c3ce69ca258221d1a9453928ed.webp/show"
+          },
+          {
+            "title": "お花見怪人クシダンゴ",
+            "page_url": "https://game8.jp/heavenburnsred/598331",
+            "image_url": "https://img.game8.jp/9736356/6436f82047b7a0752513e90c2cd7225c.png/show"
+          },
+          {
+            "title": "Happy Legion",
+            "page_url": "https://game8.jp/heavenburnsred/504597",
+            "image_url": "https://img.game8.jp/7553575/bb5e8f46db9b67aa192df00050291101.png/show"
+          },
+          {
+            "title": "夜空のShining Star",
+            "page_url": "https://game8.jp/heavenburnsred/426236",
+            "image_url": "https://img.game8.jp/6525065/21e02edb0c45140dd09c20a3bc9720b1.png/show"
+          },
+          {
+            "title": "あちきと愉快な仲間たち",
+            "page_url": "https://game8.jp/heavenburnsred/686335",
+            "image_url": "https://img.game8.jp/11305347/5bf082603590dd00917de14b10eb93fd.jpeg/show"
+          },
+          {
+            "title": "手のひらのパーフェクション",
+            "page_url": "https://game8.jp/heavenburnsred/426234",
+            "image_url": "https://img.game8.jp/6525057/947c7e4798b275ce3bfcc0490c8a3c4c.png/show"
+          },
+          {
+            "title": "カニ手の使い魔",
+            "page_url": "https://game8.jp/heavenburnsred/426233",
+            "image_url": "https://img.game8.jp/6525189/ff8cc5e92a3e83890fc9b750294a014c.png/show"
+          }
+        ]
+      },
+      "神崎アーデルハイド": {
+        "character": "神崎アーデルハイド",
+        "squad": "31C",
+        "page_url": "https://game8.jp/heavenburnsred/425665",
+        "image_url": "https://img.game8.jp/6483522/f5ccbe78b8b027242f26e5674e4987ea.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.452655,
+        "styles": [
+          {
+            "title": "魔王に仕えし災禍の魔獣使い",
+            "page_url": "https://game8.jp/heavenburnsred/749659",
+            "image_url": "https://img.game8.jp/12093018/b80f16fb5a46d2712a405a8bfb4b3635.webp/show"
+          },
+          {
+            "title": "向日葵",
+            "page_url": "https://game8.jp/heavenburnsred/622825",
+            "image_url": "https://img.game8.jp/10209989/2e8e548dee098c8ad54994ec768480ae.png/show"
+          },
+          {
+            "title": "少女の休息",
+            "page_url": "https://game8.jp/heavenburnsred/563543",
+            "image_url": "https://img.game8.jp/8896960/9e06efae7f3d0e73a3da9c999dc5f50f.png/show"
+          },
+          {
+            "title": "氷花のHexerei",
+            "page_url": "https://game8.jp/heavenburnsred/521564",
+            "image_url": "https://img.game8.jp/7915594/ee09c62b0f27f9d1838251ec3267aea5.png/show"
+          },
+          {
+            "title": "ごちゃまぜ忍法大乱闘",
+            "page_url": "https://game8.jp/heavenburnsred/463907",
+            "image_url": "https://img.game8.jp/6954017/d6910340a2a111ba59cae3fd81785255.png/show"
+          },
+          {
+            "title": "微光の兆し",
+            "page_url": "https://game8.jp/heavenburnsred/438550",
+            "image_url": "https://img.game8.jp/6727588/16642f27e1a4982aa919a367533188a1.png/show"
+          },
+          {
+            "title": "蒼落の忍び",
+            "page_url": "https://game8.jp/heavenburnsred/426238",
+            "image_url": "https://img.game8.jp/6525050/d1062f805c2bc38370d0abad01a5b332.png/show"
+          }
+        ]
+      },
+      "佐月マリ": {
+        "character": "佐月マリ",
+        "squad": "31C",
+        "page_url": "https://game8.jp/heavenburnsred/425666",
+        "image_url": "https://img.game8.jp/6483527/c2cbeabfb60c9bdbca79c69161bc07f2.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.452815,
+        "styles": [
+          {
+            "title": "魔王に仕えし混沌の謀臣",
+            "page_url": "https://game8.jp/heavenburnsred/712353",
+            "image_url": "https://img.game8.jp/11695750/220381a7b35e70b0c8199bbba4c2e3c6.webp/show"
+          },
+          {
+            "title": "ハイアー・アズ・ザ・サン",
+            "page_url": "https://game8.jp/heavenburnsred/622824",
+            "image_url": "https://img.game8.jp/10209988/59bf324573a5c4acb3318fe87a933321.png/show"
+          },
+          {
+            "title": "Crying Tears",
+            "page_url": "https://game8.jp/heavenburnsred/537845",
+            "image_url": "https://img.game8.jp/8221059/ff11ee674cf0a2000a1a2c698c8f7863.png/show"
+          },
+          {
+            "title": "アサシン忍法大繁盛",
+            "page_url": "https://game8.jp/heavenburnsred/521565",
+            "image_url": "https://img.game8.jp/7915595/3a2b3ac82e372f5b23397ea536aa8ad4.png/show"
+          },
+          {
+            "title": "甘美のMuzzle",
+            "page_url": "https://game8.jp/heavenburnsred/438518",
+            "image_url": "https://img.game8.jp/6559549/558efeafca7ae47e6e00b7b9c9e0137b.png/show"
+          },
+          {
+            "title": "プライスレス・スマイル",
+            "page_url": "https://game8.jp/heavenburnsred/749669",
+            "image_url": "https://img.game8.jp/12093019/2ef38258f44a56844fa410bee1b1a28e.webp/show"
+          },
+          {
+            "title": "はにかむ、心かき集め",
+            "page_url": "https://game8.jp/heavenburnsred/506308",
+            "image_url": "https://img.game8.jp/7603279/ef915c1a692bb39c09bfcab02a3f28a4.png/show"
+          },
+          {
+            "title": "ビジネスとスマイル",
+            "page_url": "https://game8.jp/heavenburnsred/426239",
+            "image_url": "https://img.game8.jp/6525067/c150260a17f56ab0bad28c8122691016.png/show"
+          }
+        ]
+      },
+      "二階堂三郷": {
+        "character": "二階堂三郷",
+        "squad": "31D",
+        "page_url": "https://game8.jp/heavenburnsred/425667",
+        "image_url": "https://img.game8.jp/6483153/9b0e886387350fbb7ee752543ef0474a.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.453045,
+        "styles": [
+          {
+            "title": "Lead by Example",
+            "page_url": "https://game8.jp/heavenburnsred/667355",
+            "image_url": "https://img.game8.jp/11605626/0a7388b17da7b94e9c3d8bfb0d5a3ffe.webp/show"
+          },
+          {
+            "title": "Holiday Ring a Bell",
+            "page_url": "https://game8.jp/heavenburnsred/579586",
+            "image_url": "https://img.game8.jp/9087371/d33c67ecc80f1ed281035c3c4ac2f49d.png/show"
+          },
+          {
+            "title": "無上の終局",
+            "page_url": "https://game8.jp/heavenburnsred/446458",
+            "image_url": "https://img.game8.jp/6691786/97a40084ab895f5f97fe79e868726157.png/show"
+          },
+          {
+            "title": "スイート・メロウタイム",
+            "page_url": "https://game8.jp/heavenburnsred/609591",
+            "image_url": "https://img.game8.jp/10044421/66439b8325cffedbf8425f1a30e63c57.png/show"
+          },
+          {
+            "title": "今昔の感、想いは徃きて",
+            "page_url": "https://game8.jp/heavenburnsred/466993",
+            "image_url": "https://img.game8.jp/6989011/c87a1518023ae1868839944faa5c7699.png/show"
+          },
+          {
+            "title": "最年少名人",
+            "page_url": "https://game8.jp/heavenburnsred/426240",
+            "image_url": "https://img.game8.jp/6525042/4033fe1eedd9b1ea3c46f048bd00d411.png/show"
+          }
+        ]
+      },
+      "石井色葉": {
+        "character": "石井色葉",
+        "squad": "31D",
+        "page_url": "https://game8.jp/heavenburnsred/425668",
+        "image_url": "https://img.game8.jp/6483163/38c2f4b63b824858b2bc27561d34f217.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.453173,
+        "styles": [
+          {
+            "title": "ハピネス・クロマ",
+            "page_url": "https://game8.jp/heavenburnsred/697860",
+            "image_url": "https://img.game8.jp/11462879/eca9b9a1347e3ce3a87f5503b294424b.jpeg/show"
+          },
+          {
+            "title": "センシティビティ・オーバーフロー",
+            "page_url": "https://game8.jp/heavenburnsred/654826",
+            "image_url": "https://img.game8.jp/10747745/42593d2d2f5c40a38c2b68079d416ddf.png/show"
+          },
+          {
+            "title": "撃砕の無彩色",
+            "page_url": "https://game8.jp/heavenburnsred/487220",
+            "image_url": "https://img.game8.jp/7319344/a137496360df2477f31496e7ceab0c77.png/show"
+          },
+          {
+            "title": "ピュア・エモーション",
+            "page_url": "https://game8.jp/heavenburnsred/540933",
+            "image_url": "https://img.game8.jp/8402622/6acace6704767b1f69b83b0e7d601ae4.png/show"
+          },
+          {
+            "title": "多彩なるインスピレーション",
+            "page_url": "https://game8.jp/heavenburnsred/426242",
+            "image_url": "https://img.game8.jp/6525046/2f7d896126cdbedfad4c1455e0c9a5d5.png/show"
+          },
+          {
+            "title": "お気楽カラフル",
+            "page_url": "https://game8.jp/heavenburnsred/426241",
+            "image_url": "https://img.game8.jp/6525036/30a0ae75d3e52e38dea3239f7e50ae46.png/show"
+          }
+        ]
+      },
+      "命吹雪": {
+        "character": "命吹雪",
+        "squad": "31D",
+        "page_url": "https://game8.jp/heavenburnsred/425669",
+        "image_url": "https://img.game8.jp/6483154/98809ffcacdfd12ec174cc3e2b6bdb26.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.4532669,
+        "styles": [
+          {
+            "title": "Frozen Moon, Melting Heart",
+            "page_url": "https://game8.jp/heavenburnsred/656748",
+            "image_url": "https://img.game8.jp/10787891/b5743bd4036f28383eb94087342d294c.png/show"
+          },
+          {
+            "title": "終末なにする？",
+            "page_url": "https://game8.jp/heavenburnsred/519394",
+            "image_url": "https://img.game8.jp/7860694/a8bd6e5edc9ae41700860ebcbc4398b8.png/show"
+          },
+          {
+            "title": "Silent Reverberations",
+            "page_url": "https://game8.jp/heavenburnsred/539114",
+            "image_url": "https://img.game8.jp/8246236/9860000b6a3ee97c5f9b896912853ac0.png/show"
+          },
+          {
+            "title": "Metal Crazy",
+            "page_url": "https://game8.jp/heavenburnsred/426243",
+            "image_url": "https://img.game8.jp/6525063/34c579a6036846469b3c3d957a372353.png/show"
+          }
+        ]
+      },
+      "室伏理沙": {
+        "character": "室伏理沙",
+        "squad": "31D",
+        "page_url": "https://game8.jp/heavenburnsred/425670",
+        "image_url": "https://img.game8.jp/6483161/1d0120defa8dd78812b9b8f22402eb9d.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.4534059,
+        "styles": [
+          {
+            "title": "今宵、花明かりの下で",
+            "page_url": "https://game8.jp/heavenburnsred/663244",
+            "image_url": "https://img.game8.jp/10934944/dd99b4980fd3cb89fe8907122331d360.png/show"
+          },
+          {
+            "title": "潜入、笑顔で技術交流会",
+            "page_url": "https://game8.jp/heavenburnsred/539112",
+            "image_url": "https://img.game8.jp/8246234/c8a986447903956f11a7be7ad62592b7.png/show"
+          },
+          {
+            "title": "早くおうちに帰りましょ",
+            "page_url": "https://game8.jp/heavenburnsred/487221",
+            "image_url": "https://img.game8.jp/7319349/3e9c9ca0aa4cd5dd11490a48860ce6b7.png/show"
+          },
+          {
+            "title": "ハートフルデイズ",
+            "page_url": "https://game8.jp/heavenburnsred/654827",
+            "image_url": "https://img.game8.jp/10747793/5320fb0c9a5d9f0e8e92af813391b201.png/show"
+          },
+          {
+            "title": "あまいろの花",
+            "page_url": "https://game8.jp/heavenburnsred/528631",
+            "image_url": "https://img.game8.jp/8079846/96fd22d9a085a98e50ede98e578f4ce0.png/show"
+          },
+          {
+            "title": "痛いの痛いの飛んでけ〜",
+            "page_url": "https://game8.jp/heavenburnsred/426245",
+            "image_url": "https://img.game8.jp/6525059/dcbb94b5304407dae74a1f200b2b9eea.png/show"
+          },
+          {
+            "title": "親愛のレシーバー",
+            "page_url": "https://game8.jp/heavenburnsred/426244",
+            "image_url": "https://img.game8.jp/6525044/3e33c954add18b53c278d3a4be47e890.png/show"
+          }
+        ]
+      },
+      "伊達朱里": {
+        "character": "伊達朱里",
+        "squad": "31D",
+        "page_url": "https://game8.jp/heavenburnsred/425671",
+        "image_url": "https://img.game8.jp/6483156/b0a7e2532e7c0ee8c52b9a98c07d3ac2.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.453511,
+        "styles": [
+          {
+            "title": "幸運ふゆうらら",
+            "page_url": "https://game8.jp/heavenburnsred/663246",
+            "image_url": "https://img.game8.jp/10934947/cbd93406597fa7bba8f9cacb056610e7.png/show"
+          },
+          {
+            "title": "Holiday Star Night",
+            "page_url": "https://game8.jp/heavenburnsred/579583",
+            "image_url": "https://img.game8.jp/9087369/9704f3ed9a713b3b848268480eabeee6.png/show"
+          },
+          {
+            "title": "テニスコートの悪魔",
+            "page_url": "https://game8.jp/heavenburnsred/540932",
+            "image_url": "https://img.game8.jp/8402620/4c3d1147f736e4d4003c0a37c7901f43.png/show"
+          },
+          {
+            "title": "マーベルアプローチ",
+            "page_url": "https://game8.jp/heavenburnsred/446550",
+            "image_url": "https://img.game8.jp/6692749/32f7bbea52e8473014f490da8fb8f537.png/show"
+          },
+          {
+            "title": "ネガティブエース",
+            "page_url": "https://game8.jp/heavenburnsred/426246",
+            "image_url": "https://img.game8.jp/6525048/97556e10361938795c52b4410a958ac5.png/show"
+          }
+        ]
+      },
+      "瑞原あいな": {
+        "character": "瑞原あいな",
+        "squad": "31D",
+        "page_url": "https://game8.jp/heavenburnsred/425672",
+        "image_url": "https://img.game8.jp/6483164/1581075292fcc4a911674a58c458c8a6.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.45366,
+        "styles": [
+          {
+            "title": "キラキラサマーへ、ジャンプイン！",
+            "page_url": "https://game8.jp/heavenburnsred/712350",
+            "image_url": "https://img.game8.jp/11695752/c98e0728e936caa350a48a649ecebd39.webp/show"
+          },
+          {
+            "title": "溟海に捧ぐアフェクション",
+            "page_url": "https://game8.jp/heavenburnsred/654825",
+            "image_url": "https://img.game8.jp/10747746/870d9ec0ccd045717be1a915d2023de5.png/show"
+          },
+          {
+            "title": "ラッシュ！スタブ！ツナ！",
+            "page_url": "https://game8.jp/heavenburnsred/609589",
+            "image_url": "https://img.game8.jp/10044411/ac7f89d5a43b2568990c529bf726ca44.png/show"
+          },
+          {
+            "title": "ロックアップオルカ",
+            "page_url": "https://game8.jp/heavenburnsred/528630",
+            "image_url": "https://img.game8.jp/8079845/c7ca7228d421bbb94686a9e97dbb7417.png/show"
+          },
+          {
+            "title": "奥深い味わいを",
+            "page_url": "https://game8.jp/heavenburnsred/579587",
+            "image_url": "https://img.game8.jp/9087372/c5b5c9a971dd4a7ce874143d04c1066e.png/show"
+          },
+          {
+            "title": "アビスからの誘い",
+            "page_url": "https://game8.jp/heavenburnsred/487222",
+            "image_url": "https://img.game8.jp/7319366/2c78ef2ed6e142b14b056245c735b353.png/show"
+          },
+          {
+            "title": "深き海の学び手",
+            "page_url": "https://game8.jp/heavenburnsred/426247",
+            "image_url": "https://img.game8.jp/6525043/7bb3a69a7e29355acc72be228df69a53.png/show"
+          }
+        ]
+      },
+      "大島一千子": {
+        "character": "大島一千子",
+        "squad": "31E",
+        "page_url": "https://game8.jp/heavenburnsred/425673",
+        "image_url": "https://img.game8.jp/6483162/9af17c49d560300d0e305f7bae085944.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.4538932,
+        "styles": [
+          {
+            "title": "導きのルーセント",
+            "page_url": "https://game8.jp/heavenburnsred/677349",
+            "image_url": "https://img.game8.jp/11605628/35d05282b6fbd7670503494ba1f8ece8.webp/show"
+          },
+          {
+            "title": "Sweet Phantasy",
+            "page_url": "https://game8.jp/heavenburnsred/537846",
+            "image_url": "https://img.game8.jp/8221060/48f8d67a859bf93edae9edcac8d2f8a7.png/show"
+          },
+          {
+            "title": "果てなき慈愛の守護者",
+            "page_url": "https://game8.jp/heavenburnsred/463894",
+            "image_url": "https://img.game8.jp/6954016/c5b1dcc70528f8e2702a42fca9d69a2d.png/show"
+          },
+          {
+            "title": "Sisters First",
+            "page_url": "https://game8.jp/heavenburnsred/640071",
+            "image_url": "https://img.game8.jp/10651878/cad6b4b4a088b75819cf599bd9849362.png/show"
+          },
+          {
+            "title": "同床異夢明けて",
+            "page_url": "https://game8.jp/heavenburnsred/519395",
+            "image_url": "https://img.game8.jp/7860695/dc52b1dd5e189de92729732e0dba6f48.png/show"
+          },
+          {
+            "title": "一千子の抱擁",
+            "page_url": "https://game8.jp/heavenburnsred/426248",
+            "image_url": "https://img.game8.jp/6525040/2c02e2781b482180a13db5f709abf0f8.png/show"
+          }
+        ]
+      },
+      "大島二以奈": {
+        "character": "大島二以奈",
+        "squad": "31E",
+        "page_url": "https://game8.jp/heavenburnsred/425674",
+        "image_url": "https://img.game8.jp/6483158/1eff11d5eec3e61513ab14015239611c.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.454018,
+        "styles": [
+          {
+            "title": "渚のピュアメモリー",
+            "page_url": "https://game8.jp/heavenburnsred/705728",
+            "image_url": "https://img.game8.jp/11550567/d66a2a1f97d6727d0100ee6fadf3e727.webp/show"
+          },
+          {
+            "title": "心緒、昂る温泉郷",
+            "page_url": "https://game8.jp/heavenburnsred/558812",
+            "image_url": "https://img.game8.jp/8834792/c020fd4e0eb2834d098f056aeca493fa.png/show"
+          },
+          {
+            "title": "Brand New Mind",
+            "page_url": "https://game8.jp/heavenburnsred/493458",
+            "image_url": "https://img.game8.jp/7446710/7257a189159fd8a13fd88c287e0a9041.png/show"
+          },
+          {
+            "title": "戸惑いの波際",
+            "page_url": "https://game8.jp/heavenburnsred/517817",
+            "image_url": "https://img.game8.jp/7829255/9a69dd50c2c0535673a3edb74a54f497.png/show"
+          },
+          {
+            "title": "戦線キャットウォーク",
+            "page_url": "https://game8.jp/heavenburnsred/426250",
+            "image_url": "https://img.game8.jp/6525058/4b1589176d69ccb2f107cb54abe37556.png/show"
+          },
+          {
+            "title": "二以奈の気品",
+            "page_url": "https://game8.jp/heavenburnsred/426249",
+            "image_url": "https://img.game8.jp/6525051/de5635191818d2580c09090710bc159e.png/show"
+          }
+        ]
+      },
+      "大島三野里": {
+        "character": "大島三野里",
+        "squad": "31E",
+        "page_url": "https://game8.jp/heavenburnsred/425675",
+        "image_url": "https://img.game8.jp/6483159/aff40a3c319ca9518af7ca893b2483c0.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.454155,
+        "styles": [
+          {
+            "title": "ミッドナイト・プレリュード",
+            "page_url": "https://game8.jp/heavenburnsred/735061",
+            "image_url": "https://img.game8.jp/11932094/86b86d14e33719cae38e1e0642dc9d1a.webp/show"
+          },
+          {
+            "title": "満艦飾の花乙女",
+            "page_url": "https://game8.jp/heavenburnsred/640070",
+            "image_url": "https://img.game8.jp/10552338/8367974929ea4c9fb07edbba420c1a0f.png/show"
+          },
+          {
+            "title": "Realize Your Mind",
+            "page_url": "https://game8.jp/heavenburnsred/493459",
+            "image_url": "https://img.game8.jp/7446711/1396006efa3ebfa8435e8abf1b5584bf.png/show"
+          },
+          {
+            "title": "ぼくの相棒",
+            "page_url": "https://game8.jp/heavenburnsred/677350",
+            "image_url": "https://img.game8.jp/11180064/bf5cdf62287e06427e9d480584a76c76.png/show"
+          },
+          {
+            "title": "韋駄天配達人",
+            "page_url": "https://game8.jp/heavenburnsred/426252",
+            "image_url": "https://img.game8.jp/6525234/c61a16ec19bfb5e4ceff9dd12b1af940.png/show"
+          },
+          {
+            "title": "三野里の疾走",
+            "page_url": "https://game8.jp/heavenburnsred/426251",
+            "image_url": "https://img.game8.jp/6525194/635408725456d7dda1c77ef695decfb5.png/show"
+          }
+        ]
+      },
+      "大島四ツ葉": {
+        "character": "大島四ツ葉",
+        "squad": "31E",
+        "page_url": "https://game8.jp/heavenburnsred/425676",
+        "image_url": "https://img.game8.jp/6483155/03fa696db67392273842b72deb7a6cc5.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.454304,
+        "styles": [
+          {
+            "title": "ゆるりたゆたう湯道楽",
+            "page_url": "https://game8.jp/heavenburnsred/687800",
+            "image_url": "https://img.game8.jp/11364782/184d777dbb1b2ab2a63a8734d292f6b3.png/show"
+          },
+          {
+            "title": "ぐうたらパジャマナイト",
+            "page_url": "https://game8.jp/heavenburnsred/585689",
+            "image_url": "https://img.game8.jp/9271194/14f041976729f8965ab7dce4dbc202d0.png/show"
+          },
+          {
+            "title": "破られたアンニュイ",
+            "page_url": "https://game8.jp/heavenburnsred/517816",
+            "image_url": "https://img.game8.jp/7829254/45cac7d62686ec197e621bcb258058c8.png/show"
+          },
+          {
+            "title": "ふわりフリーダム",
+            "page_url": "https://game8.jp/heavenburnsred/735063",
+            "image_url": "https://img.game8.jp/11932092/abbabe80428e9d14b28490ea039419bf.webp/show"
+          },
+          {
+            "title": "Lollipop Break",
+            "page_url": "https://game8.jp/heavenburnsred/464146",
+            "image_url": "https://img.game8.jp/6954341/8316ef29eb9bb945312ae3ebdf5594e4.png/show"
+          },
+          {
+            "title": "四ツ葉の倦怠",
+            "page_url": "https://game8.jp/heavenburnsred/426253",
+            "image_url": "https://img.game8.jp/6525056/59532f094867b8a8d6774cb5e5146401.png/show"
+          }
+        ]
+      },
+      "大島五十鈴": {
+        "character": "大島五十鈴",
+        "squad": "31E",
+        "page_url": "https://game8.jp/heavenburnsred/425677",
+        "image_url": "https://img.game8.jp/6483157/8b5ec34d3315bbffab3894fe30020995.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.454438,
+        "styles": [
+          {
+            "title": "夜語りのひとしずく",
+            "page_url": "https://game8.jp/heavenburnsred/735062",
+            "image_url": "https://img.game8.jp/11932093/9e692756d250c1007023036446a78cf4.webp/show"
+          },
+          {
+            "title": "Magic of Smile",
+            "page_url": "https://game8.jp/heavenburnsred/640069",
+            "image_url": "https://img.game8.jp/10552339/c1efce808e6c7e8e1eb887a92307dc76.png/show"
+          },
+          {
+            "title": "湯上がり夢現郷",
+            "page_url": "https://game8.jp/heavenburnsred/558813",
+            "image_url": "https://img.game8.jp/8834791/7a3e98292f573168156ace4b61ba6e8b.png/show"
+          },
+          {
+            "title": "勝利への鍵",
+            "page_url": "https://game8.jp/heavenburnsred/466992",
+            "image_url": "https://img.game8.jp/6989007/07c5b8f5bf3ed32e2ad9c745152019ce.png/show"
+          },
+          {
+            "title": "ピースフルフレーバー",
+            "page_url": "https://game8.jp/heavenburnsred/493460",
+            "image_url": "https://img.game8.jp/7446709/ceb76a817445c81ceb38c7e018a9571d.png/show"
+          },
+          {
+            "title": "五十鈴の秘密",
+            "page_url": "https://game8.jp/heavenburnsred/426254",
+            "image_url": "https://img.game8.jp/6525047/1fa89b32a3df507bf1d465afb9152512.png/show"
+          }
+        ]
+      },
+      "大島六宇亜": {
+        "character": "大島六宇亜",
+        "squad": "31E",
+        "page_url": "https://game8.jp/heavenburnsred/425678",
+        "image_url": "https://img.game8.jp/6483160/7fb44e49334c4b5577b0121578cc9759.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.454561,
+        "styles": [
+          {
+            "title": "さざなみ・フィールグッド",
+            "page_url": "https://game8.jp/heavenburnsred/705732",
+            "image_url": "https://img.game8.jp/11550570/345aa4d7a3fe490fbd61feb17b20415b.webp/show"
+          },
+          {
+            "title": "早春向かい風",
+            "page_url": "https://game8.jp/heavenburnsred/585690",
+            "image_url": "https://img.game8.jp/9271198/e337993e755d629f8577a2206ca00dd8.png/show"
+          },
+          {
+            "title": "ピンチで最高",
+            "page_url": "https://game8.jp/heavenburnsred/517815",
+            "image_url": "https://img.game8.jp/7829253/010d78e8cfac00ded3330fc28a49ed2d.png/show"
+          },
+          {
+            "title": "グルーヴィーなロール",
+            "page_url": "https://game8.jp/heavenburnsred/558815",
+            "image_url": "https://img.game8.jp/8834804/a9c3a966b7be30d42f659ccd569ac0f6.png/show"
+          },
+          {
+            "title": "疾走エクスタシー",
+            "page_url": "https://game8.jp/heavenburnsred/446472",
+            "image_url": "https://img.game8.jp/6691787/ea7c463ab8fc950d885a156b681887bb.png/show"
+          },
+          {
+            "title": "六宇亜の陶酔",
+            "page_url": "https://game8.jp/heavenburnsred/426255",
+            "image_url": "https://img.game8.jp/6525069/4139195c425de5e0564bb8182179cc60.png/show"
+          }
+        ]
+      },
+      "柳美音": {
+        "character": "柳美音",
+        "squad": "31F",
+        "page_url": "https://game8.jp/heavenburnsred/425679",
+        "image_url": "https://img.game8.jp/6483331/5ba5664dd95a32191ea34c8794899ecd.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.4547682,
+        "styles": [
+          {
+            "title": "夜の香り、薔薇の調べ",
+            "page_url": "https://game8.jp/heavenburnsred/692830",
+            "image_url": "https://img.game8.jp/11605624/6c6f58bf4a4aa44475df208131eabead.webp/show"
+          },
+          {
+            "title": "夜風のChill Time",
+            "page_url": "https://game8.jp/heavenburnsred/548993",
+            "image_url": "https://img.game8.jp/8691853/3e688b83fb544b6ecab7874c78a41f0e.png/show"
+          },
+          {
+            "title": "Wild Rose",
+            "page_url": "https://game8.jp/heavenburnsred/457127",
+            "image_url": "https://img.game8.jp/6850290/50d99564972266cd57d21bbfaf7da7f0.png/show"
+          },
+          {
+            "title": "執事の嗜み",
+            "page_url": "https://game8.jp/heavenburnsred/634934",
+            "image_url": "https://img.game8.jp/10421343/4589345927eca828f5ac257c43f03705.png/show"
+          },
+          {
+            "title": "滅私奉公のトラスト",
+            "page_url": "https://game8.jp/heavenburnsred/426257",
+            "image_url": "https://img.game8.jp/6525061/d26bef94abb15709d8362bb958652d6c.png/show"
+          },
+          {
+            "title": "ロイヤルバトラー",
+            "page_url": "https://game8.jp/heavenburnsred/437625",
+            "image_url": "https://img.game8.jp/6525192/762ff0ab144a1d520efb62a758916508.png/show"
+          }
+        ]
+      },
+      "丸山奏多": {
+        "character": "丸山奏多",
+        "squad": "31F",
+        "page_url": "https://game8.jp/heavenburnsred/425681",
+        "image_url": "https://img.game8.jp/6483329/4c8b4061592425b3e8b6ca814d57751d.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.454911,
+        "styles": [
+          {
+            "title": "決起のレガリア",
+            "page_url": "https://game8.jp/heavenburnsred/746396",
+            "image_url": "https://img.game8.jp/12037257/53334696cca7db0e558e624cf366a6d4.webp/show"
+          },
+          {
+            "title": "スマイリー・ブルーム",
+            "page_url": "https://game8.jp/heavenburnsred/609590",
+            "image_url": "https://img.game8.jp/10044409/23247c9c6f2b3ab73a87cff12ddcb7d7.png/show"
+          },
+          {
+            "title": "エボリューションな感受性",
+            "page_url": "https://game8.jp/heavenburnsred/457125",
+            "image_url": "https://img.game8.jp/6850289/aa744ecd090a026f1bdb9048b374d7d2.png/show"
+          },
+          {
+            "title": "チェックメイトは敗北の味",
+            "page_url": "https://game8.jp/heavenburnsred/687801",
+            "image_url": "https://img.game8.jp/11365415/98ddc15b34541711f775d80e09d41c74.png/show"
+          },
+          {
+            "title": "木漏れ日の庭",
+            "page_url": "https://game8.jp/heavenburnsred/547012",
+            "image_url": "https://img.game8.jp/8588685/b8f61532f33cf34d37a442729c0282a6.png/show"
+          },
+          {
+            "title": "お嬢様は端麗",
+            "page_url": "https://game8.jp/heavenburnsred/499854",
+            "image_url": "https://img.game8.jp/7496050/d5707357c2a318451eb7a8c352da3114.png/show"
+          },
+          {
+            "title": "リトルハイセンス",
+            "page_url": "https://game8.jp/heavenburnsred/426258",
+            "image_url": "https://img.game8.jp/6525052/ae0c6a2a82b5b31bc8c09a04de537890.png/show"
+          }
+        ]
+      },
+      "華村詩紀": {
+        "character": "華村詩紀",
+        "squad": "31F",
+        "page_url": "https://game8.jp/heavenburnsred/425682",
+        "image_url": "https://img.game8.jp/6483332/a71e6db5dfa01fafcbf858fcded7a895.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455007,
+        "styles": [
+          {
+            "title": "再耀のカンタービレ",
+            "page_url": "https://game8.jp/heavenburnsred/656747",
+            "image_url": "https://img.game8.jp/10787890/06e89b0350861e2654eb1d64a4d993b9.png/show"
+          },
+          {
+            "title": "君のUnisono",
+            "page_url": "https://game8.jp/heavenburnsred/480767",
+            "image_url": "https://img.game8.jp/7228131/ecdc5c6ce9aa9b377ae77ab525dad4bc.png/show"
+          },
+          {
+            "title": "木漏れ日のソナタ",
+            "page_url": "https://game8.jp/heavenburnsred/426261",
+            "image_url": "https://img.game8.jp/6525205/270a4df870c58b76815e8151ccbccf68.png/show"
+          },
+          {
+            "title": "アバンチュールコンダクター",
+            "page_url": "https://game8.jp/heavenburnsred/426260",
+            "image_url": "https://img.game8.jp/6525233/13f51348d52e52092db75740bf84eac3.png/show"
+          }
+        ]
+      },
+      "松岡チロル": {
+        "character": "松岡チロル",
+        "squad": "31F",
+        "page_url": "https://game8.jp/heavenburnsred/425683",
+        "image_url": "https://img.game8.jp/6483334/77ae8e08e8b888c4e6d4e5348731bd89.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455114,
+        "styles": [
+          {
+            "title": "悪を討つヒロイックアクション",
+            "page_url": "https://game8.jp/heavenburnsred/692832",
+            "image_url": "https://img.game8.jp/11405772/68d99b78c42b13af8792c1fcc51bb54d.png/show"
+          },
+          {
+            "title": "内緒のコーヒーブレイク",
+            "page_url": "https://game8.jp/heavenburnsred/634933",
+            "image_url": "https://img.game8.jp/10421352/4d69f5c16fb6225c5a54e4b9bdf2fc07.png/show"
+          },
+          {
+            "title": "疾風迅速滅亡の狼煙",
+            "page_url": "https://game8.jp/heavenburnsred/480768",
+            "image_url": "https://img.game8.jp/7228130/b8adada123f4acecf466057483257f1f.png/show"
+          },
+          {
+            "title": "秘めたる努力",
+            "page_url": "https://game8.jp/heavenburnsred/548995",
+            "image_url": "https://img.game8.jp/8691860/9cf012fbe4149fd81c3350ccbde0c3ef.png/show"
+          },
+          {
+            "title": "天才かませ犬",
+            "page_url": "https://game8.jp/heavenburnsred/426262",
+            "image_url": "https://img.game8.jp/6525049/1d3f3660185cc1212d04811cb8264789.png/show"
+          }
+        ]
+      },
+      "夏目祈": {
+        "character": "夏目祈",
+        "squad": "31F",
+        "page_url": "https://game8.jp/heavenburnsred/425684",
+        "image_url": "https://img.game8.jp/6483337/248c8cea394ff0e27eafb10e873f60d3.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455203,
+        "styles": [
+          {
+            "title": "青春ラピスラズリ",
+            "page_url": "https://game8.jp/heavenburnsred/638289",
+            "image_url": "https://img.game8.jp/10485923/136058394826226f7ad6a3dc12a5eb7f.png/show"
+          },
+          {
+            "title": "薫衣香る夢見鳥",
+            "page_url": "https://game8.jp/heavenburnsred/547011",
+            "image_url": "https://img.game8.jp/8588691/e35ecdb6fc7bb44f8ebcd9ab552ccd92.png/show"
+          },
+          {
+            "title": "剣の冷徹",
+            "page_url": "https://game8.jp/heavenburnsred/499846",
+            "image_url": "https://img.game8.jp/7496046/f06ef7f59be694ac440e3f665cf106ba.png/show"
+          },
+          {
+            "title": "彼岸の人斬り",
+            "page_url": "https://game8.jp/heavenburnsred/449480",
+            "image_url": "https://img.game8.jp/6731231/2f5d04fc70233ca046ae452e06da1a6b.png/show"
+          },
+          {
+            "title": "天誅斬影",
+            "page_url": "https://game8.jp/heavenburnsred/426263",
+            "image_url": "https://img.game8.jp/6525053/ca77dd974f6a46294de19585efbdd1a3.png/show"
+          }
+        ]
+      },
+      "黒沢真希": {
+        "character": "黒沢真希",
+        "squad": "31F",
+        "page_url": "https://game8.jp/heavenburnsred/425685",
+        "image_url": "https://img.game8.jp/6483338/80ee6dc586ab50e681d745f4c9a6f024.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455293,
+        "styles": [
+          {
+            "title": "青あらし走死走愛",
+            "page_url": "https://game8.jp/heavenburnsred/634932",
+            "image_url": "https://img.game8.jp/10421351/de54fec2599b34cb4b2036ed848fe643.png/show"
+          },
+          {
+            "title": "ハレの日の仏恥義理",
+            "page_url": "https://game8.jp/heavenburnsred/499847",
+            "image_url": "https://img.game8.jp/7496047/6a166cbd05747289c057a25214099193.png/show"
+          },
+          {
+            "title": "総長は読書がお好き",
+            "page_url": "https://game8.jp/heavenburnsred/652688",
+            "image_url": "https://img.game8.jp/10699303/34ac6df13c55129ee270aa85fc272a7e.png/show"
+          },
+          {
+            "title": "唯我独尊",
+            "page_url": "https://game8.jp/heavenburnsred/457871",
+            "image_url": "https://img.game8.jp/6851001/610d4379a84933e71cc9de67f7ef32e1.png/show"
+          },
+          {
+            "title": "Highway of Angels",
+            "page_url": "https://game8.jp/heavenburnsred/426265",
+            "image_url": "https://img.game8.jp/6525054/6ac13a5ca49e728c7b59a4bb71c1940f.png/show"
+          }
+        ]
+      },
+      "キャロル・リーパー": {
+        "character": "キャロル・リーパー",
+        "squad": "31X",
+        "page_url": "https://game8.jp/heavenburnsred/425686",
+        "image_url": "https://img.game8.jp/6483340/5cded88bce350495a6540b843dccdcb8.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455484,
+        "styles": [
+          {
+            "title": "Have no fear！ I’m a hero！",
+            "page_url": "https://game8.jp/heavenburnsred/714988",
+            "image_url": "https://img.game8.jp/11741118/21bc2d620a2a27dac2581f58bfa226e6.webp/show"
+          },
+          {
+            "title": "Carnival with You",
+            "page_url": "https://game8.jp/heavenburnsred/642066",
+            "image_url": "https://img.game8.jp/10590856/83be872d7a31f768761f1cf80d3b646a.png/show"
+          },
+          {
+            "title": "摩天楼のダークヒーロー",
+            "page_url": "https://game8.jp/heavenburnsred/478833",
+            "image_url": "https://img.game8.jp/7166777/01bfd0e35626e46ded8aa03b26159fea.png/show"
+          },
+          {
+            "title": "キャッスル・オブ・パープル",
+            "page_url": "https://game8.jp/heavenburnsred/612875",
+            "image_url": "https://img.game8.jp/10086737/68e02e1fd18b438d8d3486325f5cd5ab.png/show"
+          },
+          {
+            "title": "心の風景",
+            "page_url": "https://game8.jp/heavenburnsred/507351",
+            "image_url": "https://img.game8.jp/7665084/303e784a860851ddaa507194b25e90e3.png/show"
+          },
+          {
+            "title": "星の継承者",
+            "page_url": "https://game8.jp/heavenburnsred/426266",
+            "image_url": "https://img.game8.jp/6525060/78882587e916d7ebb99876101a3161ef.png/show"
+          }
+        ]
+      },
+      "李映夏": {
+        "character": "李映夏",
+        "squad": "31X",
+        "page_url": "https://game8.jp/heavenburnsred/425687",
+        "image_url": "https://img.game8.jp/6483339/e204e11fb0571095ddbbac1b7d69e9b9.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455613,
+        "styles": [
+          {
+            "title": "瑠璃色絢爛美々",
+            "page_url": "https://game8.jp/heavenburnsred/697859",
+            "image_url": "https://img.game8.jp/11462878/f0a8b149350958a48c2218638fd64265.jpeg/show"
+          },
+          {
+            "title": "春宵ウォーアイニー",
+            "page_url": "https://game8.jp/heavenburnsred/603246",
+            "image_url": "https://img.game8.jp/9866276/ca279606dc0518c1f032bf1546233264.png/show"
+          },
+          {
+            "title": "いざなうつゆくさ",
+            "page_url": "https://game8.jp/heavenburnsred/563544",
+            "image_url": "https://img.game8.jp/8896961/f1eac844cb85f5203ede43a90f1639e3.png/show"
+          },
+          {
+            "title": "我、勇ならざるは将なきに同じ",
+            "page_url": "https://game8.jp/heavenburnsred/507349",
+            "image_url": "https://img.game8.jp/7665029/e550c361d1ba8eb40c6e5d89e84601e9.png/show"
+          },
+          {
+            "title": "誇り高き戦装束",
+            "page_url": "https://game8.jp/heavenburnsred/680865",
+            "image_url": "https://img.game8.jp/11222779/39d4fa69e43003e50fabfb05beb303eb.jpeg/show"
+          },
+          {
+            "title": "武を成すは天に在り",
+            "page_url": "https://game8.jp/heavenburnsred/426268",
+            "image_url": "https://img.game8.jp/6525064/f525a17df8a5390f78f95a28bdb4ba6a.png/show"
+          },
+          {
+            "title": "臥龍の代弁者",
+            "page_url": "https://game8.jp/heavenburnsred/426267",
+            "image_url": "https://img.game8.jp/6525037/6d8588e092fbd580cf3feafa8cb7af65.png/show"
+          }
+        ]
+      },
+      "アイリーン・レドメイン": {
+        "character": "アイリーン・レドメイン",
+        "squad": "31X",
+        "page_url": "https://game8.jp/heavenburnsred/425688",
+        "image_url": "https://img.game8.jp/6483335/24d851545167c7739af637b1131fee9b.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455733,
+        "styles": [
+          {
+            "title": "霧煙る街の名探偵",
+            "page_url": "https://game8.jp/heavenburnsred/746397",
+            "image_url": "https://img.game8.jp/12037255/6c45d0ef8dd7165869a85c379268b48c.webp/show"
+          },
+          {
+            "title": "謳うそよ風の向かう先",
+            "page_url": "https://game8.jp/heavenburnsred/680864",
+            "image_url": "https://img.game8.jp/11222784/f8f4048988580f3c6f6f62ee7eb27c04.png/show"
+          },
+          {
+            "title": "月下のハイドアンドシーク",
+            "page_url": "https://game8.jp/heavenburnsred/612873",
+            "image_url": "https://img.game8.jp/10085975/6d1204c276d58bd41eb62a7dadb12dc6.png/show"
+          },
+          {
+            "title": "碧いカーヴァンクル",
+            "page_url": "https://game8.jp/heavenburnsred/478836",
+            "image_url": "https://img.game8.jp/7166776/84539131c59ad77796d54c2f9f380e25.png/show"
+          },
+          {
+            "title": "ベルガモットの安らぎ",
+            "page_url": "https://game8.jp/heavenburnsred/714990",
+            "image_url": "https://img.game8.jp/11742154/1b7e027f999232256b650177372856f1.webp/show"
+          },
+          {
+            "title": "ベイカー街の軌跡",
+            "page_url": "https://game8.jp/heavenburnsred/426270",
+            "image_url": "https://img.game8.jp/6525062/f46afe81e7f0fb4ec0d6d46539e20907.png/show"
+          },
+          {
+            "title": "不可思議の探求者",
+            "page_url": "https://game8.jp/heavenburnsred/426269",
+            "image_url": "https://img.game8.jp/6525068/fd38e9fea417f6142e42f6dfc14ba865.png/show"
+          }
+        ]
+      },
+      "ヴリティカ・バラクリシュナン": {
+        "character": "ヴリティカ・バラクリシュナン",
+        "squad": "31X",
+        "page_url": "https://game8.jp/heavenburnsred/425689",
+        "image_url": "https://img.game8.jp/6483330/28790c7ef1a94875eec655b8c3774126.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455843,
+        "styles": [
+          {
+            "title": "歓待のアンナプールナ",
+            "page_url": "https://game8.jp/heavenburnsred/714989",
+            "image_url": "https://img.game8.jp/11741116/2673d0371edf47b9d920c26b8e66ff6a.webp/show"
+          },
+          {
+            "title": "美しきシャールドゥーラ",
+            "page_url": "https://game8.jp/heavenburnsred/612874",
+            "image_url": "https://img.game8.jp/10085974/e0b25533a0c565b3840a8f4bf67b302a.png/show"
+          },
+          {
+            "title": "凛々しきドゥルガー",
+            "page_url": "https://game8.jp/heavenburnsred/532629",
+            "image_url": "https://img.game8.jp/8123641/f39fcc792a8527be22a4542149570b65.png/show"
+          },
+          {
+            "title": "華麗なる日常",
+            "page_url": "https://game8.jp/heavenburnsred/563545",
+            "image_url": "https://img.game8.jp/8896962/9697292114c18eba9e7d93bb91dfd9a2.png/show"
+          },
+          {
+            "title": "未知数なヴェーダーンガ",
+            "page_url": "https://game8.jp/heavenburnsred/478933",
+            "image_url": "https://img.game8.jp/7166775/0768f3dae66502c5313fcccae9aacf1e.png/show"
+          },
+          {
+            "title": "華麗なるアプサラス",
+            "page_url": "https://game8.jp/heavenburnsred/426271",
+            "image_url": "https://img.game8.jp/6525055/0fbff1b2c8872856e8be75ab0adb462e.png/show"
+          }
+        ]
+      },
+      "マリア・デ・アンジェリス": {
+        "character": "マリア・デ・アンジェリス",
+        "squad": "31X",
+        "page_url": "https://game8.jp/heavenburnsred/425690",
+        "image_url": "https://img.game8.jp/6483333/e3c526d94f9f9a636c902f14aa100fc7.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.455949,
+        "styles": [
+          {
+            "title": "ヴァカンザ・エレガンテ",
+            "page_url": "https://game8.jp/heavenburnsred/680863",
+            "image_url": "https://img.game8.jp/11222780/b8aa10c248f6b632964f96b2b4c7b14b.png/show"
+          },
+          {
+            "title": "刹那の邂逅",
+            "page_url": "https://game8.jp/heavenburnsred/577126",
+            "image_url": "https://img.game8.jp/9049135/2fa2c9de63847ca57610a26419ef9b5f.png/show"
+          },
+          {
+            "title": "ブラッド・レリーフ",
+            "page_url": "https://game8.jp/heavenburnsred/507350",
+            "image_url": "https://img.game8.jp/7665028/60278fe8383cf8a18320b3b897e6c307.png/show"
+          },
+          {
+            "title": "ライム・アンド・ストロベリー",
+            "page_url": "https://game8.jp/heavenburnsred/721626",
+            "image_url": "https://img.game8.jp/11790939/d349d5662937b1a7a56b4fb6587c30f0.webp/show"
+          },
+          {
+            "title": "罪と栄光",
+            "page_url": "https://game8.jp/heavenburnsred/532631",
+            "image_url": "https://img.game8.jp/8123642/dbc3486bbcd3cbaef29335261b5c2175.png/show"
+          },
+          {
+            "title": "くれないのシスター",
+            "page_url": "https://game8.jp/heavenburnsred/426273",
+            "image_url": "https://img.game8.jp/6525039/8523cae361bf65f7bbc9afe5c52adbf4.png/show"
+          }
+        ]
+      },
+      "シャルロッタ・スコポフスカヤ": {
+        "character": "シャルロッタ・スコポフスカヤ",
+        "squad": "31X",
+        "page_url": "https://game8.jp/heavenburnsred/425691",
+        "image_url": "https://img.game8.jp/6483336/287dafb20044f965f1a33325dab0fd41.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.456078,
+        "styles": [
+          {
+            "title": "捧ぐ愛の晩餐",
+            "page_url": "https://game8.jp/heavenburnsred/721625",
+            "image_url": "https://img.game8.jp/11790941/f2655be6bde1d4bf4823d925d4f9070f.webp/show"
+          },
+          {
+            "title": "清廉なるニヴェースタ",
+            "page_url": "https://game8.jp/heavenburnsred/615278",
+            "image_url": "https://img.game8.jp/10133837/67c4b13217b72f66988e3b9605c0750c.png/show"
+          },
+          {
+            "title": "とこしえの想い",
+            "page_url": "https://game8.jp/heavenburnsred/577125",
+            "image_url": "https://img.game8.jp/9049136/28fcf20be56c12eae1612dc4a055fde2.png/show"
+          },
+          {
+            "title": "逆境に咲く華",
+            "page_url": "https://game8.jp/heavenburnsred/532628",
+            "image_url": "https://img.game8.jp/8123639/2ee3dc4720e7e5963a33522f6a577751.png/show"
+          },
+          {
+            "title": "麗らかなまなざし",
+            "page_url": "https://game8.jp/heavenburnsred/642067",
+            "image_url": "https://img.game8.jp/10590859/458a6e341aee186f6a8726105c911e87.png/show"
+          },
+          {
+            "title": "雪華ノスタルジア",
+            "page_url": "https://game8.jp/heavenburnsred/441176",
+            "image_url": "https://img.game8.jp/6608315/f75aa46751adfafb8c2368d5456eb8dd.png/show"
+          },
+          {
+            "title": "北風の使者",
+            "page_url": "https://game8.jp/heavenburnsred/426274",
+            "image_url": "https://img.game8.jp/6525196/7d5d17e6db615a628a49ffbe0bd1eec0.png/show"
+          }
+        ]
+      },
+      "白河ユイナ": {
+        "character": "白河ユイナ",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/425692",
+        "image_url": "https://img.game8.jp/6483525/61454d438fbaa18c9181ae09b5c84a39.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.45638,
+        "styles": [
+          {
+            "title": "勝利を告げる神託の旗",
+            "page_url": "https://game8.jp/heavenburnsred/752169",
+            "image_url": "https://img.game8.jp/12147008/052dd9b657886a6ca0e75daa19aef3a2.webp/show"
+          },
+          {
+            "title": "黄昏に咲くスピカ",
+            "page_url": "https://game8.jp/heavenburnsred/667354",
+            "image_url": "https://img.game8.jp/11605633/add8d24a67de6e2b3d315b40b2011735.webp/show"
+          },
+          {
+            "title": "月が綺麗",
+            "page_url": "https://game8.jp/heavenburnsred/621315",
+            "image_url": "https://img.game8.jp/11592506/6b7161b536e84cfa9cc7059bbf82e1e0.webp/show"
+          },
+          {
+            "title": "真夏のジャンダルム",
+            "page_url": "https://game8.jp/heavenburnsred/544116",
+            "image_url": "https://img.game8.jp/8505723/0f8a4058c89b4ef6c869f81c3038695b.png/show"
+          },
+          {
+            "title": "Infernal Sanctuary",
+            "page_url": "https://game8.jp/heavenburnsred/484625",
+            "image_url": "https://img.game8.jp/7272079/bcc9d32ae7620f49622bdd387204f196.png/show"
+          },
+          {
+            "title": "Awakening Iris",
+            "page_url": "https://game8.jp/heavenburnsred/449342",
+            "image_url": "https://img.game8.jp/6731228/a2004440be47da268848ef566b249ca5.png/show"
+          },
+          {
+            "title": "Secretly Smile",
+            "page_url": "https://game8.jp/heavenburnsred/675272",
+            "image_url": "https://img.game8.jp/11132237/48b39037bff6f6fcec683f1bae6815cf.png/show"
+          },
+          {
+            "title": "君がいるだけで",
+            "page_url": "https://game8.jp/heavenburnsred/525188",
+            "image_url": "https://img.game8.jp/7972249/51f63a392a4654ae2adc53a2a6507c0d.png/show"
+          },
+          {
+            "title": "Sign",
+            "page_url": "https://game8.jp/heavenburnsred/426276",
+            "image_url": "https://img.game8.jp/6530885/8aafb93a68c39ded95f4fb2272faf9e9.png/show"
+          },
+          {
+            "title": "Ally",
+            "page_url": "https://game8.jp/heavenburnsred/426275",
+            "image_url": "https://img.game8.jp/6525195/a0c4cd1e777aae820825e9cee5c76233.png/show"
+          }
+        ]
+      },
+      "月城最中": {
+        "character": "月城最中",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/425693",
+        "image_url": "https://img.game8.jp/6483526/67394bd0b6b19769a816d093aaa76482.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.45649,
+        "styles": [
+          {
+            "title": "君想う春吹雪",
+            "page_url": "https://game8.jp/heavenburnsred/675271",
+            "image_url": "https://img.game8.jp/11132238/92c0bb2e71b17fb57b93cfd22c1164df.png/show"
+          },
+          {
+            "title": "掩蔽された暇",
+            "page_url": "https://game8.jp/heavenburnsred/573802",
+            "image_url": "https://img.game8.jp/8962657/e6675f18f8933f9785c0aadee36313b2.png/show"
+          },
+          {
+            "title": "真宵晴るれば、一閃心静",
+            "page_url": "https://game8.jp/heavenburnsred/440935",
+            "image_url": "https://img.game8.jp/6731958/4e2ee1b872ecfa8f136af3611ce269c2.png/show"
+          },
+          {
+            "title": "灼熱！炎のサービスエース",
+            "page_url": "https://game8.jp/heavenburnsred/708976",
+            "image_url": "https://img.game8.jp/11641474/5632e4e146c3a0cb28b910fac3549337.webp/show"
+          },
+          {
+            "title": "黄昏、久遠の夢",
+            "page_url": "https://game8.jp/heavenburnsred/453261",
+            "image_url": "https://img.game8.jp/6777203/821c9c2d3641664c9535c090be2f4540.png/show"
+          },
+          {
+            "title": "禅定、憂い無し",
+            "page_url": "https://game8.jp/heavenburnsred/426277",
+            "image_url": "https://img.game8.jp/6525199/fbaed5e05690aa18792c6560b816cb29.png/show"
+          }
+        ]
+      },
+      "桐生美也": {
+        "character": "桐生美也",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/425694",
+        "image_url": "https://img.game8.jp/6483528/63ea790365eec7567164f8ef94159928.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.45661,
+        "styles": [
+          {
+            "title": "汐風に誘われて",
+            "page_url": "https://game8.jp/heavenburnsred/708962",
+            "image_url": "https://img.game8.jp/11626527/aa18642031167272d2ffc6aa2a0bf2a6.webp/show"
+          },
+          {
+            "title": "たまゆら、一夜の夢火",
+            "page_url": "https://game8.jp/heavenburnsred/606153",
+            "image_url": "https://img.game8.jp/9941525/d242a933964d24cd35326dad3735e478.png/show"
+          },
+          {
+            "title": "豊楽ノ神秘",
+            "page_url": "https://game8.jp/heavenburnsred/548994",
+            "image_url": "https://img.game8.jp/8691854/6d9acfbf3a3887871893cca0339f3e4d.png/show"
+          },
+          {
+            "title": "星林遣らずの雨",
+            "page_url": "https://game8.jp/heavenburnsred/484626",
+            "image_url": "https://img.game8.jp/7272080/a5d15238fc952413d8cbb31d4c62f562.png/show"
+          },
+          {
+            "title": "光のどけき春の日に",
+            "page_url": "https://game8.jp/heavenburnsred/667356",
+            "image_url": "https://img.game8.jp/11003409/d4f85a959b7620f41f0f44b0c54b137a.png/show"
+          },
+          {
+            "title": "神祠見舞う儚さかな",
+            "page_url": "https://game8.jp/heavenburnsred/453260",
+            "image_url": "https://img.game8.jp/6777204/02ac25bf58c72234388782692dc6bb63.png/show"
+          },
+          {
+            "title": "幽幻閑寂いとらうたし",
+            "page_url": "https://game8.jp/heavenburnsred/426278",
+            "image_url": "https://img.game8.jp/6525191/ae3bea2515841c8e2c0cce294aee0826.png/show"
+          }
+        ]
+      },
+      "菅原千恵": {
+        "character": "菅原千恵",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/425695",
+        "image_url": "https://img.game8.jp/6483524/97ff9183b76e6967758dbfd836c0ceac.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.456734,
+        "styles": [
+          {
+            "title": "フェリティ・インサニティ",
+            "page_url": "https://game8.jp/heavenburnsred/675267",
+            "image_url": "https://img.game8.jp/11132240/83587a7f63dcaf0613abb4fdf0fb3710.png/show"
+          },
+          {
+            "title": "ロリータ・ストイック",
+            "page_url": "https://game8.jp/heavenburnsred/606152",
+            "image_url": "https://img.game8.jp/9941524/af6f9228bf58b2131afb840075ea1ec6.png/show"
+          },
+          {
+            "title": "亡国の純心",
+            "page_url": "https://game8.jp/heavenburnsred/519393",
+            "image_url": "https://img.game8.jp/7860693/56e71c994c13452d80d1ba2a8c28e618.png/show"
+          },
+          {
+            "title": "終末ロリータ白書",
+            "page_url": "https://game8.jp/heavenburnsred/426280",
+            "image_url": "https://img.game8.jp/6525200/bab62885f050439b03d232664fb36038.png/show"
+          },
+          {
+            "title": "センパイの品格",
+            "page_url": "https://game8.jp/heavenburnsred/573803",
+            "image_url": "https://img.game8.jp/8962658/ed1a3d3a267d206192935b374cab1029.png/show"
+          },
+          {
+            "title": "気まぐれのアンニュイ",
+            "page_url": "https://game8.jp/heavenburnsred/464065",
+            "image_url": "https://img.game8.jp/6954015/79a28b3859eaf72b739cb4d6e02621d9.png/show"
+          },
+          {
+            "title": "ドロレスの魅惑",
+            "page_url": "https://game8.jp/heavenburnsred/426279",
+            "image_url": "https://img.game8.jp/6525231/b76e518d99fcd35e971b1e3d4bf43ae9.png/show"
+          }
+        ]
+      },
+      "小笠原緋雨": {
+        "character": "小笠原緋雨",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/425696",
+        "image_url": "https://img.game8.jp/6483523/5ac7e3add1e5b1b192064916c215ed00.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.456873,
+        "styles": [
+          {
+            "title": "夏宵色のガーネット",
+            "page_url": "https://game8.jp/heavenburnsred/638288",
+            "image_url": "https://img.game8.jp/10485922/ccc9898807378abab078b4873d93e317.png/show"
+          },
+          {
+            "title": "希求と渇仰",
+            "page_url": "https://game8.jp/heavenburnsred/573789",
+            "image_url": "https://img.game8.jp/8962656/4183ba4e62aceb3d31413817ca69759d.png/show"
+          },
+          {
+            "title": "萌えよ天才剣士",
+            "page_url": "https://game8.jp/heavenburnsred/528628",
+            "image_url": "https://img.game8.jp/8079841/a5ee3ff1ff7f55cbbb4175ee545e07dc.png/show"
+          },
+          {
+            "title": "朧月夜のバレット",
+            "page_url": "https://game8.jp/heavenburnsred/454542",
+            "image_url": "https://img.game8.jp/6814808/f38e58004e60905e016d5af4bf3cf64f.png/show"
+          },
+          {
+            "title": "天才に手ほどき",
+            "page_url": "https://game8.jp/heavenburnsred/724682",
+            "image_url": "https://img.game8.jp/11827666/00549b4e8db232370e0784149a1748d6.webp/show"
+          },
+          {
+            "title": "早暁の剣光",
+            "page_url": "https://game8.jp/heavenburnsred/606154",
+            "image_url": "https://img.game8.jp/11080314/f09eb9f46ec5db8c36566afc580ec577.png/show"
+          },
+          {
+            "title": "静寂閑雅のレスト",
+            "page_url": "https://game8.jp/heavenburnsred/440227",
+            "image_url": "https://img.game8.jp/7939946/b2333bbdc96220252fab4e78abe29bbd.png/show"
+          },
+          {
+            "title": "仄かに揺らぐファイア",
+            "page_url": "https://game8.jp/heavenburnsred/426281",
+            "image_url": "https://img.game8.jp/6525198/fae475c4b02b683b43e664f22b6e994b.png/show"
+          }
+        ]
+      },
+      "蔵里見": {
+        "character": "蔵里見",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/425697",
+        "image_url": "https://img.game8.jp/6483520/b61701733ad69c844074eff7b4188b88.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.456994,
+        "styles": [
+          {
+            "title": "夏陽炎の名勝負",
+            "page_url": "https://game8.jp/heavenburnsred/708959",
+            "image_url": "https://img.game8.jp/11626528/c6e585783b16000e58450a5192fd1ecb.webp/show"
+          },
+          {
+            "title": "若女将の日々",
+            "page_url": "https://game8.jp/heavenburnsred/525187",
+            "image_url": "https://img.game8.jp/7972253/ec27ac7b59e968796d20b4c580176faf.png/show"
+          },
+          {
+            "title": "此に期するは豊穣の御霊",
+            "page_url": "https://game8.jp/heavenburnsred/453082",
+            "image_url": "https://img.game8.jp/6777206/d18bee8f52297318eba60a5c7eb9ea0a.png/show"
+          },
+          {
+            "title": "親愛の結び",
+            "page_url": "https://game8.jp/heavenburnsred/759590",
+            "image_url": "https://img.game8.jp/12260114/9e9c6d510ccf7c98345ece5f25b2b90a.webp/show"
+          },
+          {
+            "title": "夜警の空",
+            "page_url": "https://game8.jp/heavenburnsred/484627",
+            "image_url": "https://img.game8.jp/7260566/4c91e4f9791ae9512c44cce359fe193f.png/show"
+          },
+          {
+            "title": "清流に坐す",
+            "page_url": "https://game8.jp/heavenburnsred/437629",
+            "image_url": "https://img.game8.jp/6525201/45044cfcbe6236fb29d9e1c5bbac659a.png/show"
+          },
+          {
+            "title": "きおい佳人",
+            "page_url": "https://game8.jp/heavenburnsred/426282",
+            "image_url": "https://img.game8.jp/6525193/90631acf2fed780e31d88609ba195c5d.png/show"
+          }
+        ]
+      },
+      "仲村ゆり": {
+        "character": "仲村ゆり",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/535757",
+        "image_url": "https://img.game8.jp/8203723/225e5affc2aefa18ad8674e13e399c64.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.457043,
+        "styles": [
+          {
+            "title": "ありふれた非日常",
+            "page_url": "https://game8.jp/heavenburnsred/592869",
+            "image_url": "https://img.game8.jp/9483117/902e2800c40435ae7f8acd401b5b5983.png/show"
+          },
+          {
+            "title": "Rain Fire",
+            "page_url": "https://game8.jp/heavenburnsred/511324",
+            "image_url": "https://img.game8.jp/7732295/dfc80639a160a697a412b73b7278c413.png/show"
+          }
+        ]
+      },
+      "立華かなで": {
+        "character": "立華かなで",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/535756",
+        "image_url": "https://img.game8.jp/8203722/a4c466be47bdc8f6b8fd703fab08d764.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.4570901,
+        "styles": [
+          {
+            "title": "天翔ける剣",
+            "page_url": "https://game8.jp/heavenburnsred/592870",
+            "image_url": "https://img.game8.jp/9483096/e5181c67b8cf8c84c94c38512d217998.png/show"
+          },
+          {
+            "title": "Earth Angel",
+            "page_url": "https://game8.jp/heavenburnsred/511325",
+            "image_url": "https://img.game8.jp/7732294/51322e0833690e760e0cbf4cafad4e22.png/show"
+          }
+        ]
+      },
+      "入江みゆき": {
+        "character": "入江みゆき",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/535758",
+        "image_url": "https://img.game8.jp/8203720/f8240282edf3b4c945d3674f385c94c3.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.45714,
+        "styles": [
+          {
+            "title": "Faraway Eden",
+            "page_url": "https://game8.jp/heavenburnsred/588276",
+            "image_url": "https://img.game8.jp/9378331/0196571dd1939cceff3c0cb613803499.png/show"
+          },
+          {
+            "title": "Pure Cosmos",
+            "page_url": "https://game8.jp/heavenburnsred/511326",
+            "image_url": "https://img.game8.jp/7732600/b3e7b28f597d7a7ccc3a203b062fe138.png/show"
+          }
+        ]
+      },
+      "渕田ひさ子": {
+        "character": "渕田ひさ子",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/625668",
+        "image_url": "https://img.game8.jp/10227852/a3648bae46847aa9eeda9e4c676e5e5d.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.457175,
+        "styles": [
+          {
+            "title": "Finally found our silver lining",
+            "page_url": "https://game8.jp/heavenburnsred/592871",
+            "image_url": "https://img.game8.jp/9483097/6666e2a71479ac26b3f0d019c5c6ffb1.png/show"
+          }
+        ]
+      },
+      "関根しおり": {
+        "character": "関根しおり",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/659762",
+        "image_url": "https://img.game8.jp/10853474/87dbb36edb6e0fc27c8b8731a40d0d5a.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.457209,
+        "styles": [
+          {
+            "title": "ぬくもりの記憶",
+            "page_url": "https://game8.jp/heavenburnsred/659781",
+            "image_url": "https://img.game8.jp/10880608/b39cda26848f0af9747d654f531b739d.png/show"
+          }
+        ]
+      },
+      "岩沢雅美": {
+        "character": "岩沢雅美",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/659764",
+        "image_url": "https://img.game8.jp/10853472/674a87499387860f9e9cb593a9aa8642.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.457241,
+        "styles": [
+          {
+            "title": "Dreamlike Days",
+            "page_url": "https://game8.jp/heavenburnsred/659771",
+            "image_url": "https://img.game8.jp/10880611/ee776d7d2c34054de07e89a4f8171c55.png/show"
+          }
+        ]
+      },
+      "芳岡ユイ": {
+        "character": "芳岡ユイ",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/659763",
+        "image_url": "https://img.game8.jp/10853473/e41bfd8df2552a93c0e5dc703ff9841a.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.457273,
+        "styles": [
+          {
+            "title": "Stir Soul Song",
+            "page_url": "https://game8.jp/heavenburnsred/659767",
+            "image_url": "https://img.game8.jp/10880609/f5390f9a6dee8a29af763febe7d64cd6.png/show"
+          }
+        ]
+      },
+      "七瀬七海": {
+        "character": "七瀬七海",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/466096",
+        "image_url": "https://img.game8.jp/6973062/51aabb0ce4dab73e3955898d3871f7b7.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.45732,
+        "styles": [
+          {
+            "title": "約束は暁の彼方で",
+            "page_url": "https://game8.jp/heavenburnsred/759416",
+            "image_url": "https://img.game8.jp/12260112/07a360216d9a18bf3de5ad376a7e5039.webp/show"
+          },
+          {
+            "title": "エンジェルクライシス",
+            "page_url": "https://game8.jp/heavenburnsred/667359",
+            "image_url": "https://img.game8.jp/11592505/9b0afeeb1b0c40a6e983aa98805a72f5.webp/show"
+          }
+        ]
+      },
+      "手塚咲": {
+        "character": "手塚咲",
+        "squad": "30G",
+        "page_url": "https://game8.jp/heavenburnsred/466095",
+        "image_url": "https://img.game8.jp/6973063/686739122f1f2675f1a996473e96f32a.png/show",
+        "source": "Game8",
+        "fetched_at": 1771245142.457351,
+        "styles": [
+          {
+            "title": "希望の暁",
+            "page_url": "https://game8.jp/heavenburnsred/755194",
+            "image_url": "https://img.game8.jp/12304598/d8fbdaab5d5395f20637fddbd0f53857.webp/show"
+          }
+        ]
+      }
+    }
+  },
+  "豊後弥生|SSユニゾン(悪の軍団進軍開始でゲス！)": {
+    "style_name": "SSユニゾン(悪の軍団進軍開始でゲス！)",
+    "character": "豊後弥生",
+    "page_url": "https://game8.jp/heavenburnsred/683118",
+    "image_url": "https://img.game8.jp/11281942/55212d27c442cbc0d3acdb12cfc1ea23.jpeg/original",
+    "page_title": "【ヘブバン】SSレゾナンス豊後弥生(ユニゾン)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31C",
+    "tier_overall": "0",
+    "tier_roles": "",
+    "source": "Game8",
+    "fetched_at": 1771246900.376647
+  },
+  "天音巫呼|SSしもべ[闇](魔王に仕えし冥界の死霊使い)": {
+    "style_name": "SSしもべ[闇](魔王に仕えし冥界の死霊使い)",
+    "character": "天音巫呼",
+    "page_url": "https://game8.jp/heavenburnsred/686332",
+    "image_url": "https://img.game8.jp/11305352/ee739a00132e2984d639adba51240b38.jpeg/show",
+    "page_title": "【ヘブバン】SS天音巫呼(しもべ)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31C",
+    "tier_overall": "1",
+    "tier_roles": "サポート:Tier1",
+    "source": "Game8",
+    "fetched_at": 1771246930.5796852
+  },
+  "山脇・ボン・イヴァール|SSユニゾン[闇](誇り高き魔王の凱旋)": {
+    "style_name": "SSユニゾン[闇](誇り高き魔王の凱旋)",
+    "character": "山脇・ボン・イヴァール",
+    "page_url": "https://game8.jp/heavenburnsred/738525",
+    "image_url": "https://img.game8.jp/11992110/6d36a577beea309926591d8ca11e3594.webp/original",
+    "page_title": "【ヘブバン】SSレゾナンス山脇・ボン・イヴァール(ユニゾン)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31C",
+    "tier_overall": "0",
+    "tier_roles": "デバフ:Tier1 / サポート:Tier1",
+    "source": "Game8",
+    "fetched_at": 1771246941.637588
+  },
+  "桜庭星羅|SSしもべ(魔王に仕えし幻影の大魔道士)": {
+    "style_name": "SSしもべ(魔王に仕えし幻影の大魔道士)",
+    "character": "桜庭星羅",
+    "page_url": "https://game8.jp/heavenburnsred/686333",
+    "image_url": "https://img.game8.jp/11305362/b71da4b14546c47137bd3608ad236460.jpeg/show",
+    "page_title": "【ヘブバン】SS桜庭星羅(しもべ)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31C",
+    "tier_overall": "1",
+    "tier_roles": "",
+    "source": "Game8",
+    "fetched_at": 1771246953.105083
+  },
+  "神崎アーデルハイド|SSしもべ[闇](魔王に仕えし災禍の魔獣使い)": {
+    "style_name": "SSしもべ[闇](魔王に仕えし災禍の魔獣使い)",
+    "character": "神崎アーデルハイド",
+    "page_url": "https://game8.jp/heavenburnsred/749659",
+    "image_url": "https://img.game8.jp/12093087/61352c7ef429f0e34bc772a4567d2cb6.webp/original",
+    "page_title": "【ヘブバン】SSレゾナンス神崎アーデルハイド(しもべ)の評価とスキル【ヘブンバーンズレッド】｜ゲームエイト",
+    "squad": "31C",
+    "tier_overall": "1",
+    "tier_roles": "",
+    "source": "Game8",
+    "fetched_at": 1771246963.579511
+  }
+}

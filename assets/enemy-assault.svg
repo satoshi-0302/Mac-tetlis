@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 96">
+  <defs>
+    <linearGradient id="armor" x1="0" x2="1">
+      <stop offset="0" stop-color="#5c4520"/>
+      <stop offset="1" stop-color="#f6bf42"/>
+    </linearGradient>
+    <radialGradient id="visor" cx="0.5" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#fff7c9"/>
+      <stop offset="1" stop-color="#ffd466"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.2" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#glow)">
+    <path d="M10 30h108l-9 39H19z" fill="url(#armor)" stroke="#ffe7a3" stroke-width="3"/>
+    <path d="M22 30 64 14l42 16z" fill="#ffd466" stroke="#fff0bd" stroke-width="3"/>
+    <rect x="44" y="35" width="40" height="19" rx="8" fill="url(#visor)"/>
+    <path d="M20 63h88l-8 11H28z" fill="#8e6b2f" stroke="#ffe8a1" stroke-width="2"/>
+    <circle cx="32" cy="49" r="7" fill="#fff1c2"/>
+    <circle cx="96" cy="49" r="7" fill="#fff1c2"/>
+  </g>
+</svg>

@@ -1,0 +1,115 @@
+{
+  "enemy": {
+    "name": "異時層フラットハンド(第二形態)",
+    "dp": 350000.0,
+    "hp": 8625000.0,
+    "dr": 10.0,
+    "stat": 320.0,
+    "category": "異時層",
+    "detail_url": "https://twitter.com/gazou774/status/1649233956565585921",
+    "weapon_mult": {
+      "斬": 1.0,
+      "突": 1.0,
+      "打": 1.0
+    },
+    "element_mult": {
+      "火": 1.0,
+      "氷": 1.0,
+      "雷": 1.0,
+      "光": 1.5,
+      "闇": 1.5,
+      "無": 1.0
+    }
+  },
+  "estimated_damage": 114741309.37499997,
+  "relative_score": 114.74130937499997,
+  "turn_plan": [
+    "Turn1: SSしもべ(魔王に仕えし混沌の謀臣) -> ドミネーション・グラビティ / SS[ユニゾン](CODE:Virtual Killer) -> シンメトリー・リベレーション(超ダウン中) / SS3周年(夜の香り、薔薇の調べ) -> エキゾーストノート",
+    "Turn2: 敵 異時層フラットハンド(第二形態) の弱点倍率に合わせて属性/武器を調整 / SSウェイトレス(ホップ・ステップ・スリップ！) -> 邪眼・マリンスラッシュ(士気5以下) でDPブレイクを狙う",
+    "Turn3: SSウェイトレス(ホップ・ステップ・スリップ！) -> 邪眼・マリンスラッシュ(士気6以上) でHPフェーズをフィニッシュ"
+  ],
+  "team": [
+    {
+      "style_name": "SSウェイトレス(ホップ・ステップ・スリップ！)",
+      "character": "柊木梢",
+      "rarity": "SS",
+      "role": "debuffer",
+      "total_score": 48.152,
+      "attack_score": 42.804,
+      "support_score": 2.0,
+      "debuff_score": 5.64,
+      "breaker_skill": "邪眼・マリンスラッシュ(士気5以下)",
+      "finisher_skill": "邪眼・マリンスラッシュ(士気6以上)",
+      "support_skill": "邪眼・マリンスラッシュ(士気5以下)",
+      "debuff_skill": "フリージング・スペル",
+      "weakness_factor": 1.5,
+      "web_info": null
+    },
+    {
+      "style_name": "SSしもべ(魔王に仕えし混沌の謀臣)",
+      "character": "佐月マリ",
+      "rarity": "SS",
+      "role": "debuffer",
+      "total_score": 15.388,
+      "attack_score": 12.0,
+      "support_score": 0.8,
+      "debuff_score": 4.04,
+      "breaker_skill": "ドミネーション・グラビティ",
+      "finisher_skill": "ドミネーション・グラビティ",
+      "support_skill": null,
+      "debuff_skill": "ドミネーション・グラビティ",
+      "weakness_factor": 1.0,
+      "web_info": null
+    },
+    {
+      "style_name": "SS[ユニゾン](CODE:Virtual Killer)",
+      "character": "朝倉可憐",
+      "rarity": "SS",
+      "role": "buffer",
+      "total_score": 29.105000000000004,
+      "attack_score": 26.235000000000003,
+      "support_score": 4.1,
+      "debuff_score": 0.0,
+      "breaker_skill": "ナイトキルエッジ",
+      "finisher_skill": "シンメトリー・リベレーション",
+      "support_skill": "シンメトリー・リベレーション(超ダウン中)",
+      "debuff_skill": null,
+      "weakness_factor": 1.0,
+      "web_info": null
+    },
+    {
+      "style_name": "SS3周年(夜の香り、薔薇の調べ)",
+      "character": "柳美音",
+      "rarity": "SS",
+      "role": "buffer",
+      "total_score": 13.736,
+      "attack_score": 12.0,
+      "support_score": 2.48,
+      "debuff_score": 0.0,
+      "breaker_skill": "エキゾーストノート",
+      "finisher_skill": "エキゾーストノート",
+      "support_skill": "エキゾーストノート",
+      "debuff_skill": null,
+      "weakness_factor": 1.0,
+      "web_info": null
+    },
+    {
+      "style_name": "SSユニゾン[闇](誇り高き魔王の凱旋)",
+      "character": "山脇・ボン・イヴァール",
+      "rarity": "SS",
+      "role": "attacker",
+      "total_score": 41.9,
+      "attack_score": 40.5,
+      "support_score": 2.0,
+      "debuff_score": 0.0,
+      "breaker_skill": "ギガビッグバン",
+      "finisher_skill": "ギガビッグバン",
+      "support_skill": "魔界騎兵起動！",
+      "debuff_skill": null,
+      "weakness_factor": 1.5,
+      "web_info": null
+    }
+  ],
+  "unmatched_owned": [],
+  "unmatched_wanted": []
+}
