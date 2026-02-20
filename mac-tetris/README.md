@@ -11,7 +11,11 @@ Orthodox Tetris for macOS built with SwiftUI.
 - Ghost landing preview
 - Animated neon-style board and background
 - Built-in sound effects and looped background music
-- Window docks to left or right 1/5 of the active screen
+- Window auto-sizes from screen height and docks to left or right edge
+- Top bar shows only score/lines/level, and the rest is the stacking field
+- Next 2 tetromino previews are reduced and semi-transparent
+- Background music speeds up as the stack gets higher
+- Auto-pause on inactive window is enabled by default
 
 ## Run
 
@@ -20,23 +24,23 @@ cd /path/to/Codex/mac-tetris
 swift run
 ```
 
-## Controls
+## Menu Controls
 
-- Left arrow: move left
-- Right arrow: move right
-- Down arrow: soft drop
-- Up arrow: rotate clockwise
-- `Z`: rotate counterclockwise
-- Space: hard drop
-- `P`: pause/resume
-- `R`: restart
+Use the macOS menu bar:
 
-## Audio
-
-- Use the `Music On/Off` button to control background music.
-- Use the `SFX On/Off` button to control effects (move/rotate/drop/line clear/game over).
+- `Game > Move Left` (`A`)
+- `Game > Move Right` (`D`)
+- `Game > Soft Drop` (`S`)
+- `Game > Hard Drop` (`Space`)
+- `Game > Rotate Clockwise` (`W`)
+- `Game > Rotate Counterclockwise` (`Q`)
+- `Game > Pause / Resume` (`P`)
+- `Game > Restart` (`R`)
+- `Audio > Toggle Music` (`M`)
+- `Audio > Toggle Effects` (`K`)
+- `Window > Dock Left / Dock Right`
+- `Window > Auto Pause When Inactive` (toggle)
 
 ## Notes
 
-- Use the `Left` / `Right` segmented control in the header to switch docking side.
-- The window auto-resizes to about 20% width of the current screen.
+- Run from `swift run` or install to `.app` bundle and launch normally.

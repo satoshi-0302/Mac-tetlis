@@ -123,6 +123,7 @@ final class TetrisGame: ObservableObject {
     @Published private(set) var score: Int = 0
     @Published private(set) var linesCleared: Int = 0
     @Published private(set) var level: Int = 1
+    @Published private(set) var stackHeight: Int = 0
 
     @Published private(set) var isGameOver: Bool = false
     @Published var isPaused: Bool = false
@@ -143,6 +144,7 @@ final class TetrisGame: ObservableObject {
         score = 0
         linesCleared = 0
         level = 1
+        stackHeight = 0
         isGameOver = false
         isPaused = false
         bag = []
@@ -155,8 +157,20 @@ final class TetrisGame: ObservableObject {
 
     @discardableResult
     func togglePause() -> Bool {
-        guard !isGameOver else { return false }
-        isPaused.toggle()
+        isPaused ? resume() : pause()
+    }
+
+    @discardableResult
+    func pause() -> Bool {
+        guard !isGameOver, !isPaused else { return false }
+        isPaused = true
+        return true
+    }
+
+    @discardableResult
+    func resume() -> Bool {
+        guard !isGameOver, isPaused else { return false }
+        isPaused = false
         return true
     }
 
@@ -252,6 +266,7 @@ final class TetrisGame: ObservableObject {
             activePiece = nil
             isGameOver = true
             gravityTimer?.invalidate()
+            updateStackHeight()
             return
         }
 
@@ -329,6 +344,7 @@ final class TetrisGame: ObservableObject {
             startGravityTimer()
         }
 
+        updateStackHeight()
         spawnPiece()
     }
 
@@ -360,5 +376,14 @@ final class TetrisGame: ObservableObject {
         }
 
         return false
+    }
+
+    private func updateStackHeight() {
+        guard let firstFilledRow = board.firstIndex(where: { row in row.contains(where: { $0 != nil }) }) else {
+            stackHeight = 0
+            return
+        }
+
+        stackHeight = rows - firstFilledRow
     }
 }

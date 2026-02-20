@@ -31,6 +31,7 @@ final class AudioManager: ObservableObject {
     private let engine = AVAudioEngine()
     private let effectNode = AVAudioPlayerNode()
     private let musicNode = AVAudioPlayerNode()
+    private let musicVarispeed = AVAudioUnitVarispeed()
     private let format: AVAudioFormat
     private let sampleRate: Double
     private var effectBuffers: [Effect: AVAudioPCMBuffer] = [:]
@@ -59,14 +60,25 @@ final class AudioManager: ObservableObject {
         musicNode.stop()
     }
 
+    func updateMusicTempo(stackHeight: Int, boardHeight: Int, level: Int) {
+        let safeBoardHeight = max(1, boardHeight)
+        let stackRatio = min(1.0, max(0.0, Double(stackHeight) / Double(safeBoardHeight)))
+        let levelBoost = Double(max(0, level - 1)) * 0.015
+        let targetRate = Float(min(1.85, 1.0 + (stackRatio * 0.65) + levelBoost))
+        musicVarispeed.rate = targetRate
+    }
+
     private func configureEngine() {
         engine.attach(effectNode)
         engine.attach(musicNode)
+        engine.attach(musicVarispeed)
         engine.connect(effectNode, to: engine.mainMixerNode, format: format)
-        engine.connect(musicNode, to: engine.mainMixerNode, format: format)
+        engine.connect(musicNode, to: musicVarispeed, format: format)
+        engine.connect(musicVarispeed, to: engine.mainMixerNode, format: format)
         engine.mainMixerNode.outputVolume = 0.92
         effectNode.volume = 0.95
         musicNode.volume = 0.35
+        musicVarispeed.rate = 1.0
     }
 
     private func prepareBuffers() {
