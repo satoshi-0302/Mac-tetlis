@@ -9,6 +9,8 @@ Orthodox Tetris for macOS built with SwiftUI.
 - Soft drop, hard drop, rotate (CW/CCW)
 - Line clear scoring and level speed-up
 - Ghost landing preview
+- Animated neon-style board and background
+- Built-in sound effects and looped background music
 - Window docks to left or right 1/5 of the active screen
 
 ## Run
@@ -28,6 +30,11 @@ swift run
 - Space: hard drop
 - `P`: pause/resume
 - `R`: restart
+
+## Audio
+
+- Use the `Music On/Off` button to control background music.
+- Use the `SFX On/Off` button to control effects (move/rotate/drop/line clear/game over).
 
 ## Notes
 

@@ -153,41 +153,52 @@ final class TetrisGame: ObservableObject {
         startGravityTimer()
     }
 
-    func togglePause() {
-        guard !isGameOver else { return }
+    @discardableResult
+    func togglePause() -> Bool {
+        guard !isGameOver else { return false }
         isPaused.toggle()
+        return true
     }
 
-    func moveLeft() {
-        _ = attemptMove(dx: -1, dy: 0)
+    @discardableResult
+    func moveLeft() -> Bool {
+        attemptMove(dx: -1, dy: 0)
     }
 
-    func moveRight() {
-        _ = attemptMove(dx: 1, dy: 0)
+    @discardableResult
+    func moveRight() -> Bool {
+        attemptMove(dx: 1, dy: 0)
     }
 
-    func softDrop() {
-        guard canControlPiece else { return }
+    @discardableResult
+    func softDrop() -> Bool {
+        guard canControlPiece else { return false }
         if attemptMove(dx: 0, dy: 1) {
             score += 1
+            return true
         }
+        return false
     }
 
-    func hardDrop() {
-        guard canControlPiece else { return }
+    @discardableResult
+    func hardDrop() -> Int {
+        guard canControlPiece else { return 0 }
         var distance = 0
         while attemptMove(dx: 0, dy: 1) {
             distance += 1
         }
         score += distance * 2
         lockPiece()
+        return distance
     }
 
-    func rotateClockwise() {
+    @discardableResult
+    func rotateClockwise() -> Bool {
         attemptRotation(direction: 1)
     }
 
-    func rotateCounterClockwise() {
+    @discardableResult
+    func rotateCounterClockwise() -> Bool {
         attemptRotation(direction: -1)
     }
 
@@ -271,8 +282,8 @@ final class TetrisGame: ObservableObject {
         return true
     }
 
-    private func attemptRotation(direction: Int) {
-        guard canControlPiece, let piece = activePiece else { return }
+    private func attemptRotation(direction: Int) -> Bool {
+        guard canControlPiece, let piece = activePiece else { return false }
 
         let nextRotation = (piece.rotation + direction + 4) % 4
         let wallKickTests = [
@@ -293,9 +304,10 @@ final class TetrisGame: ObservableObject {
             )
             if !collides(candidate.blocks) {
                 activePiece = candidate
-                return
+                return true
             }
         }
+        return false
     }
 
     private func lockPiece() {
