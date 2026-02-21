@@ -3,80 +3,144 @@ import SwiftUI
 
 private enum TetrisLayout {
     static let columns: CGFloat = 10
-    static let rows: CGFloat = 20
+    static let referenceRows: CGFloat = 20
+    static let bottomVisibilitySafetyRows = 0
 
-    static let statusBarHeight: CGFloat = 64
-    static let horizontalPadding: CGFloat = 12
-    static let verticalPadding: CGFloat = 12
-    static let sidePanelWidth: CGFloat = 86
-    static let sideSpacing: CGFloat = 10
+    static let minimumCellSize: CGFloat = 4
+    static let pixelScale: CGFloat = 0.70
+    static let outerPadding: CGFloat = 8
+    static let minimumVisibleHeight: CGFloat = 480
 
-    static func boardCellSize(for windowHeight: CGFloat) -> CGFloat {
-        let boardAreaHeight = max(240, windowHeight - statusBarHeight - (verticalPadding * 3))
-        return max(12, floor(boardAreaHeight / rows))
+    static func cellSize(for visibleHeight: CGFloat) -> CGFloat {
+        let clampedHeight = max(minimumVisibleHeight, visibleHeight)
+        let base = floor((clampedHeight - (outerPadding * 2)) / referenceRows)
+        return max(minimumCellSize, floor(base * pixelScale))
     }
 
-    static func windowFrame(in visible: NSRect, side: WindowDockSide) -> NSRect {
-        let cellSize = boardCellSize(for: visible.height)
-        let boardWidth = floor(columns * cellSize)
-        let windowWidth = boardWidth + sidePanelWidth + sideSpacing + (horizontalPadding * 2)
+    static func rowCount(for visibleHeight: CGFloat) -> Int {
+        let clampedHeight = max(minimumVisibleHeight, visibleHeight)
+        let cell = cellSize(for: clampedHeight)
+        let playableHeight = max(80, clampedHeight - (outerPadding * 2))
+        let fullRows = max(Int(referenceRows), Int(floor(playableHeight / cell)))
+        return max(1, fullRows - bottomVisibilitySafetyRows)
+    }
+
+    static func defaultRows() -> Int {
+        let visibleHeight = NSScreen.main?.visibleFrame.height ?? minimumVisibleHeight
+        return rowCount(for: visibleHeight)
+    }
+
+    static func windowFrame(in visible: NSRect, side: WindowDockSide, rows: Int) -> NSRect {
+        let cell = cellSize(for: visible.height)
+        let rowCount = CGFloat(max(1, rows))
+        let width = floor((columns * cell) + (outerPadding * 2))
+        let height = floor((rowCount * cell) + (outerPadding * 2))
 
         return NSRect(
-            x: side == .left ? visible.minX : visible.maxX - windowWidth,
-            y: visible.minY,
-            width: windowWidth,
-            height: visible.height
+            x: side == .left ? visible.minX : visible.maxX - width,
+            y: visible.maxY - height,
+            width: width,
+            height: height
         )
+    }
+
+    static func minimumContentWidth() -> CGFloat {
+        floor((columns * minimumCellSize) + (outerPadding * 2))
     }
 }
 
 struct TetrisView: View {
-    @StateObject private var game = TetrisGame(columns: Int(TetrisLayout.columns), rows: Int(TetrisLayout.rows))
+    @StateObject private var game: TetrisGame
     @StateObject private var audio = AudioManager()
     @AppStorage("autoPauseWhenInactive") private var autoPauseWhenInactive = true
+    @AppStorage("controlScheme") private var controlSchemeRaw = ControlScheme.wasd.rawValue
 
-    @State private var clearFlashOpacity = 0.0
     @State private var lastKnownLines = 0
+    @State private var actionObserverTokens: [NSObjectProtocol] = []
+    @State private var keyEventMonitor: Any?
+    @State private var lineClearFxProgress: CGFloat = 1
+    @State private var lineClearFxStrength: CGFloat = 0
+    @State private var lineClearFxSeed = 0
+    @State private var lineClearShakeX: CGFloat = 0
+
+    init() {
+        _game = StateObject(
+            wrappedValue: TetrisGame(
+                columns: Int(TetrisLayout.columns),
+                rows: TetrisLayout.defaultRows()
+            )
+        )
+    }
 
     var body: some View {
         GeometryReader { proxy in
-            let cellSize = TetrisLayout.boardCellSize(for: proxy.size.height)
-            let boardSize = CGSize(
-                width: cellSize * CGFloat(game.columns),
-                height: cellSize * CGFloat(game.rows)
+            let playableWidth = max(80, proxy.size.width - (TetrisLayout.outerPadding * 2))
+            let playableHeight = max(80, proxy.size.height - (TetrisLayout.outerPadding * 2))
+            let widthLimitedCell = floor(playableWidth / CGFloat(game.columns))
+            let heightCappedCell = floor(playableHeight / TetrisLayout.referenceRows)
+            let cell = max(TetrisLayout.minimumCellSize, min(widthLimitedCell, heightCappedCell))
+            let targetRows = max(
+                Int(TetrisLayout.referenceRows),
+                Int(floor(playableHeight / cell)) - TetrisLayout.bottomVisibilitySafetyRows
             )
+            let boardSize = CGSize(width: cell * CGFloat(game.columns), height: cell * CGFloat(game.rows))
 
-            ZStack {
-                AnimatedBackdrop()
+            ZStack(alignment: .topLeading) {
+                Color.black
 
-                VStack(spacing: TetrisLayout.verticalPadding) {
-                    statusBar
-
-                    HStack(alignment: .top, spacing: TetrisLayout.sideSpacing) {
-                        BoardView(game: game, cellSize: cellSize, boardSize: boardSize)
-                        nextPanel
+                BoardView(game: game, cellSize: cell, boardSize: boardSize)
+                    .overlay {
+                        if lineClearFxStrength > 0 {
+                            LineClearFXOverlay(
+                                progress: lineClearFxProgress,
+                                intensity: lineClearFxStrength,
+                                seed: lineClearFxSeed,
+                                boardSize: boardSize,
+                                cellSize: cell
+                            )
+                            .allowsHitTesting(false)
+                        }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                }
-                .padding(.horizontal, TetrisLayout.horizontalPadding)
-                .padding(.vertical, TetrisLayout.verticalPadding)
+                    .offset(x: lineClearShakeX)
+                    .overlay(alignment: .topLeading) {
+                        scoreLine
+                            .padding(.top, 3)
+                            .padding(.leading, 4)
+                    }
+                    .overlay(alignment: .topLeading) {
+                        HoldOverlay(kind: game.holdPiece, cellSize: max(4, floor(cell * 0.36)))
+                            .padding(.top, max(18, floor(cell * 1.2)))
+                            .padding(.leading, 4)
+                            .opacity(0.46)
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        NextOverlay(queue: Array(game.nextQueue.prefix(3)), cellSize: max(4, floor(cell * 0.36)))
+                            .padding(.top, max(18, floor(cell * 1.2)))
+                            .padding(.trailing, 4)
+                            .opacity(0.46)
+                    }
             }
-            .overlay {
-                Color.white
-                    .opacity(clearFlashOpacity)
-                    .blendMode(.screen)
-                    .allowsHitTesting(false)
+            .padding(TetrisLayout.outerPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            .onAppear {
+                syncRowsIfNeeded(targetRows)
+            }
+            .onChange(of: targetRows) { newValue in
+                syncRowsIfNeeded(newValue)
             }
         }
-        .background(WindowDockingView(side: game.dockSide))
+        .background(WindowDockingView(side: game.dockSide, rows: TetrisLayout.defaultRows()))
         .onAppear {
+            registerGameActionObservers()
+            audio.resumeMusicIfNeeded()
             lastKnownLines = game.linesCleared
             syncTempo()
         }
         .onChange(of: game.linesCleared) { newValue in
-            if newValue > lastKnownLines {
+            let clearedNow = max(0, newValue - lastKnownLines)
+            if clearedNow > 0 {
                 audio.play(.lineClear)
-                triggerLineClearFlash()
+                triggerLineClearEffect(clearedLines: clearedNow)
             }
             lastKnownLines = newValue
         }
@@ -91,133 +155,23 @@ struct TetrisView: View {
                 audio.play(.gameOver)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
-            guard autoPauseWhenInactive else { return }
-            if game.pause() {
-                audio.play(.pause)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisMoveLeft)) { _ in
-            if game.moveLeft() {
-                audio.play(.move)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisMoveRight)) { _ in
-            if game.moveRight() {
-                audio.play(.move)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisSoftDrop)) { _ in
-            if game.softDrop() {
-                audio.play(.softDrop)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisHardDrop)) { _ in
-            if game.hardDrop() > 0 {
-                audio.play(.hardDrop)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisRotateClockwise)) { _ in
-            if game.rotateClockwise() {
-                audio.play(.rotate)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisRotateCounterClockwise)) { _ in
-            if game.rotateCounterClockwise() {
-                audio.play(.rotate)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisTogglePause)) { _ in
-            if game.isPaused {
-                if game.resume() {
-                    audio.play(.resume)
-                }
-            } else if game.pause() {
-                audio.play(.pause)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisRestart)) { _ in
-            game.startNewGame()
-            lastKnownLines = 0
-            audio.play(.restart)
-            syncTempo()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisToggleMusic)) { _ in
-            audio.musicEnabled.toggle()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisToggleEffects)) { _ in
-            audio.effectsEnabled.toggle()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisDockLeft)) { _ in
-            game.dockSide = .left
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tetrisDockRight)) { _ in
-            game.dockSide = .right
-        }
         .onDisappear {
+            clearGameActionObservers()
             audio.stopMusic()
         }
     }
 
-    private var statusBar: some View {
-        HStack(spacing: 8) {
-            StatTile(title: "Score", value: "\(game.score)")
-            StatTile(title: "Lines", value: "\(game.linesCleared)")
-            StatTile(title: "Level", value: "\(game.level)")
-
-            Spacer(minLength: 0)
-
-            if game.isPaused {
-                BadgeLabel(text: "Paused", tint: Color.orange)
-            }
-            if game.isGameOver {
-                BadgeLabel(text: "Game Over", tint: Color.red)
-            }
+    private var scoreLine: some View {
+        HStack(spacing: 10) {
+            Text("S:\(game.score)")
+            Text("L:\(game.linesCleared)")
+            Text("LV:\(game.level)")
         }
-        .frame(height: TetrisLayout.statusBarHeight)
-        .padding(.horizontal, 10)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.white.opacity(0.26), lineWidth: 1)
-        )
-    }
-
-    private var nextPanel: some View {
-        VStack(spacing: 10) {
-            Text("NEXT")
-                .font(.caption2.weight(.bold))
-                .foregroundStyle(.white.opacity(0.85))
-
-            ForEach(Array(game.nextQueue.prefix(2).enumerated()), id: \.offset) { index, kind in
-                PiecePreview(kind: kind, cellSize: 10)
-                    .scaleEffect(index == 0 ? 0.88 : 0.72)
-                    .opacity(index == 0 ? 0.58 : 0.42)
-            }
-
-            Spacer(minLength: 0)
-
-            VStack(spacing: 4) {
-                Text(audio.musicEnabled ? "Music: On" : "Music: Off")
-                Text(audio.effectsEnabled ? "SFX: On" : "SFX: Off")
-            }
-            .font(.caption2)
-            .foregroundStyle(.white.opacity(0.74))
-        }
-        .padding(8)
-        .frame(width: TetrisLayout.sidePanelWidth)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.white.opacity(0.18), lineWidth: 1)
-        )
-    }
-
-    private func triggerLineClearFlash() {
-        clearFlashOpacity = 0.44
-        withAnimation(.easeOut(duration: 0.26)) {
-            clearFlashOpacity = 0
-        }
+        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(Color.black.opacity(0.48), in: RoundedRectangle(cornerRadius: 5))
     }
 
     private func syncTempo() {
@@ -227,80 +181,354 @@ struct TetrisView: View {
             level: game.level
         )
     }
-}
 
-private struct StatTile: View {
-    let title: String
-    let value: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(title.uppercased())
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(.white)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .background(Color.black.opacity(0.34), in: RoundedRectangle(cornerRadius: 8))
+    private func syncRowsIfNeeded(_ targetRows: Int) {
+        guard targetRows != game.rows else { return }
+        game.resizeRows(to: targetRows)
+        syncTempo()
     }
-}
 
-private struct BadgeLabel: View {
-    let text: String
-    let tint: Color
+    private func triggerLineClearEffect(clearedLines: Int) {
+        let intensity = CGFloat(min(4, max(1, clearedLines)))
+        lineClearFxStrength = intensity
+        lineClearFxSeed = Int.random(in: 0...100_000)
+        lineClearFxProgress = 0
+        lineClearShakeX = intensity * 2.6
 
-    var body: some View {
-        Text(text)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.white)
-            .padding(.vertical, 5)
-            .padding(.horizontal, 9)
-            .background(tint.opacity(0.84), in: Capsule())
-    }
-}
-
-private struct AnimatedBackdrop: View {
-    @State private var drift: CGFloat = -100
-
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.05, green: 0.06, blue: 0.10),
-                    Color(red: 0.10, green: 0.14, blue: 0.24),
-                    Color(red: 0.03, green: 0.07, blue: 0.12)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            RadialGradient(
-                colors: [Color.teal.opacity(0.35), Color.clear],
-                center: .center,
-                startRadius: 40,
-                endRadius: 320
-            )
-            .offset(x: drift, y: -drift * 0.35)
-            .blur(radius: 10)
-
-            RadialGradient(
-                colors: [Color.pink.opacity(0.25), Color.clear],
-                center: .center,
-                startRadius: 20,
-                endRadius: 280
-            )
-            .offset(x: -drift * 0.8, y: drift * 0.45)
-            .blur(radius: 14)
+        withAnimation(.easeOut(duration: 0.06)) {
+            lineClearShakeX = -(intensity * 1.8)
         }
-        .ignoresSafeArea()
-        .onAppear {
-            withAnimation(.easeInOut(duration: 7.0).repeatForever(autoreverses: true)) {
-                drift = 100
+        withAnimation(.spring(response: 0.22, dampingFraction: 0.55)) {
+            lineClearShakeX = 0
+        }
+        withAnimation(.easeOut(duration: 0.42)) {
+            lineClearFxProgress = 1
+        }
+
+        let activeSeed = lineClearFxSeed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.46) {
+            guard lineClearFxSeed == activeSeed else { return }
+            lineClearFxStrength = 0
+        }
+    }
+
+    private func registerGameActionObservers() {
+        guard actionObserverTokens.isEmpty else { return }
+        registerKeyEventMonitorIfNeeded()
+
+        let center = NotificationCenter.default
+        actionObserverTokens = [
+            center.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    guard autoPauseWhenInactive else { return }
+                    if game.pause() {
+                        audio.play(.pause)
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisMoveLeft, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    if game.moveLeft() {
+                        audio.play(.move)
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisMoveRight, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    if game.moveRight() {
+                        audio.play(.move)
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisSoftDrop, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    if game.softDrop() {
+                        audio.play(.softDrop)
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisHardDrop, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    if game.hardDrop() > 0 {
+                        audio.play(.hardDrop)
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisRotateClockwise, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    if game.rotateClockwise() {
+                        audio.play(.rotate)
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisRotateCounterClockwise, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    if game.rotateCounterClockwise() {
+                        audio.play(.rotate)
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisHold, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    if game.holdCurrentPiece() {
+                        audio.play(.hold)
+                        syncTempo()
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisTogglePause, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    if game.isPaused {
+                        if game.resume() {
+                            audio.play(.resume)
+                        }
+                    } else if game.pause() {
+                        audio.play(.pause)
+                    }
+                }
+            },
+            center.addObserver(forName: .tetrisRestart, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    game.startNewGame()
+                    lastKnownLines = 0
+                    audio.play(.restart)
+                    syncTempo()
+                }
+            },
+            center.addObserver(forName: .tetrisToggleMusic, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    audio.musicEnabled.toggle()
+                }
+            },
+            center.addObserver(forName: .tetrisToggleEffects, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    audio.effectsEnabled.toggle()
+                }
+            },
+            center.addObserver(forName: .tetrisDockLeft, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    game.dockSide = .left
+                }
+            },
+            center.addObserver(forName: .tetrisDockRight, object: nil, queue: .main) { _ in
+                Task { @MainActor in
+                    game.dockSide = .right
+                }
+            }
+        ]
+    }
+
+    private func clearGameActionObservers() {
+        let center = NotificationCenter.default
+        actionObserverTokens.forEach(center.removeObserver)
+        actionObserverTokens.removeAll()
+        if let keyEventMonitor {
+            NSEvent.removeMonitor(keyEventMonitor)
+            self.keyEventMonitor = nil
+        }
+    }
+
+    private func registerKeyEventMonitorIfNeeded() {
+        guard keyEventMonitor == nil else { return }
+
+        keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+            if handleKeyEvent(event) {
+                return nil
+            }
+            return event
+        }
+    }
+
+    private func handleKeyEvent(_ event: NSEvent) -> Bool {
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if modifiers.contains(.command) || modifiers.contains(.control) || modifiers.contains(.option) {
+            return false
+        }
+
+        guard let name = keyEventToAction(event) else { return false }
+        NotificationCenter.default.post(name: name, object: nil)
+        return true
+    }
+
+    private func keyEventToAction(_ event: NSEvent) -> Notification.Name? {
+        switch event.keyCode {
+        case 49:
+            return .tetrisHardDrop
+        case 8:
+            return .tetrisHold
+        case 35:
+            return .tetrisTogglePause
+        case 15:
+            return .tetrisRestart
+        default:
+            break
+        }
+
+        let scheme = ControlScheme(rawValue: controlSchemeRaw) ?? .wasd
+        switch scheme {
+        case .wasd:
+            guard let chars = event.charactersIgnoringModifiers?.lowercased() else { return nil }
+            switch chars {
+            case "a":
+                return .tetrisMoveLeft
+            case "d":
+                return .tetrisMoveRight
+            case "s":
+                return .tetrisSoftDrop
+            case "w":
+                return .tetrisRotateClockwise
+            case "q":
+                return .tetrisRotateCounterClockwise
+            default:
+                return nil
+            }
+        case .arrows:
+            switch event.keyCode {
+            case 123:
+                return .tetrisMoveLeft
+            case 124:
+                return .tetrisMoveRight
+            case 125:
+                return .tetrisSoftDrop
+            case 126:
+                return .tetrisRotateClockwise
+            default:
+                guard let chars = event.charactersIgnoringModifiers?.lowercased() else { return nil }
+                return chars == "z" ? .tetrisRotateCounterClockwise : nil
             }
         }
+    }
+}
+
+private struct NextOverlay: View {
+    let queue: [TetrominoKind]
+    let cellSize: CGFloat
+
+    var body: some View {
+        VStack(spacing: 6) {
+            ForEach(Array(queue.enumerated()), id: \.offset) { _, kind in
+                PiecePreview(kind: kind, cellSize: cellSize)
+            }
+        }
+    }
+}
+
+private struct HoldOverlay: View {
+    let kind: TetrominoKind?
+    let cellSize: CGFloat
+
+    var body: some View {
+        if let kind {
+            PiecePreview(kind: kind, cellSize: cellSize)
+        } else {
+            Rectangle()
+                .fill(Color.clear)
+                .frame(width: cellSize * 4, height: cellSize * 4)
+        }
+    }
+}
+
+private struct LineClearFXOverlay: View {
+    let progress: CGFloat
+    let intensity: CGFloat
+    let seed: Int
+    let boardSize: CGSize
+    let cellSize: CGFloat
+
+    private var clampedProgress: CGFloat {
+        min(max(progress, 0), 1)
+    }
+
+    private var fadeOut: CGFloat {
+        1 - clampedProgress
+    }
+
+    var body: some View {
+        let beamCount = Int(4 + (intensity * 2))
+        let sparkCount = Int(14 + (intensity * 10))
+        let maxRadius = min(boardSize.width, boardSize.height) * (0.20 + (0.75 * clampedProgress))
+
+        ZStack {
+            Rectangle()
+                .fill(Color.white.opacity(Double((0.10 + intensity * 0.08) * fadeOut)))
+                .blendMode(.screen)
+
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.white.opacity(Double(0.55 * fadeOut)),
+                            Color.cyan.opacity(Double(0.42 * fadeOut)),
+                            Color.purple.opacity(Double(0.24 * fadeOut)),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: max(boardSize.width, boardSize.height) * 0.56
+                    )
+                )
+                .scaleEffect(0.55 + (clampedProgress * 0.95))
+                .blur(radius: 2 + (8 * clampedProgress))
+                .blendMode(.screen)
+
+            ForEach(0..<beamCount, id: \.self) { index in
+                let thickness = max(2, cellSize * (0.16 + (CGFloat(index % 3) * 0.06)))
+                let ySpacing = boardSize.height / CGFloat(max(beamCount - 1, 1))
+                let sweepOffset = (clampedProgress * boardSize.height * 0.40) - (boardSize.height * 0.20)
+                let yPos = (-boardSize.height / 2) + (CGFloat(index) * ySpacing) + sweepOffset
+
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.clear,
+                                Color.cyan.opacity(Double(0.45 * fadeOut)),
+                                Color.white.opacity(Double(0.92 * fadeOut)),
+                                Color.pink.opacity(Double(0.35 * fadeOut)),
+                                Color.clear
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(height: thickness)
+                    .offset(y: yPos)
+                    .blendMode(.screen)
+            }
+
+            ForEach(0..<sparkCount, id: \.self) { index in
+                let angle = pseudo(index, 1) * .pi * 2
+                let radius = maxRadius * (0.15 + (0.85 * pseudo(index, 2)))
+                let sparkleSize = max(2, cellSize * (0.12 + (0.26 * pseudo(index, 3))))
+                let x = cos(angle) * radius
+                let y = sin(angle) * radius
+                let sparkleOpacity = Double(max(0, fadeOut - (pseudo(index, 4) * 0.35)))
+
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(sparkleOpacity),
+                                Color.cyan.opacity(sparkleOpacity * 0.72),
+                                Color.purple.opacity(sparkleOpacity * 0.42)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: sparkleSize, height: sparkleSize)
+                    .offset(x: x, y: y)
+                    .blur(radius: sparkleSize * 0.16)
+                    .blendMode(.screen)
+            }
+        }
+        .compositingGroup()
+        .clipped()
+    }
+
+    private func pseudo(_ index: Int, _ salt: Int) -> CGFloat {
+        let value = sin(CGFloat(seed + (index * 37) + (salt * 101)) * 12.9898) * 43_758.5453
+        return value - floor(value)
     }
 }
 
@@ -315,17 +543,15 @@ private struct BoardView: View {
         let activeColor = game.activePiece?.kind.color
 
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.black.opacity(0.70))
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.white.opacity(0.26), lineWidth: 1)
+            Rectangle()
+                .fill(Color.black)
+            Rectangle()
+                .stroke(Color.white.opacity(0.18), lineWidth: 1)
 
             ForEach(0..<game.rows, id: \.self) { row in
                 ForEach(0..<game.columns, id: \.self) { column in
-                    let point = GridPoint(x: column, y: row)
-
                     cellView(
-                        point: point,
+                        point: GridPoint(x: column, y: row),
                         activeCells: activeCells,
                         ghostCells: ghostCells,
                         activeColor: activeColor
@@ -339,7 +565,6 @@ private struct BoardView: View {
             }
         }
         .frame(width: boardSize.width, height: boardSize.height)
-        .shadow(color: Color.black.opacity(0.36), radius: 10, x: 0, y: 6)
     }
 
     @ViewBuilder
@@ -350,57 +575,68 @@ private struct BoardView: View {
         activeColor: Color?
     ) -> some View {
         if let activeColor, activeCells.contains(point) {
-            block(color: activeColor, glowing: true)
+            block(color: activeColor, isGhost: false)
         } else if let fixedColor = game.board[point.y][point.x]?.color {
-            block(color: fixedColor, glowing: false)
+            block(color: fixedColor, isGhost: false)
         } else if ghostCells.contains(point) {
-            let corner = max(2, cellSize * 0.16)
-            RoundedRectangle(cornerRadius: corner)
-                .stroke(
-                    Color.white.opacity(0.45),
-                    style: StrokeStyle(lineWidth: max(1, cellSize * 0.06), dash: [max(3, cellSize * 0.20)])
-                )
-                .background(
-                    RoundedRectangle(cornerRadius: corner)
-                        .fill(Color.white.opacity(0.08))
-                )
+            block(color: Color.white.opacity(0.30), isGhost: true)
         } else {
-            let corner = max(2, cellSize * 0.16)
-            RoundedRectangle(cornerRadius: corner)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.black.opacity(0.40), Color.black.opacity(0.20)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+            Rectangle()
+                .fill(Color.black)
                 .overlay(
-                    RoundedRectangle(cornerRadius: corner)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    Rectangle()
+                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
                 )
         }
     }
 
-    private func block(color: Color, glowing: Bool) -> some View {
-        let corner = max(2, cellSize * 0.16)
+    private func block(color: Color, isGhost: Bool) -> some View {
+        let fillOpacity = isGhost ? 0.28 : 0.96
+        let highlightOpacity = isGhost ? 0.10 : 0.44
+        let edgeShadowOpacity = isGhost ? 0.12 : 0.42
+        let glowOpacity = isGhost ? 0.10 : 0.24
 
-        return RoundedRectangle(cornerRadius: corner)
+        return Rectangle()
             .fill(
                 LinearGradient(
-                    colors: [color.opacity(glowing ? 1.0 : 0.90), color.opacity(0.58)],
+                    colors: [
+                        color.opacity(fillOpacity),
+                        color.opacity(fillOpacity * 0.86),
+                        color.opacity(fillOpacity * 0.64)
+                    ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(Color.white.opacity(highlightOpacity))
+                    .frame(height: max(1, cellSize * 0.12))
+            }
+            .overlay(alignment: .leading) {
+                Rectangle()
+                    .fill(Color.white.opacity(highlightOpacity * 0.74))
+                    .frame(width: max(1, cellSize * 0.12))
+            }
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(Color.black.opacity(edgeShadowOpacity))
+                    .frame(height: max(1, cellSize * 0.14))
+            }
+            .overlay(alignment: .trailing) {
+                Rectangle()
+                    .fill(Color.black.opacity(edgeShadowOpacity * 0.82))
+                    .frame(width: max(1, cellSize * 0.14))
+            }
             .overlay(
-                RoundedRectangle(cornerRadius: corner)
-                    .stroke(Color.white.opacity(glowing ? 0.45 : 0.20), lineWidth: 1)
+                Rectangle()
+                    .stroke(Color.white.opacity(isGhost ? 0.22 : 0.12), lineWidth: 1)
             )
             .shadow(
-                color: color.opacity(glowing ? 0.56 : 0.24),
-                radius: glowing ? cellSize * 0.24 : cellSize * 0.14,
+                color: color.opacity(glowOpacity),
+                radius: isGhost ? 0 : max(1, cellSize * 0.16),
                 x: 0,
-                y: 0
+                y: max(0.5, cellSize * 0.05)
             )
     }
 }
@@ -417,9 +653,8 @@ private struct PiecePreview: View {
                 HStack(spacing: 1) {
                     ForEach(0..<4, id: \.self) { column in
                         let filled = points.contains(GridPoint(x: column, y: row))
-
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(filled ? kind.color : Color.black.opacity(0.14))
+                        Rectangle()
+                            .fill(filled ? kind.color : Color.clear)
                             .frame(width: cellSize, height: cellSize)
                     }
                 }
@@ -430,21 +665,27 @@ private struct PiecePreview: View {
 
 private struct WindowDockingView: NSViewRepresentable {
     let side: WindowDockSide
+    let rows: Int
 
     func makeNSView(context: Context) -> DockingNSView {
         let view = DockingNSView()
         view.side = side
+        view.rows = rows
         return view
     }
 
     func updateNSView(_ nsView: DockingNSView, context: Context) {
         nsView.side = side
+        nsView.rows = rows
         nsView.applyDockingIfNeeded()
     }
 }
 
 private final class DockingNSView: NSView {
     var side: WindowDockSide = .right
+    var rows: Int = Int(TetrisLayout.referenceRows)
+    private var hasAppliedInitialFrame = false
+    private var lastAppliedSide: WindowDockSide = .right
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
@@ -461,15 +702,41 @@ private final class DockingNSView: NSView {
                 return
             }
 
-            let target = TetrisLayout.windowFrame(in: screen.visibleFrame, side: side)
-            if abs(window.frame.minX - target.minX) > 0.5 ||
-                abs(window.frame.minY - target.minY) > 0.5 ||
-                abs(window.frame.width - target.width) > 0.5 ||
-                abs(window.frame.height - target.height) > 0.5 {
-                window.setFrame(target, display: true, animate: true)
+            let visible = screen.visibleFrame
+            let targetContent = TetrisLayout.windowFrame(in: visible, side: side, rows: rows)
+            let sizingFrame = window.frameRect(forContentRect: NSRect(origin: .zero, size: targetContent.size))
+            let fixedHeight = sizingFrame.height
+            let minWidthFrame = window.frameRect(
+                forContentRect: NSRect(
+                    origin: .zero,
+                    size: NSSize(width: TetrisLayout.minimumContentWidth(), height: targetContent.height)
+                )
+            ).width
+            let maxWidthFrame = visible.width
+            let preferredWidth = !hasAppliedInitialFrame || side != lastAppliedSide
+                ? sizingFrame.width
+                : window.frame.width
+            let targetWidth = min(max(preferredWidth, minWidthFrame), maxWidthFrame)
+
+            var targetFrame = window.frame
+            targetFrame.size.width = targetWidth
+            targetFrame.size.height = fixedHeight
+            targetFrame.origin = CGPoint(
+                x: side == .left ? visible.minX : visible.maxX - targetWidth,
+                y: visible.maxY - fixedHeight
+            )
+
+            if abs(window.frame.minX - targetFrame.minX) > 0.5 ||
+                abs(window.frame.minY - targetFrame.minY) > 0.5 ||
+                abs(window.frame.width - targetFrame.width) > 0.5 ||
+                abs(window.frame.height - targetFrame.height) > 0.5 {
+                window.setFrame(targetFrame, display: true, animate: true)
             }
 
-            window.minSize = NSSize(width: target.width, height: 360)
+            window.minSize = NSSize(width: minWidthFrame, height: fixedHeight)
+            window.maxSize = NSSize(width: maxWidthFrame, height: fixedHeight)
+            hasAppliedInitialFrame = true
+            lastAppliedSide = side
         }
     }
 }

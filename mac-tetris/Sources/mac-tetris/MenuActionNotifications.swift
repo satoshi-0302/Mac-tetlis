@@ -7,6 +7,7 @@ extension Notification.Name {
     static let tetrisHardDrop = Notification.Name("tetrisHardDrop")
     static let tetrisRotateClockwise = Notification.Name("tetrisRotateClockwise")
     static let tetrisRotateCounterClockwise = Notification.Name("tetrisRotateCounterClockwise")
+    static let tetrisHold = Notification.Name("tetrisHold")
     static let tetrisTogglePause = Notification.Name("tetrisTogglePause")
     static let tetrisRestart = Notification.Name("tetrisRestart")
     static let tetrisToggleMusic = Notification.Name("tetrisToggleMusic")

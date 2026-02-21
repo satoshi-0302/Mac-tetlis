@@ -13,6 +13,7 @@ final class AudioManager: ObservableObject {
         case pause
         case resume
         case restart
+        case hold
     }
 
     @Published var effectsEnabled = true
@@ -58,6 +59,10 @@ final class AudioManager: ObservableObject {
 
     func stopMusic() {
         musicNode.stop()
+    }
+
+    func resumeMusicIfNeeded() {
+        updateMusicState()
     }
 
     func updateMusicTempo(stackHeight: Int, boardHeight: Int, level: Int) {
@@ -137,6 +142,13 @@ final class AudioManager: ObservableObject {
             noteDuration: 0.08,
             volume: 0.16,
             waveform: .square
+        )
+        effectBuffers[.hold] = makeSweepBuffer(
+            from: 280,
+            to: 540,
+            duration: 0.09,
+            volume: 0.17,
+            waveform: .triangle
         )
 
         musicBuffer = makeMusicLoopBuffer()

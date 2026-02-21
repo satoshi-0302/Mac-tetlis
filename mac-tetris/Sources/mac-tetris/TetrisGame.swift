@@ -114,11 +114,12 @@ struct ActivePiece {
 @MainActor
 final class TetrisGame: ObservableObject {
     let columns: Int
-    let rows: Int
+    @Published private(set) var rows: Int
 
     @Published private(set) var board: [[TetrominoKind?]]
     @Published private(set) var activePiece: ActivePiece?
     @Published private(set) var nextQueue: [TetrominoKind] = []
+    @Published private(set) var holdPiece: TetrominoKind?
 
     @Published private(set) var score: Int = 0
     @Published private(set) var linesCleared: Int = 0
@@ -131,6 +132,7 @@ final class TetrisGame: ObservableObject {
 
     private var bag: [TetrominoKind] = []
     private var gravityTimer: Timer?
+    private var hasHeldThisTurn = false
 
     init(columns: Int = 10, rows: Int = 20) {
         self.columns = columns
@@ -149,10 +151,79 @@ final class TetrisGame: ObservableObject {
         isPaused = false
         bag = []
         nextQueue = []
+        holdPiece = nil
+        hasHeldThisTurn = false
 
         ensureQueue(minimum: 5)
         spawnPiece()
         startGravityTimer()
+    }
+
+    func resizeRows(to requestedRows: Int) {
+        let targetRows = max(1, requestedRows)
+        guard targetRows != rows else { return }
+
+        let delta = targetRows - rows
+
+        if delta > 0 {
+            let added = Array(
+                repeating: Array<TetrominoKind?>(repeating: nil, count: columns),
+                count: delta
+            )
+            board = added + board
+        } else {
+            let removeCount = min(rows - 1, -delta)
+            board.removeFirst(removeCount)
+        }
+
+        rows = board.count
+
+        if !isGameOver, let piece = activePiece {
+            if let resolved = resolvedPieceForCurrentBoard(piece: piece, deltaRows: delta) {
+                activePiece = resolved
+            } else {
+                activePiece = nil
+                spawnPiece()
+            }
+        }
+
+        updateStackHeight()
+    }
+
+    private func resolvedPieceForCurrentBoard(piece: ActivePiece, deltaRows: Int) -> ActivePiece? {
+        let offsets = piece.kind.rotations[piece.rotation]
+        let minOffsetY = offsets.map(\.y).min() ?? 0
+        let maxOffsetY = offsets.map(\.y).max() ?? 0
+
+        let minOriginY = -minOffsetY
+        let maxOriginY = rows - 1 - maxOffsetY
+        guard maxOriginY >= minOriginY else { return nil }
+
+        let preferredOriginY = piece.origin.y + deltaRows
+        let clampedOriginY = min(max(preferredOriginY, minOriginY), maxOriginY)
+
+        let maxSearchDistance = max(rows, 24)
+        for distance in 0...maxSearchDistance {
+            let candidates: [Int]
+            if distance == 0 {
+                candidates = [clampedOriginY]
+            } else {
+                candidates = [clampedOriginY - distance, clampedOriginY + distance]
+            }
+
+            for originY in candidates where originY >= minOriginY && originY <= maxOriginY {
+                let candidate = ActivePiece(
+                    kind: piece.kind,
+                    rotation: piece.rotation,
+                    origin: GridPoint(x: piece.origin.x, y: originY)
+                )
+                if !collides(candidate.blocks) {
+                    return candidate
+                }
+            }
+        }
+
+        return nil
     }
 
     @discardableResult
@@ -216,6 +287,24 @@ final class TetrisGame: ObservableObject {
         attemptRotation(direction: -1)
     }
 
+    @discardableResult
+    func holdCurrentPiece() -> Bool {
+        guard canControlPiece, !hasHeldThisTurn, let current = activePiece else { return false }
+
+        let currentKind = current.kind
+        hasHeldThisTurn = true
+
+        if let heldKind = holdPiece {
+            holdPiece = currentKind
+            return activatePiece(kind: heldKind)
+        }
+
+        holdPiece = currentKind
+        activePiece = nil
+        spawnPiece()
+        return !isGameOver
+    }
+
     func tick() {
         guard canControlPiece else { return }
         if !attemptMove(dx: 0, dy: 1) {
@@ -261,16 +350,30 @@ final class TetrisGame: ObservableObject {
         let kind = nextQueue.removeFirst()
         ensureQueue(minimum: 5)
 
-        let candidate = ActivePiece(kind: kind, rotation: 0, origin: GridPoint(x: 3, y: 0))
+        _ = activatePiece(kind: kind)
+    }
+
+    @discardableResult
+    private func activatePiece(kind: TetrominoKind) -> Bool {
+        let candidate = spawnCandidate(for: kind)
         if collides(candidate.blocks) {
             activePiece = nil
             isGameOver = true
             gravityTimer?.invalidate()
             updateStackHeight()
-            return
+            return false
         }
 
         activePiece = candidate
+        return true
+    }
+
+    private func spawnCandidate(for kind: TetrominoKind) -> ActivePiece {
+        ActivePiece(kind: kind, rotation: 0, origin: GridPoint(x: spawnOriginX, y: 0))
+    }
+
+    private var spawnOriginX: Int {
+        max(0, (columns / 2) - 2)
     }
 
     private func ensureQueue(minimum: Int) {
@@ -334,6 +437,7 @@ final class TetrisGame: ObservableObject {
         }
 
         activePiece = nil
+        hasHeldThisTurn = false
 
         let clearedNow = clearCompleteLines()
         if clearedNow > 0 {
