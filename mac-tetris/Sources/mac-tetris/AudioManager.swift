@@ -38,6 +38,7 @@ final class AudioManager: ObservableObject {
     private let musicNode = AVAudioPlayerNode()
     private let musicMidNode = AVAudioPlayerNode()
     private let musicHighNode = AVAudioPlayerNode()
+    private let musicMixer = AVAudioMixerNode()
     private let musicVarispeed = AVAudioUnitVarispeed()
     private let format: AVAudioFormat
     private let sampleRate: Double
@@ -59,11 +60,12 @@ final class AudioManager: ObservableObject {
     func play(_ effect: Effect) {
         guard effectsEnabled, let buffer = effectBuffers[effect] else { return }
         startEngine()
+        guard engine.isRunning else { return }
 
+        effectNode.scheduleBuffer(buffer, completionHandler: nil)
         if !effectNode.isPlaying {
             effectNode.play()
         }
-        effectNode.scheduleBuffer(buffer, completionHandler: nil)
     }
 
     func stopMusic() {
@@ -105,14 +107,17 @@ final class AudioManager: ObservableObject {
         engine.attach(musicNode)
         engine.attach(musicMidNode)
         engine.attach(musicHighNode)
+        engine.attach(musicMixer)
         engine.attach(musicVarispeed)
         engine.connect(effectNode, to: engine.mainMixerNode, format: format)
-        engine.connect(musicNode, to: musicVarispeed, format: format)
-        engine.connect(musicMidNode, to: musicVarispeed, format: format)
-        engine.connect(musicHighNode, to: musicVarispeed, format: format)
+        engine.connect(musicNode, to: musicMixer, format: format)
+        engine.connect(musicMidNode, to: musicMixer, format: format)
+        engine.connect(musicHighNode, to: musicMixer, format: format)
+        engine.connect(musicMixer, to: musicVarispeed, format: format)
         engine.connect(musicVarispeed, to: engine.mainMixerNode, format: format)
         engine.mainMixerNode.outputVolume = 0.92
         effectNode.volume = 0.95
+        musicMixer.outputVolume = 1.0
         musicNode.volume = 0.30
         musicMidNode.volume = 0
         musicHighNode.volume = 0
@@ -242,6 +247,7 @@ final class AudioManager: ObservableObject {
             return
         }
         startEngine()
+        guard engine.isRunning else { return }
 
         if !musicNode.isPlaying {
             musicNode.scheduleBuffer(musicBuffer, at: nil, options: [.loops], completionHandler: nil)
