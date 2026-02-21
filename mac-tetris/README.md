@@ -8,11 +8,15 @@ Orthodox Tetris for macOS built with SwiftUI.
 - 7-bag piece randomizer
 - Soft drop, hard drop, rotate (CW/CCW)
 - Single-slot hold (once per piece drop)
-- Line clear scoring and level speed-up
+- Lock delay with configurable timing
+- T-Spin / Back-to-Back / Combo / All Clear scoring
+- Fixed-timestep simulation + input queue for stable gameplay
 - Ghost landing preview
 - Built-in sound effects and looped background music
+- Multi-layer dynamic BGM (stack danger + level intensity)
 - 3D-style beveled block rendering
-- Flashy line-clear burst effect (flash, beams, sparks)
+- Flashy line-clear burst effect with clear-type variants
+- Top danger warning overlay when stack is near ceiling
 - Pixel size is 70% of previous layout; window width fits that size tightly
 - Window height is fixed; width is resizable with bottom-anchored blocks
 - Score/Lines/Level are shown on the top line of the stacking area
@@ -32,6 +36,7 @@ swift run
 Use the macOS menu bar (`Settings`) for:
 
 - `Controls` (`WASD` / `Arrows`)
+- `DAS` / `ARR` / `Soft Drop` / `Lock Delay`
 - `Dock Left` / `Dock Right`
 - `Auto Pause When Inactive` (toggle)
 

@@ -111,6 +111,47 @@ struct ActivePiece {
     }
 }
 
+enum LineClearKind: Equatable {
+    case single
+    case double
+    case triple
+    case tetris
+    case tSpinSingle
+    case tSpinDouble
+    case tSpinTriple
+    case allClear
+
+    var effectStrength: CGFloat {
+        switch self {
+        case .single:
+            return 1.0
+        case .double:
+            return 1.4
+        case .triple:
+            return 1.8
+        case .tetris:
+            return 2.5
+        case .tSpinSingle:
+            return 2.6
+        case .tSpinDouble:
+            return 3.0
+        case .tSpinTriple:
+            return 3.4
+        case .allClear:
+            return 3.8
+        }
+    }
+}
+
+struct ClearFeedback: Equatable, Identifiable {
+    let id: Int
+    let kind: LineClearKind
+    let clearedLines: Int
+    let combo: Int
+    let isBackToBack: Bool
+    let isAllClear: Bool
+}
+
 @MainActor
 final class TetrisGame: ObservableObject {
     let columns: Int
@@ -125,14 +166,22 @@ final class TetrisGame: ObservableObject {
     @Published private(set) var linesCleared: Int = 0
     @Published private(set) var level: Int = 1
     @Published private(set) var stackHeight: Int = 0
+    @Published private(set) var combo: Int = 0
+    @Published private(set) var isBackToBackChain: Bool = false
+    @Published private(set) var latestClearFeedback: ClearFeedback?
 
     @Published private(set) var isGameOver: Bool = false
     @Published var isPaused: Bool = false
     @Published var dockSide: WindowDockSide = .right
 
     private var bag: [TetrominoKind] = []
-    private var gravityTimer: Timer?
     private var hasHeldThisTurn = false
+    private var gravityAccumulator: TimeInterval = 0
+    private var lockDelayAccumulator: TimeInterval = 0
+    private var lockDelayDuration: TimeInterval = 0.50
+    private var comboStreak = -1
+    private var clearFeedbackSequence = 0
+    private var lastActionWasRotation = false
 
     init(columns: Int = 10, rows: Int = 20) {
         self.columns = columns
@@ -147,16 +196,23 @@ final class TetrisGame: ObservableObject {
         linesCleared = 0
         level = 1
         stackHeight = 0
+        combo = 0
+        isBackToBackChain = false
+        latestClearFeedback = nil
         isGameOver = false
         isPaused = false
         bag = []
         nextQueue = []
         holdPiece = nil
         hasHeldThisTurn = false
+        gravityAccumulator = 0
+        lockDelayAccumulator = 0
+        comboStreak = -1
+        clearFeedbackSequence = 0
+        lastActionWasRotation = false
 
         ensureQueue(minimum: 5)
         spawnPiece()
-        startGravityTimer()
     }
 
     func resizeRows(to requestedRows: Int) {
@@ -187,6 +243,7 @@ final class TetrisGame: ObservableObject {
             }
         }
 
+        lockDelayAccumulator = 0
         updateStackHeight()
     }
 
@@ -245,24 +302,64 @@ final class TetrisGame: ObservableObject {
         return true
     }
 
+    func setLockDelay(milliseconds: Double) {
+        let clamped = max(80, min(1200, milliseconds))
+        lockDelayDuration = clamped / 1000.0
+    }
+
+    func advance(by deltaTime: TimeInterval) {
+        guard canControlPiece else { return }
+
+        let clamped = min(max(0, deltaTime), 0.05)
+        gravityAccumulator += clamped
+        let currentDropInterval = dropInterval
+
+        while gravityAccumulator >= currentDropInterval {
+            gravityAccumulator -= currentDropInterval
+            if attemptMove(dx: 0, dy: 1) {
+                lastActionWasRotation = false
+                lockDelayAccumulator = 0
+            } else {
+                break
+            }
+        }
+
+        guard activePiece != nil else { return }
+
+        if isActivePieceGrounded {
+            lockDelayAccumulator += clamped
+            if lockDelayAccumulator >= lockDelayDuration {
+                lockPiece()
+            }
+        } else {
+            lockDelayAccumulator = 0
+        }
+    }
+
     @discardableResult
     func moveLeft() -> Bool {
-        attemptMove(dx: -1, dy: 0)
+        guard attemptMove(dx: -1, dy: 0) else { return false }
+        lastActionWasRotation = false
+        lockDelayAccumulator = 0
+        return true
     }
 
     @discardableResult
     func moveRight() -> Bool {
-        attemptMove(dx: 1, dy: 0)
+        guard attemptMove(dx: 1, dy: 0) else { return false }
+        lastActionWasRotation = false
+        lockDelayAccumulator = 0
+        return true
     }
 
     @discardableResult
     func softDrop() -> Bool {
         guard canControlPiece else { return false }
-        if attemptMove(dx: 0, dy: 1) {
-            score += 1
-            return true
-        }
-        return false
+        guard attemptMove(dx: 0, dy: 1) else { return false }
+        score += 1
+        lastActionWasRotation = false
+        lockDelayAccumulator = 0
+        return true
     }
 
     @discardableResult
@@ -273,18 +370,25 @@ final class TetrisGame: ObservableObject {
             distance += 1
         }
         score += distance * 2
+        lastActionWasRotation = false
         lockPiece()
         return distance
     }
 
     @discardableResult
     func rotateClockwise() -> Bool {
-        attemptRotation(direction: 1)
+        guard attemptRotation(direction: 1) else { return false }
+        lastActionWasRotation = true
+        lockDelayAccumulator = 0
+        return true
     }
 
     @discardableResult
     func rotateCounterClockwise() -> Bool {
-        attemptRotation(direction: -1)
+        guard attemptRotation(direction: -1) else { return false }
+        lastActionWasRotation = true
+        lockDelayAccumulator = 0
+        return true
     }
 
     @discardableResult
@@ -293,6 +397,9 @@ final class TetrisGame: ObservableObject {
 
         let currentKind = current.kind
         hasHeldThisTurn = true
+        lastActionWasRotation = false
+        lockDelayAccumulator = 0
+        gravityAccumulator = 0
 
         if let heldKind = holdPiece {
             holdPiece = currentKind
@@ -306,10 +413,7 @@ final class TetrisGame: ObservableObject {
     }
 
     func tick() {
-        guard canControlPiece else { return }
-        if !attemptMove(dx: 0, dy: 1) {
-            lockPiece()
-        }
+        advance(by: dropInterval)
     }
 
     func ghostBlocks() -> [GridPoint] {
@@ -332,15 +436,6 @@ final class TetrisGame: ObservableObject {
         !isGameOver && !isPaused && activePiece != nil
     }
 
-    private func startGravityTimer() {
-        gravityTimer?.invalidate()
-        gravityTimer = Timer.scheduledTimer(withTimeInterval: dropInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.tick()
-            }
-        }
-    }
-
     private var dropInterval: TimeInterval {
         max(0.08, 0.80 - (Double(level - 1) * 0.06))
     }
@@ -359,12 +454,14 @@ final class TetrisGame: ObservableObject {
         if collides(candidate.blocks) {
             activePiece = nil
             isGameOver = true
-            gravityTimer?.invalidate()
             updateStackHeight()
             return false
         }
 
         activePiece = candidate
+        lockDelayAccumulator = 0
+        gravityAccumulator = 0
+        lastActionWasRotation = false
         return true
     }
 
@@ -436,20 +533,130 @@ final class TetrisGame: ObservableObject {
             board[block.y][block.x] = piece.kind
         }
 
+        let wasTSpin = detectTSpin(for: piece)
         activePiece = nil
         hasHeldThisTurn = false
+        lockDelayAccumulator = 0
+        gravityAccumulator = 0
 
         let clearedNow = clearCompleteLines()
-        if clearedNow > 0 {
-            let baseScores = [0, 100, 300, 500, 800]
-            score += baseScores[clearedNow] * level
-            linesCleared += clearedNow
-            level = (linesCleared / 10) + 1
-            startGravityTimer()
-        }
+        applyScoring(clearedLines: clearedNow, wasTSpin: wasTSpin)
+        lastActionWasRotation = false
 
         updateStackHeight()
         spawnPiece()
+    }
+
+    private func detectTSpin(for piece: ActivePiece) -> Bool {
+        guard piece.kind == .t, lastActionWasRotation else { return false }
+        let pivot = GridPoint(x: piece.origin.x + 1, y: piece.origin.y + 1)
+        let cornerOffsets = [
+            GridPoint(x: -1, y: -1),
+            GridPoint(x: 1, y: -1),
+            GridPoint(x: -1, y: 1),
+            GridPoint(x: 1, y: 1)
+        ]
+
+        var occupiedCorners = 0
+        for offset in cornerOffsets {
+            let x = pivot.x + offset.x
+            let y = pivot.y + offset.y
+            if x < 0 || x >= columns || y < 0 || y >= rows || board[y][x] != nil {
+                occupiedCorners += 1
+            }
+        }
+        return occupiedCorners >= 3
+    }
+
+    private func applyScoring(clearedLines: Int, wasTSpin: Bool) {
+        guard clearedLines > 0 else {
+            comboStreak = -1
+            combo = 0
+            latestClearFeedback = nil
+            return
+        }
+
+        comboStreak += 1
+        combo = max(0, comboStreak)
+
+        let baseKind = lineClearKind(for: clearedLines, wasTSpin: wasTSpin)
+        let difficultClear = wasTSpin || clearedLines == 4
+        let hasBackToBackBonus = difficultClear && isBackToBackChain
+
+        var baseScore = scoreValue(for: baseKind)
+        if hasBackToBackBonus {
+            baseScore = Int(Double(baseScore) * 1.5)
+        }
+
+        let comboBonus = comboStreak > 0 ? comboStreak * 50 : 0
+        let isAllClear = board.allSatisfy { row in row.allSatisfy { $0 == nil } }
+        let allClearBonus = isAllClear ? 1800 : 0
+
+        score += (baseScore + comboBonus + allClearBonus) * level
+        linesCleared += clearedLines
+        level = (linesCleared / 10) + 1
+
+        if difficultClear {
+            isBackToBackChain = true
+        } else {
+            isBackToBackChain = false
+        }
+
+        let feedbackKind: LineClearKind = isAllClear ? .allClear : baseKind
+        clearFeedbackSequence += 1
+        latestClearFeedback = ClearFeedback(
+            id: clearFeedbackSequence,
+            kind: feedbackKind,
+            clearedLines: clearedLines,
+            combo: combo,
+            isBackToBack: hasBackToBackBonus,
+            isAllClear: isAllClear
+        )
+    }
+
+    private func lineClearKind(for clearedLines: Int, wasTSpin: Bool) -> LineClearKind {
+        if wasTSpin {
+            switch clearedLines {
+            case 1:
+                return .tSpinSingle
+            case 2:
+                return .tSpinDouble
+            default:
+                return .tSpinTriple
+            }
+        }
+
+        switch clearedLines {
+        case 1:
+            return .single
+        case 2:
+            return .double
+        case 3:
+            return .triple
+        default:
+            return .tetris
+        }
+    }
+
+    private func scoreValue(for kind: LineClearKind) -> Int {
+        switch kind {
+        case .single:
+            return 100
+        case .double:
+            return 300
+        case .triple:
+            return 500
+        case .tetris:
+            return 800
+        case .tSpinSingle:
+            return 800
+        case .tSpinDouble:
+            return 1200
+        case .tSpinTriple:
+            return 1600
+        case .allClear:
+            return 1800
+        }
     }
 
     private func clearCompleteLines() -> Int {
@@ -480,6 +687,12 @@ final class TetrisGame: ObservableObject {
         }
 
         return false
+    }
+
+    private var isActivePieceGrounded: Bool {
+        guard let piece = activePiece else { return false }
+        let downShifted = piece.blocks.map { GridPoint(x: $0.x, y: $0.y + 1) }
+        return collides(downShifted)
     }
 
     private func updateStackHeight() {
