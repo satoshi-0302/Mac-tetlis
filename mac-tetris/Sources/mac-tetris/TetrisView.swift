@@ -99,6 +99,8 @@ struct TetrisView: View {
     @State private var softDropRepeatElapsed: TimeInterval = 0
     @State private var lineClearFxProgress: CGFloat = 1
     @State private var lineClearFxStrength: CGFloat = 0
+    @State private var lineFlashRows: [Int] = []
+    @State private var lineFlashPulseCount = 2
     @State private var lineClearFxSeed = 0
     @State private var lineClearShakeX: CGFloat = 0
     @State private var lineClearFxPrimary: Color = .white
@@ -141,6 +143,8 @@ struct TetrisView: View {
                                 progress: lineClearFxProgress,
                                 intensity: lineClearFxStrength,
                                 seed: lineClearFxSeed,
+                                clearedRows: lineFlashRows,
+                                pulseCount: lineFlashPulseCount,
                                 boardSize: boardSize,
                                 cellSize: cell,
                                 primary: lineClearFxPrimary,
@@ -464,9 +468,19 @@ struct TetrisView: View {
         lineClearFxPrimary = style.primary
         lineClearFxSecondary = style.secondary
         lineClearFxAccent = style.accent
+        lineFlashRows = feedback.clearedRowIndices
 
-        let intensity = CGFloat(min(4.5, max(1.0, feedback.kind.effectStrength)))
+        let clearedLines = max(1, feedback.clearedLines)
+        let lineBoost = CGFloat(clearedLines - 1) * 0.80
+        let styleBoost = max(0, feedback.kind.effectStrength - 1.0) * 0.45
+        let allClearBoost: CGFloat = feedback.isAllClear ? 0.85 : 0
+        let intensity = CGFloat(min(6.2, 1.0 + lineBoost + styleBoost + allClearBoost))
+
         lineClearFxStrength = intensity
+        lineFlashPulseCount = min(
+            10,
+            2 + clearedLines + (feedback.isBackToBack ? 1 : 0) + (feedback.isAllClear ? 2 : 0)
+        )
         lineClearFxSeed = Int.random(in: 0...100_000)
         lineClearFxProgress = 0
         lineClearShakeX = intensity * 2.9
@@ -497,15 +511,17 @@ struct TetrisView: View {
         withAnimation(.spring(response: 0.24, dampingFraction: 0.56)) {
             lineClearShakeX = 0
         }
-        withAnimation(.easeOut(duration: style.duration)) {
+        let flashDuration = style.duration + (Double(clearedLines - 1) * 0.07)
+        withAnimation(.easeOut(duration: flashDuration)) {
             lineClearFxProgress = 1
         }
 
         let activeSeed = lineClearFxSeed
-        let clearDelay = style.duration + 0.06
+        let clearDelay = flashDuration + 0.06
         DispatchQueue.main.asyncAfter(deadline: .now() + clearDelay) {
             guard lineClearFxSeed == activeSeed else { return }
             lineClearFxStrength = 0
+            lineFlashRows = []
         }
     }
 
@@ -809,6 +825,8 @@ private struct LineClearFXOverlay: View {
     let progress: CGFloat
     let intensity: CGFloat
     let seed: Int
+    let clearedRows: [Int]
+    let pulseCount: Int
     let boardSize: CGSize
     let cellSize: CGFloat
     let primary: Color
@@ -823,74 +841,127 @@ private struct LineClearFXOverlay: View {
         1 - clampedProgress
     }
 
+    private var lineCount: CGFloat {
+        CGFloat(max(1, clearedRows.count))
+    }
+
+    private var effectiveRows: [Int] {
+        if clearedRows.isEmpty { return [0] }
+        return clearedRows
+    }
+
+    private var pulseWave: CGFloat {
+        let wave = sin(clampedProgress * .pi * CGFloat(max(2, pulseCount)))
+        return max(0, wave)
+    }
+
+    private var flashEnvelope: CGFloat {
+        max(0, fadeOut * (0.38 + (pulseWave * 0.95)))
+    }
+
     var body: some View {
-        let beamCount = Int(4 + (intensity * 2))
-        let sparkCount = Int(14 + (intensity * 10))
-        let maxRadius = min(boardSize.width, boardSize.height) * (0.20 + (0.75 * clampedProgress))
+        let sparkCount = Int((8 + (intensity * 4.4)) * (0.72 + (lineCount * 0.32)))
+        let maxRadius = min(boardSize.width, boardSize.height) * (0.20 + (0.68 * clampedProgress))
 
         ZStack {
             Rectangle()
-                .fill(primary.opacity(Double((0.10 + intensity * 0.08) * fadeOut)))
+                .fill(primary.opacity(Double((0.05 + (0.04 * lineCount)) * flashEnvelope)))
                 .blendMode(.screen)
 
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            primary.opacity(Double(0.55 * fadeOut)),
-                            secondary.opacity(Double(0.42 * fadeOut)),
-                            accent.opacity(Double(0.24 * fadeOut)),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: max(boardSize.width, boardSize.height) * 0.56
-                    )
-                )
-                .scaleEffect(0.55 + (clampedProgress * 0.95))
-                .blur(radius: 2 + (8 * clampedProgress))
-                .blendMode(.screen)
+            ForEach(effectiveRows, id: \.self) { row in
+                let yPosition = (CGFloat(row) * cellSize) + (cellSize / 2) - (boardSize.height / 2)
+                let barHeight = max(2, cellSize * (0.72 + (lineCount * 0.06)))
+                let coreHeight = max(1, cellSize * 0.24)
+                let sideBurst = max(8, cellSize * (1.15 + (intensity * 0.20)))
 
-            ForEach(0..<beamCount, id: \.self) { index in
-                let thickness = max(2, cellSize * (0.16 + (CGFloat(index % 3) * 0.06)))
-                let ySpacing = boardSize.height / CGFloat(max(beamCount - 1, 1))
-                let sweepOffset = (clampedProgress * boardSize.height * 0.40) - (boardSize.height * 0.20)
-                let yPos = (-boardSize.height / 2) + (CGFloat(index) * ySpacing) + sweepOffset
+                ZStack {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.clear,
+                                    primary.opacity(Double(0.36 * flashEnvelope)),
+                                    secondary.opacity(Double(0.88 * flashEnvelope)),
+                                    accent.opacity(Double(0.46 * flashEnvelope)),
+                                    Color.clear
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(height: barHeight)
+                        .blur(radius: max(1, cellSize * 0.15))
+                        .blendMode(.screen)
 
-                Rectangle()
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(Double(0.22 * flashEnvelope)),
+                                    secondary.opacity(Double(1.05 * flashEnvelope)),
+                                    Color.white.opacity(Double(0.22 * flashEnvelope))
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(height: coreHeight)
+                        .blendMode(.plusLighter)
+
+                    Circle()
+                        .fill(primary.opacity(Double(0.24 * flashEnvelope)))
+                        .frame(width: sideBurst, height: sideBurst)
+                        .blur(radius: max(1, cellSize * 0.20))
+                        .offset(x: -boardSize.width * 0.48)
+
+                    Circle()
+                        .fill(accent.opacity(Double(0.24 * flashEnvelope)))
+                        .frame(width: sideBurst, height: sideBurst)
+                        .blur(radius: max(1, cellSize * 0.20))
+                        .offset(x: boardSize.width * 0.48)
+                }
+                .offset(y: yPosition)
+            }
+
+            if lineCount >= 2 {
+                Circle()
                     .fill(
-                        LinearGradient(
+                        RadialGradient(
                             colors: [
-                                Color.clear,
-                                secondary.opacity(Double(0.45 * fadeOut)),
-                                primary.opacity(Double(0.92 * fadeOut)),
-                                accent.opacity(Double(0.35 * fadeOut)),
+                                secondary.opacity(Double(0.42 * flashEnvelope)),
+                                primary.opacity(Double(0.26 * flashEnvelope)),
+                                accent.opacity(Double(0.16 * flashEnvelope)),
                                 Color.clear
                             ],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: max(boardSize.width, boardSize.height) * 0.55
                         )
                     )
-                    .frame(height: thickness)
-                    .offset(y: yPos)
+                    .frame(width: maxRadius * 2, height: maxRadius * 2)
+                    .scaleEffect(0.45 + (clampedProgress * 0.95))
+                    .blur(radius: 2 + (6 * clampedProgress))
                     .blendMode(.screen)
             }
 
             ForEach(0..<sparkCount, id: \.self) { index in
                 let angle = pseudo(index, 1) * .pi * 2
-                let radius = maxRadius * (0.15 + (0.85 * pseudo(index, 2)))
+                let radius = maxRadius * (0.16 + (0.84 * pseudo(index, 2)))
                 let sparkleSize = max(2, cellSize * (0.12 + (0.26 * pseudo(index, 3))))
+                let rowAnchor = effectiveRows[index % effectiveRows.count]
+                let anchorY = (CGFloat(rowAnchor) * cellSize) + (cellSize / 2) - (boardSize.height / 2)
+                let spreadY = (pseudo(index, 5) - 0.5) * (cellSize * (2.2 + lineCount))
                 let x = cos(angle) * radius
-                let y = sin(angle) * radius
-                let sparkleOpacity = Double(max(0, fadeOut - (pseudo(index, 4) * 0.35)))
+                let y = anchorY + sin(angle) * (radius * 0.30) + spreadY
+                let sparkleOpacity = Double(max(0, flashEnvelope - (pseudo(index, 4) * 0.28)))
 
                 Circle()
                     .fill(
                         LinearGradient(
                             colors: [
                                 primary.opacity(sparkleOpacity),
-                                secondary.opacity(sparkleOpacity * 0.72),
-                                accent.opacity(sparkleOpacity * 0.42)
+                                secondary.opacity(sparkleOpacity * 0.78),
+                                accent.opacity(sparkleOpacity * 0.52)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing

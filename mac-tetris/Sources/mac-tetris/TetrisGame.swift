@@ -147,6 +147,7 @@ struct ClearFeedback: Equatable, Identifiable {
     let id: Int
     let kind: LineClearKind
     let clearedLines: Int
+    let clearedRowIndices: [Int]
     let combo: Int
     let isBackToBack: Bool
     let isAllClear: Bool
@@ -539,8 +540,8 @@ final class TetrisGame: ObservableObject {
         lockDelayAccumulator = 0
         gravityAccumulator = 0
 
-        let clearedNow = clearCompleteLines()
-        applyScoring(clearedLines: clearedNow, wasTSpin: wasTSpin)
+        let clearedRowIndices = clearCompleteLines()
+        applyScoring(clearedRowIndices: clearedRowIndices, wasTSpin: wasTSpin)
         lastActionWasRotation = false
 
         updateStackHeight()
@@ -568,7 +569,8 @@ final class TetrisGame: ObservableObject {
         return occupiedCorners >= 3
     }
 
-    private func applyScoring(clearedLines: Int, wasTSpin: Bool) {
+    private func applyScoring(clearedRowIndices: [Int], wasTSpin: Bool) {
+        let clearedLines = clearedRowIndices.count
         guard clearedLines > 0 else {
             comboStreak = -1
             combo = 0
@@ -608,6 +610,7 @@ final class TetrisGame: ObservableObject {
             id: clearFeedbackSequence,
             kind: feedbackKind,
             clearedLines: clearedLines,
+            clearedRowIndices: clearedRowIndices,
             combo: combo,
             isBackToBack: hasBackToBackBonus,
             isAllClear: isAllClear
@@ -659,21 +662,24 @@ final class TetrisGame: ObservableObject {
         }
     }
 
-    private func clearCompleteLines() -> Int {
-        var remainingRows = board.filter { row in
-            !row.allSatisfy { $0 != nil }
+    private func clearCompleteLines() -> [Int] {
+        let clearedRowIndices = board.indices.filter { row in
+            board[row].allSatisfy { $0 != nil }
         }
+        guard !clearedRowIndices.isEmpty else { return [] }
 
-        let cleared = rows - remainingRows.count
-        guard cleared > 0 else { return 0 }
+        let clearedSet = Set(clearedRowIndices)
+        var remainingRows = board.enumerated().compactMap { index, row -> [TetrominoKind?]? in
+            clearedSet.contains(index) ? nil : row
+        }
 
         let emptyRows: [[TetrominoKind?]] = Array(
             repeating: Array<TetrominoKind?>(repeating: nil, count: columns),
-            count: cleared
+            count: clearedRowIndices.count
         )
         remainingRows = emptyRows + remainingRows
         board = remainingRows
-        return cleared
+        return clearedRowIndices
     }
 
     private func collides(_ blocks: [GridPoint]) -> Bool {
