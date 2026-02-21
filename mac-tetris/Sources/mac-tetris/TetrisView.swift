@@ -471,15 +471,27 @@ struct TetrisView: View {
         lineFlashRows = feedback.clearedRowIndices
 
         let clearedLines = max(1, feedback.clearedLines)
-        let lineBoost = CGFloat(clearedLines - 1) * 0.80
-        let styleBoost = max(0, feedback.kind.effectStrength - 1.0) * 0.45
-        let allClearBoost: CGFloat = feedback.isAllClear ? 0.85 : 0
-        let intensity = CGFloat(min(6.2, 1.0 + lineBoost + styleBoost + allClearBoost))
+        let lineIntensity: CGFloat
+        switch clearedLines {
+        case 1:
+            lineIntensity = 0.95
+        case 2:
+            lineIntensity = 2.10
+        case 3:
+            lineIntensity = 3.45
+        default:
+            lineIntensity = 4.95
+        }
+
+        let styleBoost = max(0, feedback.kind.effectStrength - 1.0) * 0.62
+        let backToBackBoost: CGFloat = feedback.isBackToBack ? 0.48 : 0
+        let allClearBoost: CGFloat = feedback.isAllClear ? 1.25 : 0
+        let intensity = CGFloat(min(8.4, lineIntensity + styleBoost + backToBackBoost + allClearBoost))
 
         lineClearFxStrength = intensity
         lineFlashPulseCount = min(
-            10,
-            2 + clearedLines + (feedback.isBackToBack ? 1 : 0) + (feedback.isAllClear ? 2 : 0)
+            12,
+            (clearedLines * 2) + (feedback.isBackToBack ? 1 : 0) + (feedback.isAllClear ? 2 : 0)
         )
         lineClearFxSeed = Int.random(in: 0...100_000)
         lineClearFxProgress = 0
@@ -511,7 +523,10 @@ struct TetrisView: View {
         withAnimation(.spring(response: 0.24, dampingFraction: 0.56)) {
             lineClearShakeX = 0
         }
-        let flashDuration = style.duration + (Double(clearedLines - 1) * 0.07)
+        let flashDuration = style.duration +
+            (Double(clearedLines - 1) * 0.11) +
+            (feedback.isBackToBack ? 0.04 : 0) +
+            (feedback.isAllClear ? 0.10 : 0)
         withAnimation(.easeOut(duration: flashDuration)) {
             lineClearFxProgress = 1
         }
@@ -533,7 +548,7 @@ struct TetrisView: View {
                 secondary: .cyan,
                 accent: .blue,
                 banner: feedback.combo >= 2 ? "COMBO x\(feedback.combo + 1)" : nil,
-                duration: 0.38
+                duration: 0.30
             )
         case .double:
             return ClearFXStyle(
@@ -541,7 +556,7 @@ struct TetrisView: View {
                 secondary: .cyan,
                 accent: .blue,
                 banner: feedback.combo >= 1 ? "COMBO x\(feedback.combo + 1)" : nil,
-                duration: 0.42
+                duration: 0.40
             )
         case .triple:
             return ClearFXStyle(
@@ -549,7 +564,7 @@ struct TetrisView: View {
                 secondary: .orange,
                 accent: .pink,
                 banner: feedback.combo >= 1 ? "TRIPLE" : "TRIPLE",
-                duration: 0.46
+                duration: 0.52
             )
         case .tetris:
             return ClearFXStyle(
@@ -557,7 +572,7 @@ struct TetrisView: View {
                 secondary: .cyan,
                 accent: .white,
                 banner: feedback.isBackToBack ? "B2B TETRIS" : "TETRIS",
-                duration: 0.54
+                duration: 0.66
             )
         case .tSpinSingle:
             return ClearFXStyle(
@@ -565,7 +580,7 @@ struct TetrisView: View {
                 secondary: .pink,
                 accent: .white,
                 banner: feedback.isBackToBack ? "B2B T-SPIN" : "T-SPIN",
-                duration: 0.52
+                duration: 0.62
             )
         case .tSpinDouble:
             return ClearFXStyle(
@@ -573,7 +588,7 @@ struct TetrisView: View {
                 secondary: .pink,
                 accent: .orange,
                 banner: feedback.isBackToBack ? "B2B T-SPIN DOUBLE" : "T-SPIN DOUBLE",
-                duration: 0.58
+                duration: 0.70
             )
         case .tSpinTriple:
             return ClearFXStyle(
@@ -581,7 +596,7 @@ struct TetrisView: View {
                 secondary: .red,
                 accent: .white,
                 banner: feedback.isBackToBack ? "B2B T-SPIN TRIPLE" : "T-SPIN TRIPLE",
-                duration: 0.64
+                duration: 0.78
             )
         case .allClear:
             return ClearFXStyle(
@@ -589,7 +604,7 @@ struct TetrisView: View {
                 secondary: .yellow,
                 accent: .cyan,
                 banner: "ALL CLEAR",
-                duration: 0.72
+                duration: 0.86
             )
         }
     }
@@ -856,23 +871,27 @@ private struct LineClearFXOverlay: View {
     }
 
     private var flashEnvelope: CGFloat {
-        max(0, fadeOut * (0.38 + (pulseWave * 0.95)))
+        let base = 0.20 + (lineCount * 0.13)
+        return max(0, fadeOut * (base + (pulseWave * 0.88)))
     }
 
     var body: some View {
-        let sparkCount = Int((8 + (intensity * 4.4)) * (0.72 + (lineCount * 0.32)))
-        let maxRadius = min(boardSize.width, boardSize.height) * (0.20 + (0.68 * clampedProgress))
+        let sparkCount = Int((4 + (intensity * 5.2)) * (0.42 + (lineCount * 0.58)))
+        let maxRadius = min(boardSize.width, boardSize.height) * (0.18 + (0.60 * clampedProgress) + (0.05 * lineCount))
 
         ZStack {
             Rectangle()
-                .fill(primary.opacity(Double((0.05 + (0.04 * lineCount)) * flashEnvelope)))
+                .fill(primary.opacity(Double((0.025 + (0.028 * lineCount) + (0.012 * intensity)) * flashEnvelope)))
                 .blendMode(.screen)
 
             ForEach(effectiveRows, id: \.self) { row in
                 let yPosition = (CGFloat(row) * cellSize) + (cellSize / 2) - (boardSize.height / 2)
-                let barHeight = max(2, cellSize * (0.72 + (lineCount * 0.06)))
-                let coreHeight = max(1, cellSize * 0.24)
-                let sideBurst = max(8, cellSize * (1.15 + (intensity * 0.20)))
+                let barHeight = max(2, cellSize * (0.58 + (lineCount * 0.14)))
+                let coreHeight = max(1, cellSize * (0.16 + (lineCount * 0.05) + (intensity * 0.02)))
+                let sideBurst = max(8, cellSize * (0.90 + (intensity * 0.32) + (lineCount * 0.10)))
+                let primaryBand = min(1.4, 0.24 + (Double(lineCount) * 0.16) + (Double(intensity) * 0.07))
+                let secondaryBand = min(1.4, 0.62 + (Double(lineCount) * 0.20) + (Double(intensity) * 0.08))
+                let accentBand = min(1.2, 0.30 + (Double(lineCount) * 0.14) + (Double(intensity) * 0.06))
 
                 ZStack {
                     Rectangle()
@@ -880,9 +899,9 @@ private struct LineClearFXOverlay: View {
                             LinearGradient(
                                 colors: [
                                     Color.clear,
-                                    primary.opacity(Double(0.36 * flashEnvelope)),
-                                    secondary.opacity(Double(0.88 * flashEnvelope)),
-                                    accent.opacity(Double(0.46 * flashEnvelope)),
+                                    primary.opacity(primaryBand * Double(flashEnvelope)),
+                                    secondary.opacity(secondaryBand * Double(flashEnvelope)),
+                                    accent.opacity(accentBand * Double(flashEnvelope)),
                                     Color.clear
                                 ],
                                 startPoint: .leading,
@@ -897,9 +916,9 @@ private struct LineClearFXOverlay: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color.white.opacity(Double(0.22 * flashEnvelope)),
-                                    secondary.opacity(Double(1.05 * flashEnvelope)),
-                                    Color.white.opacity(Double(0.22 * flashEnvelope))
+                                    Color.white.opacity(Double((0.14 + (0.02 * lineCount)) * flashEnvelope)),
+                                    secondary.opacity(Double((0.86 + (0.10 * lineCount) + (0.05 * intensity)) * flashEnvelope)),
+                                    Color.white.opacity(Double((0.14 + (0.02 * lineCount)) * flashEnvelope))
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -928,9 +947,9 @@ private struct LineClearFXOverlay: View {
                     .fill(
                         RadialGradient(
                             colors: [
-                                secondary.opacity(Double(0.42 * flashEnvelope)),
-                                primary.opacity(Double(0.26 * flashEnvelope)),
-                                accent.opacity(Double(0.16 * flashEnvelope)),
+                                secondary.opacity(Double((0.30 + (0.04 * lineCount)) * flashEnvelope)),
+                                primary.opacity(Double((0.18 + (0.03 * lineCount)) * flashEnvelope)),
+                                accent.opacity(Double((0.10 + (0.03 * lineCount)) * flashEnvelope)),
                                 Color.clear
                             ],
                             center: .center,
@@ -942,6 +961,26 @@ private struct LineClearFXOverlay: View {
                     .scaleEffect(0.45 + (clampedProgress * 0.95))
                     .blur(radius: 2 + (6 * clampedProgress))
                     .blendMode(.screen)
+            }
+
+            if lineCount >= 4 {
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                secondary.opacity(Double(0.92 * flashEnvelope)),
+                                accent.opacity(Double(0.56 * flashEnvelope)),
+                                Color.clear
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        lineWidth: max(1, cellSize * 0.28)
+                    )
+                    .frame(width: maxRadius * 2.2, height: maxRadius * 2.2)
+                    .scaleEffect(0.32 + (clampedProgress * 1.04))
+                    .blur(radius: 1 + (3.2 * clampedProgress))
+                    .blendMode(.plusLighter)
             }
 
             ForEach(0..<sparkCount, id: \.self) { index in
