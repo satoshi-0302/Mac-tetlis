@@ -10,6 +10,14 @@ struct MacTetrisApp: App {
             TetrisView()
         }
         .commands {
+            CommandGroup(replacing: .appInfo) { }
+            CommandGroup(replacing: .newItem) { }
+            CommandGroup(replacing: .pasteboard) { }
+            CommandGroup(replacing: .undoRedo) { }
+            CommandGroup(replacing: .windowSize) { }
+            CommandGroup(replacing: .windowList) { }
+            CommandGroup(replacing: .help) { }
+
             CommandMenu("Settings") {
                 Picker("Controls", selection: $controlScheme) {
                     Text(ControlScheme.wasd.menuLabel).tag(ControlScheme.wasd.rawValue)

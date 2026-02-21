@@ -125,7 +125,7 @@ struct TetrisView: View {
             .onAppear {
                 syncRowsIfNeeded(targetRows)
             }
-            .onChange(of: targetRows) { newValue in
+            .onChange(of: targetRows, initial: false) { _, newValue in
                 syncRowsIfNeeded(newValue)
             }
         }
@@ -136,7 +136,7 @@ struct TetrisView: View {
             lastKnownLines = game.linesCleared
             syncTempo()
         }
-        .onChange(of: game.linesCleared) { newValue in
+        .onChange(of: game.linesCleared, initial: false) { _, newValue in
             let clearedNow = max(0, newValue - lastKnownLines)
             if clearedNow > 0 {
                 audio.play(.lineClear)
@@ -144,13 +144,13 @@ struct TetrisView: View {
             }
             lastKnownLines = newValue
         }
-        .onChange(of: game.stackHeight) { _ in
+        .onChange(of: game.stackHeight, initial: false) { _, _ in
             syncTempo()
         }
-        .onChange(of: game.level) { _ in
+        .onChange(of: game.level, initial: false) { _, _ in
             syncTempo()
         }
-        .onChange(of: game.isGameOver) { isGameOver in
+        .onChange(of: game.isGameOver, initial: false) { _, isGameOver in
             if isGameOver {
                 audio.play(.gameOver)
             }

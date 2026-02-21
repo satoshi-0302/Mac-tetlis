@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "mac-tetris",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v14)
     ],
     products: [
         .executable(name: "mac-tetris", targets: ["mac-tetris"])
