@@ -1,0 +1,1280 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Codex5.3-Tetris Web</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #game {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="Codex5.3 Tetris"></canvas>
+  <script>
+    (() => {
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+
+      const COLS = 10;
+      const BASE_ROWS = 20;
+      const PAD = 8;
+      const DAS = 0.13;
+      const ARR = 0.033;
+      const SOFT_DROP_REPEAT = 0.033;
+      const LOCK_DELAY = 0.5;
+      const AUTO_PAUSE_INACTIVE = true;
+
+      const PIECES = {
+        I: {
+          color: [56, 209, 235],
+          rotations: [
+            [[0,1],[1,1],[2,1],[3,1]],
+            [[2,0],[2,1],[2,2],[2,3]],
+            [[0,2],[1,2],[2,2],[3,2]],
+            [[1,0],[1,1],[1,2],[1,3]]
+          ]
+        },
+        O: {
+          color: [241, 214, 71],
+          rotations: [
+            [[1,0],[2,0],[1,1],[2,1]],
+            [[1,0],[2,0],[1,1],[2,1]],
+            [[1,0],[2,0],[1,1],[2,1]],
+            [[1,0],[2,0],[1,1],[2,1]]
+          ]
+        },
+        T: {
+          color: [177, 117, 241],
+          rotations: [
+            [[1,0],[0,1],[1,1],[2,1]],
+            [[1,0],[1,1],[2,1],[1,2]],
+            [[0,1],[1,1],[2,1],[1,2]],
+            [[1,0],[0,1],[1,1],[1,2]]
+          ]
+        },
+        S: {
+          color: [93, 209, 98],
+          rotations: [
+            [[1,0],[2,0],[0,1],[1,1]],
+            [[1,0],[1,1],[2,1],[2,2]],
+            [[1,1],[2,1],[0,2],[1,2]],
+            [[0,0],[0,1],[1,1],[1,2]]
+          ]
+        },
+        Z: {
+          color: [230, 84, 90],
+          rotations: [
+            [[0,0],[1,0],[1,1],[2,1]],
+            [[2,0],[1,1],[2,1],[1,2]],
+            [[0,1],[1,1],[1,2],[2,2]],
+            [[1,0],[0,1],[1,1],[0,2]]
+          ]
+        },
+        J: {
+          color: [87, 124, 230],
+          rotations: [
+            [[0,0],[0,1],[1,1],[2,1]],
+            [[1,0],[2,0],[1,1],[1,2]],
+            [[0,1],[1,1],[2,1],[2,2]],
+            [[1,0],[1,1],[0,2],[1,2]]
+          ]
+        },
+        L: {
+          color: [227, 143, 67],
+          rotations: [
+            [[2,0],[0,1],[1,1],[2,1]],
+            [[1,0],[1,1],[1,2],[2,2]],
+            [[0,1],[1,1],[2,1],[0,2]],
+            [[0,0],[1,0],[1,1],[1,2]]
+          ]
+        }
+      };
+
+      const PIECE_ORDER = Object.keys(PIECES);
+
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const lerp = (a, b, t) => a + (b - a) * t;
+
+      class AudioEngine {
+        constructor() {
+          this.ctx = null;
+          this.master = null;
+          this.musicEnabled = true;
+          this.effectsEnabled = true;
+          this.step = 0;
+          this.acc = 0;
+          this.dangerCooldown = 0;
+          this.bassPattern = [130.81, null, 130.81, null, 146.83, null, 146.83, null, 164.81, null, 164.81, null, 146.83, null, 130.81, null];
+          this.leadPattern = [523.25, null, 659.25, null, 783.99, null, 659.25, null, 587.33, null, 659.25, null, 698.46, null, 659.25, null];
+          this.highPattern = [null, null, 1046.5, null, null, null, 1174.66, null, null, null, 1318.51, null, null, null, 1174.66, null];
+        }
+
+        unlock() {
+          if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            this.master = this.ctx.createGain();
+            this.master.gain.value = 0.9;
+            this.master.connect(this.ctx.destination);
+          }
+          if (this.ctx.state === "suspended") {
+            this.ctx.resume().catch(() => {});
+          }
+        }
+
+        tone(freq, duration, type, volume, slideTo = null) {
+          if (!this.effectsEnabled || !this.ctx || !this.master) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+          if (slideTo !== null) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(30, slideTo), now + duration);
+          }
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(volume, now + Math.min(0.02, duration * 0.25));
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+          osc.connect(gain);
+          gain.connect(this.master);
+          osc.start(now);
+          osc.stop(now + duration + 0.01);
+        }
+
+        sfxMove() { this.tone(260, 0.045, "square", 0.085); }
+        sfxRotate() { this.tone(430, 0.07, "triangle", 0.09, 760); }
+        sfxSoftDrop() { this.tone(180, 0.045, "sine", 0.07); }
+        sfxHardDrop() { this.tone(360, 0.10, "square", 0.1, 120); }
+        sfxHold() { this.tone(290, 0.08, "triangle", 0.09, 540); }
+        sfxPause() { this.tone(320, 0.06, "triangle", 0.09); }
+        sfxResume() { this.tone(520, 0.06, "triangle", 0.09); }
+        sfxRestart() { this.tone(420, 0.09, "square", 0.1, 720); }
+        sfxGameOver() { this.tone(392, 0.22, "sine", 0.11, 220); }
+        sfxLineClear(lines) {
+          if (lines >= 4) {
+            this.tone(530, 0.08, "triangle", 0.11);
+            this.tone(780, 0.11, "triangle", 0.1);
+            this.tone(1046, 0.14, "triangle", 0.1);
+            return;
+          }
+          const base = [523, 659, 784];
+          for (let index = 0; index < Math.max(1, lines); index += 1) {
+            this.tone(base[index] ?? 784, 0.09 + (index * 0.02), "triangle", 0.09);
+          }
+        }
+
+        musicStep(level, stackRatio, dangerIntensity) {
+          if (!this.musicEnabled || !this.ctx || !this.master) return;
+          const now = this.ctx.currentTime;
+          const levelRatio = clamp((level - 1) / 14, 0, 1);
+          const bass = this.bassPattern[this.step];
+          const lead = this.leadPattern[this.step];
+          const high = this.highPattern[this.step];
+          const bassVolume = lerp(0.04, 0.09, levelRatio);
+          const leadVolume = lerp(0.03, 0.075, levelRatio) + (dangerIntensity * 0.01);
+          const highVolume = clamp((levelRatio - 0.3) * 0.08, 0, 0.08) + (dangerIntensity * 0.03);
+
+          const note = (freq, duration, type, volume) => {
+            if (!freq) return;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.linearRampToValueAtTime(volume, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            osc.connect(gain);
+            gain.connect(this.master);
+            osc.start(now);
+            osc.stop(now + duration + 0.01);
+          };
+
+          note(bass, 0.15, "sine", bassVolume * (1 + stackRatio * 0.2));
+          note(lead, 0.12, "triangle", leadVolume * (1 + stackRatio * 0.18));
+          note(high, 0.1, "square", highVolume);
+          if (this.step % 4 === 0) {
+            note(52, 0.06, "sine", 0.05 + (stackRatio * 0.02));
+          }
+        }
+
+        tick(delta, level, stackRatio, dangerIntensity) {
+          if (!this.ctx || !this.musicEnabled) return;
+          const bpm = clamp(104 + (level * 4) + (stackRatio * 72), 96, 220);
+          const stepDuration = 60 / (bpm * 2);
+          this.acc += delta;
+          while (this.acc >= stepDuration) {
+            this.acc -= stepDuration;
+            this.musicStep(level, stackRatio, dangerIntensity);
+            this.step = (this.step + 1) % this.bassPattern.length;
+          }
+          this.dangerCooldown -= delta;
+          if (dangerIntensity > 0.62 && this.dangerCooldown <= 0) {
+            this.tone(980, 0.06, "square", 0.07);
+            this.dangerCooldown = 0.45;
+          }
+        }
+      }
+
+      const audio = new AudioEngine();
+
+      const state = {
+        cols: COLS,
+        rows: BASE_ROWS,
+        board: [],
+        active: null,
+        queue: [],
+        bag: [],
+        hold: null,
+        canHold: true,
+        score: 0,
+        lines: 0,
+        level: 1,
+        combo: -1,
+        backToBack: false,
+        paused: false,
+        gameOver: false,
+        dock: "right",
+        gravityAcc: 0,
+        lockAcc: 0,
+        pendingClear: null,
+        particles: [],
+        banner: null,
+        keyState: {
+          left: false,
+          right: false,
+          down: false,
+          preferred: 0,
+          repeatDir: 0,
+          heldElapsed: 0,
+          repeatElapsed: 0,
+          softElapsed: 0
+        },
+        fxSeed: 1
+      };
+
+      const layout = {
+        dpr: 1,
+        width: 0,
+        height: 0,
+        boardX: 0,
+        boardY: 0,
+        boardW: 0,
+        boardH: 0,
+        cell: 18
+      };
+
+      const gfx = {
+        boardLayer: null,
+        boardLayerW: 0,
+        boardLayerH: 0,
+        blockSize: 0,
+        blockSprites: new Map(),
+        ghostSprite: null,
+        previewSize: 0,
+        previewSprites: new Map()
+      };
+
+      const uiCache = {
+        scoreText: "",
+        scoreFont: "",
+        scoreWidth: 0
+      };
+
+      const createSurface = (width, height) => {
+        const surface = document.createElement("canvas");
+        surface.width = Math.max(1, Math.floor(width));
+        surface.height = Math.max(1, Math.floor(height));
+        return surface;
+      };
+
+      const createBoard = (rows) => Array.from({ length: rows }, () => Array(COLS).fill(null));
+
+      const resetGame = () => {
+        state.board = createBoard(state.rows);
+        state.active = null;
+        state.queue = [];
+        state.bag = [];
+        state.hold = null;
+        state.canHold = true;
+        state.score = 0;
+        state.lines = 0;
+        state.level = 1;
+        state.combo = -1;
+        state.backToBack = false;
+        state.paused = false;
+        state.gameOver = false;
+        state.gravityAcc = 0;
+        state.lockAcc = 0;
+        state.pendingClear = null;
+        state.particles = [];
+        state.banner = null;
+        state.fxSeed = Math.floor(Math.random() * 100000);
+        state.keyState.repeatDir = 0;
+        state.keyState.heldElapsed = 0;
+        state.keyState.repeatElapsed = 0;
+        state.keyState.softElapsed = 0;
+        ensureQueue(6);
+        spawnPiece();
+      };
+
+      const shuffleBag = () => {
+        const next = [...PIECE_ORDER];
+        for (let index = next.length - 1; index > 0; index -= 1) {
+          const random = Math.floor(Math.random() * (index + 1));
+          [next[index], next[random]] = [next[random], next[index]];
+        }
+        return next;
+      };
+
+      const ensureQueue = (minimum = 5) => {
+        while (state.queue.length < minimum) {
+          if (state.bag.length === 0) state.bag = shuffleBag();
+          state.queue.push(state.bag.shift());
+        }
+      };
+
+      const pieceBlocks = (piece, rotationOverride = null, originOverride = null) => {
+        const rot = rotationOverride ?? piece.rotation;
+        const origin = originOverride ?? { x: piece.x, y: piece.y };
+        return PIECES[piece.kind].rotations[rot].map(([offsetX, offsetY]) => ({
+          x: origin.x + offsetX,
+          y: origin.y + offsetY
+        }));
+      };
+
+      const collides = (blocks) => {
+        for (const block of blocks) {
+          if (block.x < 0 || block.x >= COLS || block.y >= state.rows) return true;
+          if (block.y >= 0 && state.board[block.y][block.x]) return true;
+        }
+        return false;
+      };
+
+      const spawnPiece = (forcedKind = null) => {
+        ensureQueue(5);
+        const kind = forcedKind ?? state.queue.shift();
+        const next = { kind, rotation: 0, x: 3, y: -2, lastRotate: false };
+        if (collides(pieceBlocks(next))) {
+          state.active = null;
+          state.gameOver = true;
+          state.banner = { text: "GAME OVER", timer: 0, duration: 2.2 };
+          audio.sfxGameOver();
+          return;
+        }
+        state.active = next;
+        state.canHold = true;
+        state.lockAcc = 0;
+        state.gravityAcc = 0;
+      };
+
+      const tryMove = (deltaX, deltaY) => {
+        if (!state.active || state.gameOver || state.paused || state.pendingClear) return false;
+        const target = { x: state.active.x + deltaX, y: state.active.y + deltaY };
+        const blocks = pieceBlocks(state.active, state.active.rotation, target);
+        if (collides(blocks)) return false;
+        state.active.x = target.x;
+        state.active.y = target.y;
+        if (deltaY <= 0) state.active.lastRotate = false;
+        return true;
+      };
+
+      const rotate = (clockwise = true) => {
+        if (!state.active || state.gameOver || state.paused || state.pendingClear) return false;
+        const nextRotation = (state.active.rotation + (clockwise ? 1 : 3)) % 4;
+        const kicks = [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[0,-2]];
+        for (const [kickX, kickY] of kicks) {
+          const target = { x: state.active.x + kickX, y: state.active.y + kickY };
+          const blocks = pieceBlocks(state.active, nextRotation, target);
+          if (!collides(blocks)) {
+            state.active.x = target.x;
+            state.active.y = target.y;
+            state.active.rotation = nextRotation;
+            state.active.lastRotate = true;
+            return true;
+          }
+        }
+        return false;
+      };
+
+      const hardDrop = () => {
+        if (!state.active || state.gameOver || state.paused || state.pendingClear) return 0;
+        let dropped = 0;
+        while (tryMove(0, 1)) dropped += 1;
+        if (dropped > 0) state.score += dropped * 2;
+        lockPiece();
+        return dropped;
+      };
+
+      const softDrop = () => {
+        if (!state.active || state.gameOver || state.paused || state.pendingClear) return false;
+        const moved = tryMove(0, 1);
+        if (moved) state.score += 1;
+        return moved;
+      };
+
+      const holdPiece = () => {
+        if (!state.active || state.gameOver || state.paused || state.pendingClear || !state.canHold) return false;
+        const current = state.active.kind;
+        if (state.hold) {
+          const swap = state.hold;
+          state.hold = current;
+          spawnPiece(swap);
+        } else {
+          state.hold = current;
+          spawnPiece();
+        }
+        state.canHold = false;
+        return true;
+      };
+
+      const lockPiece = () => {
+        if (!state.active) return;
+        const blocks = pieceBlocks(state.active);
+        for (const block of blocks) {
+          if (block.y < 0 || block.y >= state.rows || block.x < 0 || block.x >= COLS) continue;
+          state.board[block.y][block.x] = state.active.kind;
+        }
+        state.active = null;
+        state.lockAcc = 0;
+        const rows = [];
+        for (let row = 0; row < state.rows; row += 1) {
+          if (state.board[row].every(Boolean)) rows.push(row);
+        }
+        if (rows.length > 0) {
+          const duration = 0.3 + ((rows.length - 1) * 0.12);
+          state.pendingClear = {
+            rows,
+            timer: 0,
+            duration,
+            pulses: clamp((rows.length * 2) + 2, 2, 12),
+            intensity: [0, 0.95, 2.1, 3.45, 4.95][rows.length] ?? 4.95
+          };
+        } else {
+          applyLineClear([]);
+          spawnPiece();
+        }
+      };
+
+      const applyLineClear = (rows) => {
+        const lines = rows.length;
+        if (lines <= 0) {
+          state.combo = -1;
+          state.banner = null;
+          return;
+        }
+
+        const remove = new Set(rows);
+        const remain = [];
+        for (let row = 0; row < state.rows; row += 1) {
+          if (!remove.has(row)) remain.push(state.board[row]);
+        }
+        while (remain.length < state.rows) remain.unshift(Array(COLS).fill(null));
+        state.board = remain;
+
+        state.combo += 1;
+        const comboValue = Math.max(0, state.combo);
+        const difficult = lines >= 4;
+        const b2bBonus = difficult && state.backToBack;
+
+        let base = 0;
+        if (lines === 1) base = 100;
+        if (lines === 2) base = 300;
+        if (lines === 3) base = 500;
+        if (lines >= 4) base = 800;
+        if (b2bBonus) base = Math.floor(base * 1.5);
+        const comboBonus = comboValue > 0 ? comboValue * 50 : 0;
+        const allClear = state.board.every((row) => row.every((cell) => !cell));
+        const allClearBonus = allClear ? 1800 : 0;
+        state.score += (base + comboBonus + allClearBonus) * state.level;
+
+        state.lines += lines;
+        state.level = Math.floor(state.lines / 10) + 1;
+        state.backToBack = difficult;
+
+        if (allClear) {
+          state.banner = { text: "ALL CLEAR", timer: 0, duration: 0.95 };
+        } else if (lines >= 4) {
+          state.banner = { text: b2bBonus ? "B2B TETRIS" : "TETRIS", timer: 0, duration: 0.85 };
+        } else if (lines === 3) {
+          state.banner = { text: "TRIPLE", timer: 0, duration: 0.74 };
+        } else if (comboValue >= 1) {
+          state.banner = { text: `COMBO x${comboValue + 1}`, timer: 0, duration: 0.66 };
+        } else {
+          state.banner = null;
+        }
+
+        spawnClearParticles(rows);
+        audio.sfxLineClear(lines);
+      };
+
+      const ghostBlocks = () => {
+        if (!state.active) return [];
+        let testY = state.active.y;
+        while (true) {
+          const next = pieceBlocks(state.active, state.active.rotation, { x: state.active.x, y: testY + 1 });
+          if (collides(next)) break;
+          testY += 1;
+        }
+        return pieceBlocks(state.active, state.active.rotation, { x: state.active.x, y: testY });
+      };
+
+      const stackHeight = () => {
+        for (let row = 0; row < state.rows; row += 1) {
+          if (state.board[row].some(Boolean)) {
+            return state.rows - row;
+          }
+        }
+        return 0;
+      };
+
+      const dangerIntensity = () => {
+        const ratio = stackHeight() / state.rows;
+        if (ratio <= 0.7) return 0;
+        return clamp((ratio - 0.7) / 0.3, 0, 1);
+      };
+
+      const dropInterval = () => clamp(0.88 * Math.pow(0.93, state.level - 1), 0.055, 0.88);
+
+      const spawnClearParticles = (rows) => {
+        if (rows.length === 0) return;
+        const count = 14 + rows.length * 14;
+        for (let index = 0; index < count; index += 1) {
+          const row = rows[index % rows.length];
+          const centerX = layout.boardX + (layout.boardW * (Math.random() * 0.9 + 0.05));
+          const centerY = layout.boardY + row * layout.cell + layout.cell * 0.5;
+          const angle = Math.random() * Math.PI * 2;
+          const speed = (55 + Math.random() * 220) * (1 + rows.length * 0.3);
+          const hue = Math.floor(180 + Math.random() * 90);
+          const light = 60 + Math.random() * 20;
+          state.particles.push({
+            x: centerX,
+            y: centerY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed * 0.55,
+            life: 0.42 + Math.random() * 0.45,
+            maxLife: 0.42 + Math.random() * 0.45,
+            size: Math.max(2, layout.cell * (0.08 + Math.random() * 0.18)),
+            hue,
+            light
+          });
+        }
+      };
+
+      const updateParticles = (delta) => {
+        const gravity = 460;
+        for (let index = state.particles.length - 1; index >= 0; index -= 1) {
+          const particle = state.particles[index];
+          particle.life -= delta;
+          if (particle.life <= 0) {
+            state.particles.splice(index, 1);
+            continue;
+          }
+          particle.x += particle.vx * delta;
+          particle.y += particle.vy * delta;
+          particle.vy += gravity * delta;
+          particle.vx *= 0.98;
+        }
+      };
+
+      const pressLeft = () => {
+        const moved = tryMove(-1, 0);
+        if (moved) audio.sfxMove();
+        return moved;
+      };
+
+      const pressRight = () => {
+        const moved = tryMove(1, 0);
+        if (moved) audio.sfxMove();
+        return moved;
+      };
+
+      const handleHeldMovement = (delta) => {
+        const key = state.keyState;
+        const direction = key.left && key.right
+          ? key.preferred
+          : key.left
+            ? -1
+            : key.right
+              ? 1
+              : 0;
+
+        if (direction === 0) {
+          key.repeatDir = 0;
+          key.heldElapsed = 0;
+          key.repeatElapsed = 0;
+        } else if (key.repeatDir !== direction) {
+          key.repeatDir = direction;
+          key.heldElapsed = 0;
+          key.repeatElapsed = 0;
+        } else {
+          key.heldElapsed += delta;
+          if (key.heldElapsed >= DAS) {
+            key.repeatElapsed += delta;
+            while (key.repeatElapsed >= ARR) {
+              key.repeatElapsed -= ARR;
+              if (direction < 0) {
+                if (!pressLeft()) break;
+              } else {
+                if (!pressRight()) break;
+              }
+            }
+          }
+        }
+
+        if (key.down) {
+          key.softElapsed += delta;
+          while (key.softElapsed >= SOFT_DROP_REPEAT) {
+            key.softElapsed -= SOFT_DROP_REPEAT;
+            if (!softDrop()) break;
+            audio.sfxSoftDrop();
+          }
+        } else {
+          key.softElapsed = 0;
+        }
+      };
+
+      const stepGame = (delta) => {
+        if (state.gameOver || state.paused) return;
+
+        if (state.pendingClear) {
+          state.pendingClear.timer += delta;
+          if (state.pendingClear.timer >= state.pendingClear.duration) {
+            const rows = state.pendingClear.rows;
+            state.pendingClear = null;
+            applyLineClear(rows);
+            spawnPiece();
+          }
+          return;
+        }
+
+        handleHeldMovement(delta);
+
+        if (!state.active) return;
+
+        state.gravityAcc += delta;
+        const interval = dropInterval();
+        while (state.gravityAcc >= interval) {
+          state.gravityAcc -= interval;
+          if (!tryMove(0, 1)) break;
+          state.active.lastRotate = false;
+        }
+
+        if (state.active) {
+          const grounded = collides(pieceBlocks(state.active, state.active.rotation, { x: state.active.x, y: state.active.y + 1 }));
+          if (grounded) {
+            state.lockAcc += delta;
+            if (state.lockAcc >= LOCK_DELAY) {
+              lockPiece();
+            }
+          } else {
+            state.lockAcc = 0;
+          }
+        }
+      };
+
+      const buildBlockSprite = (kind, size, alpha = 1, ghost = false) => {
+        const surface = createSurface(size, size);
+        const sprite = surface.getContext("2d");
+        sprite.imageSmoothingEnabled = false;
+        const [r, g, b] = ghost ? [255, 255, 255] : PIECES[kind].color;
+        const fillAlpha = ghost ? 0.3 * alpha : 0.98 * alpha;
+        const highlightAlpha = ghost ? 0.12 * alpha : 0.42 * alpha;
+        const shadowAlpha = ghost ? 0.12 * alpha : 0.42 * alpha;
+
+        const gradient = sprite.createLinearGradient(0, 0, size, size);
+        gradient.addColorStop(0, `rgba(${Math.min(255, r + 26)},${Math.min(255, g + 26)},${Math.min(255, b + 26)},${fillAlpha})`);
+        gradient.addColorStop(0.55, `rgba(${r},${g},${b},${fillAlpha})`);
+        gradient.addColorStop(1, `rgba(${Math.max(0, r - 34)},${Math.max(0, g - 34)},${Math.max(0, b - 34)},${fillAlpha})`);
+
+        sprite.fillStyle = gradient;
+        sprite.fillRect(0, 0, size, size);
+
+        sprite.fillStyle = `rgba(255,255,255,${highlightAlpha})`;
+        sprite.fillRect(0, 0, size, Math.max(1, size * 0.12));
+        sprite.fillRect(0, 0, Math.max(1, size * 0.12), size);
+
+        sprite.fillStyle = `rgba(0,0,0,${shadowAlpha})`;
+        sprite.fillRect(0, size - Math.max(1, size * 0.14), size, Math.max(1, size * 0.14));
+        sprite.fillRect(size - Math.max(1, size * 0.14), 0, Math.max(1, size * 0.14), size);
+
+        sprite.strokeStyle = `rgba(255,255,255,${ghost ? 0.22 * alpha : 0.12 * alpha})`;
+        sprite.lineWidth = 1;
+        sprite.strokeRect(0.5, 0.5, size - 1, size - 1);
+        return surface;
+      };
+
+      const buildPreviewSprite = (kind, size, alpha = 0.46) => {
+        const width = size * 4 + 3;
+        const height = size * 4 + 3;
+        const surface = createSurface(width, height);
+        const sprite = surface.getContext("2d");
+        sprite.imageSmoothingEnabled = false;
+        const blockSprite = buildBlockSprite(kind, size, alpha, false);
+        const points = PIECES[kind].rotations[0];
+        for (let row = 0; row < 4; row += 1) {
+          for (let col = 0; col < 4; col += 1) {
+            const filled = points.some(([px, py]) => px === col && py === row);
+            if (!filled) continue;
+            sprite.drawImage(blockSprite, col * (size + 1), row * (size + 1));
+          }
+        }
+        return surface;
+      };
+
+      const rebuildBoardLayer = () => {
+        if (
+          gfx.boardLayer &&
+          gfx.boardLayerW === layout.boardW &&
+          gfx.boardLayerH === layout.boardH
+        ) {
+          return;
+        }
+        const surface = createSurface(layout.boardW, layout.boardH);
+        const layer = surface.getContext("2d");
+        layer.imageSmoothingEnabled = false;
+        layer.fillStyle = "#000";
+        layer.fillRect(0, 0, layout.boardW, layout.boardH);
+        layer.strokeStyle = "rgba(255,255,255,0.18)";
+        layer.lineWidth = 1;
+        layer.strokeRect(0.5, 0.5, layout.boardW - 1, layout.boardH - 1);
+        layer.strokeStyle = "rgba(255,255,255,0.06)";
+        layer.lineWidth = 1;
+        for (let row = 0; row <= state.rows; row += 1) {
+          const y = row * layout.cell + 0.5;
+          layer.beginPath();
+          layer.moveTo(0, y);
+          layer.lineTo(layout.boardW, y);
+          layer.stroke();
+        }
+        for (let col = 0; col <= COLS; col += 1) {
+          const x = col * layout.cell + 0.5;
+          layer.beginPath();
+          layer.moveTo(x, 0);
+          layer.lineTo(x, layout.boardH);
+          layer.stroke();
+        }
+        gfx.boardLayer = surface;
+        gfx.boardLayerW = layout.boardW;
+        gfx.boardLayerH = layout.boardH;
+      };
+
+      const rebuildSpriteCaches = () => {
+        const blockSize = layout.cell;
+        const previewSize = Math.max(4, Math.floor(layout.cell * 0.36));
+        if (gfx.blockSize === blockSize && gfx.previewSize === previewSize && gfx.ghostSprite) return;
+
+        gfx.blockSize = blockSize;
+        gfx.previewSize = previewSize;
+        gfx.blockSprites.clear();
+        for (const kind of PIECE_ORDER) {
+          gfx.blockSprites.set(kind, buildBlockSprite(kind, blockSize, 1, false));
+        }
+        gfx.ghostSprite = buildBlockSprite(PIECE_ORDER[0], blockSize, 1, true);
+        gfx.previewSprites.clear();
+        for (const kind of PIECE_ORDER) {
+          gfx.previewSprites.set(kind, buildPreviewSprite(kind, previewSize, 0.46));
+        }
+      };
+
+      const rebuildRenderCaches = () => {
+        rebuildBoardLayer();
+        rebuildSpriteCaches();
+        uiCache.scoreText = "";
+      };
+
+      const drawBlock = (gridX, gridY, kind, alpha = 1, ghost = false) => {
+        const px = layout.boardX + gridX * layout.cell;
+        const py = layout.boardY + gridY * layout.cell;
+        const sprite = ghost ? gfx.ghostSprite : gfx.blockSprites.get(kind);
+        if (!sprite) return;
+        if (alpha !== 1) {
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(sprite, px, py);
+          ctx.restore();
+          return;
+        }
+        ctx.drawImage(sprite, px, py);
+      };
+
+      const drawPreview = (kind, x, y, size, alpha = 0.45) => {
+        if (!kind) return;
+        if (size === gfx.previewSize && Math.abs(alpha - 0.46) < 0.001) {
+          const sprite = gfx.previewSprites.get(kind);
+          if (sprite) {
+            ctx.drawImage(sprite, x, y);
+            return;
+          }
+        }
+        const points = PIECES[kind].rotations[0];
+        for (let row = 0; row < 4; row += 1) {
+          for (let col = 0; col < 4; col += 1) {
+            const filled = points.some(([px, py]) => px === col && py === row);
+            if (!filled) continue;
+            const [r, g, b] = PIECES[kind].color;
+            const px = x + col * (size + 1);
+            const py = y + row * (size + 1);
+            const gradient = ctx.createLinearGradient(px, py, px + size, py + size);
+            gradient.addColorStop(0, `rgba(${Math.min(255, r + 35)},${Math.min(255, g + 35)},${Math.min(255, b + 35)},${alpha})`);
+            gradient.addColorStop(1, `rgba(${r},${g},${b},${alpha * 0.9})`);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(px, py, size, size);
+            ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.35})`;
+            ctx.strokeRect(px + 0.5, py + 0.5, size - 1, size - 1);
+          }
+        }
+      };
+
+      const drawBoard = () => {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, layout.width, layout.height);
+        if (gfx.boardLayer) {
+          ctx.drawImage(gfx.boardLayer, layout.boardX, layout.boardY);
+        }
+
+        const ghost = ghostBlocks();
+        for (const block of ghost) {
+          if (block.y < 0 || block.y >= state.rows) continue;
+          drawBlock(block.x, block.y, null, 1, true);
+        }
+
+        for (let row = 0; row < state.rows; row += 1) {
+          for (let col = 0; col < COLS; col += 1) {
+            const kind = state.board[row][col];
+            if (!kind) continue;
+            drawBlock(col, row, kind);
+          }
+        }
+
+        if (state.active) {
+          for (const block of pieceBlocks(state.active)) {
+            if (block.y < 0 || block.y >= state.rows) continue;
+            drawBlock(block.x, block.y, state.active.kind);
+          }
+        }
+      };
+
+      const drawDanger = () => {
+        const danger = dangerIntensity();
+        if (danger <= 0) return;
+        const pulse = Math.sin(performance.now() * 0.008) * 0.5 + 0.5;
+        const opacity = (0.26 + danger * 0.4) * (0.62 + pulse * 0.38);
+        const gradient = ctx.createLinearGradient(0, layout.boardY, 0, layout.boardY + Math.max(24, layout.cell * 2.2));
+        gradient.addColorStop(0, `rgba(255,60,60,${opacity})`);
+        gradient.addColorStop(0.45, `rgba(255,125,25,${opacity * 0.58})`);
+        gradient.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(layout.boardX, layout.boardY, layout.boardW, Math.max(24, layout.cell * 2.2));
+      };
+
+      const drawScoreLine = () => {
+        const text = `S:${state.score}  L:${state.lines}  LV:${state.level}`;
+        const font = `600 ${Math.max(11, Math.floor(layout.cell * 0.30))}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        ctx.font = font;
+        if (uiCache.scoreText !== text || uiCache.scoreFont !== font) {
+          uiCache.scoreText = text;
+          uiCache.scoreFont = font;
+          uiCache.scoreWidth = ctx.measureText(text).width;
+        }
+        const w = uiCache.scoreWidth + 12;
+        const h = Math.max(16, layout.cell * 0.62);
+        const x = layout.boardX + 4;
+        const y = layout.boardY + 4;
+        ctx.fillStyle = "rgba(0,0,0,0.48)";
+        ctx.beginPath();
+        const radius = 5;
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + w, y, x + w, y + h, radius);
+        ctx.arcTo(x + w, y + h, x, y + h, radius);
+        ctx.arcTo(x, y + h, x, y, radius);
+        ctx.arcTo(x, y, x + w, y, radius);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.fillText(text, x + 6, y + h - 5);
+      };
+
+      const drawOverlayPieces = () => {
+        const small = Math.max(4, Math.floor(layout.cell * 0.36));
+        const top = layout.boardY + Math.max(18, Math.floor(layout.cell * 1.2));
+        const left = layout.boardX + 4;
+        const right = layout.boardX + layout.boardW - 4 - small * 4 - 3;
+
+        drawPreview(state.hold, left, top, small, 0.46);
+        const next = state.queue.slice(0, 3);
+        for (let index = 0; index < next.length; index += 1) {
+          drawPreview(next[index], right, top + index * (small * 4 + 8), small, 0.46);
+        }
+      };
+
+      const pseudo = (seed, index, salt) => {
+        const value = Math.sin((seed + index * 37 + salt * 101) * 12.9898) * 43758.5453;
+        return value - Math.floor(value);
+      };
+
+      const drawClearFx = () => {
+        if (!state.pendingClear) return;
+        const fx = state.pendingClear;
+        const progress = clamp(fx.timer / fx.duration, 0, 1);
+        const fade = 1 - progress;
+        const lineCount = fx.rows.length;
+        const pulse = Math.max(0, Math.sin(progress * Math.PI * fx.pulses));
+        const envelope = Math.max(0, fade * (0.2 + lineCount * 0.13 + pulse * 0.88));
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+
+        ctx.fillStyle = `rgba(255,255,255,${(0.025 + lineCount * 0.028 + fx.intensity * 0.012) * envelope})`;
+        ctx.fillRect(layout.boardX, layout.boardY, layout.boardW, layout.boardH);
+
+        for (const row of fx.rows) {
+          const centerY = layout.boardY + row * layout.cell + layout.cell * 0.5;
+          const barH = Math.max(2, layout.cell * (0.58 + lineCount * 0.14));
+          const coreH = Math.max(1, layout.cell * (0.16 + lineCount * 0.05 + fx.intensity * 0.02));
+          const side = Math.max(8, layout.cell * (0.9 + fx.intensity * 0.32 + lineCount * 0.1));
+
+          const band = ctx.createLinearGradient(layout.boardX, centerY, layout.boardX + layout.boardW, centerY);
+          band.addColorStop(0, "rgba(0,0,0,0)");
+          band.addColorStop(0.18, `rgba(210,255,255,${(0.24 + lineCount * 0.16 + fx.intensity * 0.07) * envelope})`);
+          band.addColorStop(0.5, `rgba(120,255,255,${(0.62 + lineCount * 0.2 + fx.intensity * 0.08) * envelope})`);
+          band.addColorStop(0.82, `rgba(255,180,255,${(0.3 + lineCount * 0.14 + fx.intensity * 0.06) * envelope})`);
+          band.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = band;
+          ctx.fillRect(layout.boardX, centerY - barH * 0.5, layout.boardW, barH);
+
+          const core = ctx.createLinearGradient(layout.boardX, centerY, layout.boardX + layout.boardW, centerY);
+          core.addColorStop(0, `rgba(255,255,255,${(0.14 + lineCount * 0.02) * envelope})`);
+          core.addColorStop(0.5, `rgba(130,255,255,${(0.86 + lineCount * 0.1 + fx.intensity * 0.05) * envelope})`);
+          core.addColorStop(1, `rgba(255,255,255,${(0.14 + lineCount * 0.02) * envelope})`);
+          ctx.fillStyle = core;
+          ctx.fillRect(layout.boardX, centerY - coreH * 0.5, layout.boardW, coreH);
+
+          ctx.fillStyle = `rgba(180,255,255,${0.24 * envelope})`;
+          ctx.beginPath();
+          ctx.arc(layout.boardX + 2, centerY, side * 0.5, 0, Math.PI * 2);
+          ctx.arc(layout.boardX + layout.boardW - 2, centerY, side * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (lineCount >= 2) {
+          const radius = Math.min(layout.boardW, layout.boardH) * (0.18 + 0.6 * progress + 0.05 * lineCount);
+          const glow = ctx.createRadialGradient(
+            layout.boardX + layout.boardW * 0.5,
+            layout.boardY + layout.boardH * 0.5,
+            0,
+            layout.boardX + layout.boardW * 0.5,
+            layout.boardY + layout.boardH * 0.5,
+            radius
+          );
+          glow.addColorStop(0, `rgba(130,255,255,${(0.3 + lineCount * 0.04) * envelope})`);
+          glow.addColorStop(0.55, `rgba(190,230,255,${(0.18 + lineCount * 0.03) * envelope})`);
+          glow.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(layout.boardX + layout.boardW * 0.5, layout.boardY + layout.boardH * 0.5, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (lineCount >= 4) {
+          const radius = Math.min(layout.boardW, layout.boardH) * (0.25 + progress * 0.82);
+          const ring = ctx.createLinearGradient(layout.boardX, layout.boardY, layout.boardX + layout.boardW, layout.boardY + layout.boardH);
+          ring.addColorStop(0, `rgba(130,255,255,${0.92 * envelope})`);
+          ring.addColorStop(0.6, `rgba(255,180,255,${0.56 * envelope})`);
+          ring.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.strokeStyle = ring;
+          ctx.lineWidth = Math.max(1, layout.cell * 0.28);
+          ctx.beginPath();
+          ctx.arc(layout.boardX + layout.boardW * 0.5, layout.boardY + layout.boardH * 0.5, radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        const sparkCount = Math.floor((4 + fx.intensity * 5.2) * (0.42 + lineCount * 0.58));
+        const maxRadius = Math.min(layout.boardW, layout.boardH) * (0.18 + 0.6 * progress + 0.05 * lineCount);
+        for (let index = 0; index < sparkCount; index += 1) {
+          const row = fx.rows[index % lineCount];
+          const anchorY = layout.boardY + row * layout.cell + layout.cell * 0.5;
+          const angle = pseudo(state.fxSeed, index, 1) * Math.PI * 2;
+          const radius = maxRadius * (0.16 + 0.84 * pseudo(state.fxSeed, index, 2));
+          const size = Math.max(2, layout.cell * (0.12 + 0.26 * pseudo(state.fxSeed, index, 3)));
+          const x = layout.boardX + layout.boardW * 0.5 + Math.cos(angle) * radius;
+          const y = anchorY + Math.sin(angle) * (radius * 0.3) + (pseudo(state.fxSeed, index, 5) - 0.5) * (layout.cell * (2.2 + lineCount));
+          const alpha = Math.max(0, envelope - pseudo(state.fxSeed, index, 4) * 0.28);
+          const grad = ctx.createLinearGradient(x, y, x + size, y + size);
+          grad.addColorStop(0, `rgba(255,255,255,${alpha})`);
+          grad.addColorStop(0.5, `rgba(120,255,255,${alpha * 0.78})`);
+          grad.addColorStop(1, `rgba(255,170,255,${alpha * 0.52})`);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      };
+
+      const drawParticles = () => {
+        if (state.particles.length === 0) return;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (const particle of state.particles) {
+          const alpha = clamp(particle.life / particle.maxLife, 0, 1);
+          ctx.fillStyle = `hsla(${particle.hue},95%,${particle.light}%,${alpha})`;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      };
+
+      const drawBanner = (delta) => {
+        if (!state.banner) return;
+        state.banner.timer += delta;
+        const t = clamp(state.banner.timer / state.banner.duration, 0, 1);
+        const alpha = t < 0.32 ? t / 0.32 : 1 - ((t - 0.32) / 0.68);
+        const scale = lerp(0.74, 1.18, t);
+        const text = state.banner.text;
+        ctx.save();
+        ctx.translate(layout.boardX + layout.boardW * 0.5, layout.boardY + layout.boardH * 0.42);
+        ctx.scale(scale, scale);
+        ctx.font = `900 ${Math.max(15, Math.floor(layout.cell * 0.72))}px "SF Pro Display", "Segoe UI", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = `rgba(255,255,255,${Math.max(0, alpha)})`;
+        ctx.shadowColor = "rgba(0,0,0,0.85)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+        if (state.banner.timer >= state.banner.duration) state.banner = null;
+      };
+
+      const drawPauseOrOver = () => {
+        if (!state.paused && !state.gameOver) return;
+        const text = state.gameOver ? "GAME OVER  (R: Restart)" : "PAUSED  (P: Resume)";
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.fillRect(layout.boardX, layout.boardY, layout.boardW, layout.boardH);
+        ctx.font = `700 ${Math.max(14, Math.floor(layout.cell * 0.58))}px "SF Pro Display", "Segoe UI", sans-serif`;
+        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, layout.boardX + layout.boardW * 0.5, layout.boardY + layout.boardH * 0.5);
+        ctx.restore();
+      };
+
+      const render = (delta) => {
+        drawBoard();
+        drawDanger();
+        drawClearFx();
+        drawParticles();
+        drawScoreLine();
+        drawOverlayPieces();
+        drawBanner(delta);
+        drawPauseOrOver();
+      };
+
+      const applyResize = () => {
+        layout.dpr = Math.max(1, window.devicePixelRatio || 1);
+        layout.width = window.innerWidth;
+        layout.height = window.innerHeight;
+        canvas.width = Math.floor(layout.width * layout.dpr);
+        canvas.height = Math.floor(layout.height * layout.dpr);
+        canvas.style.width = `${layout.width}px`;
+        canvas.style.height = `${layout.height}px`;
+        ctx.setTransform(layout.dpr, 0, 0, layout.dpr, 0, 0);
+        ctx.imageSmoothingEnabled = false;
+
+        const widthCell = Math.floor((layout.width * 0.24) / COLS);
+        const heightCell = Math.floor((layout.height - PAD * 2) / state.rows);
+        layout.cell = Math.max(10, Math.min(widthCell, heightCell));
+        layout.boardW = layout.cell * COLS;
+        layout.boardH = layout.cell * state.rows;
+        layout.boardX = state.dock === "left"
+          ? PAD
+          : layout.width - layout.boardW - PAD;
+        layout.boardY = layout.height - layout.boardH - PAD;
+        rebuildRenderCaches();
+      };
+
+      const onKeyDown = (event) => {
+        const key = event.key.toLowerCase();
+        const repeat = event.repeat;
+        audio.unlock();
+
+        if (key === "arrowleft" || key === "a") {
+          if (!state.keyState.left) {
+            state.keyState.left = true;
+            state.keyState.preferred = -1;
+            if (!repeat && pressLeft()) event.preventDefault();
+          } else {
+            state.keyState.preferred = -1;
+          }
+          event.preventDefault();
+          return;
+        }
+        if (key === "arrowright" || key === "d") {
+          if (!state.keyState.right) {
+            state.keyState.right = true;
+            state.keyState.preferred = 1;
+            if (!repeat && pressRight()) event.preventDefault();
+          } else {
+            state.keyState.preferred = 1;
+          }
+          event.preventDefault();
+          return;
+        }
+        if (key === "arrowdown" || key === "s") {
+          if (!state.keyState.down) {
+            state.keyState.down = true;
+            state.keyState.softElapsed = 0;
+            if (softDrop()) audio.sfxSoftDrop();
+          }
+          event.preventDefault();
+          return;
+        }
+        if (repeat) {
+          if (["arrowup","w","z","q"," ","c","p","r","tab","m"].includes(key)) {
+            event.preventDefault();
+          }
+          return;
+        }
+
+        if (key === "arrowup" || key === "w" || key === "x") {
+          if (rotate(true)) audio.sfxRotate();
+          event.preventDefault();
+          return;
+        }
+        if (key === "z" || key === "q") {
+          if (rotate(false)) audio.sfxRotate();
+          event.preventDefault();
+          return;
+        }
+        if (key === " ") {
+          const dropped = hardDrop();
+          if (dropped > 0) audio.sfxHardDrop();
+          event.preventDefault();
+          return;
+        }
+        if (key === "c") {
+          if (holdPiece()) audio.sfxHold();
+          event.preventDefault();
+          return;
+        }
+        if (key === "p") {
+          state.paused = !state.paused;
+          if (state.paused) {
+            audio.sfxPause();
+          } else {
+            audio.sfxResume();
+          }
+          event.preventDefault();
+          return;
+        }
+        if (key === "r") {
+          resetGame();
+          audio.sfxRestart();
+          event.preventDefault();
+          return;
+        }
+        if (key === "m") {
+          audio.musicEnabled = !audio.musicEnabled;
+          event.preventDefault();
+          return;
+        }
+        if (key === "tab") {
+          state.dock = state.dock === "right" ? "left" : "right";
+          applyResize();
+          event.preventDefault();
+        }
+      };
+
+      const onKeyUp = (event) => {
+        const key = event.key.toLowerCase();
+        if (key === "arrowleft" || key === "a") {
+          state.keyState.left = false;
+          if (state.keyState.right) state.keyState.preferred = 1;
+          return;
+        }
+        if (key === "arrowright" || key === "d") {
+          state.keyState.right = false;
+          if (state.keyState.left) state.keyState.preferred = -1;
+          return;
+        }
+        if (key === "arrowdown" || key === "s") {
+          state.keyState.down = false;
+          state.keyState.softElapsed = 0;
+        }
+      };
+
+      let previous = performance.now();
+      let simulationAccumulator = 0;
+      const FIXED_STEP = 1 / 120;
+      const MAX_SIMULATION_STEPS = 8;
+      const loop = (now) => {
+        const delta = clamp((now - previous) / 1000, 0, 0.05);
+        previous = now;
+
+        if (!state.paused && !state.gameOver) {
+          simulationAccumulator += delta;
+          let steps = 0;
+          while (simulationAccumulator >= FIXED_STEP && steps < MAX_SIMULATION_STEPS) {
+            stepGame(FIXED_STEP);
+            simulationAccumulator -= FIXED_STEP;
+            steps += 1;
+          }
+          if (steps === MAX_SIMULATION_STEPS) {
+            simulationAccumulator = 0;
+          }
+        } else {
+          simulationAccumulator = 0;
+        }
+
+        updateParticles(delta);
+        const stackRatio = stackHeight() / state.rows;
+        audio.tick(delta, state.level, stackRatio, dangerIntensity());
+        render(delta);
+        requestAnimationFrame(loop);
+      };
+
+      window.addEventListener("resize", applyResize);
+      window.addEventListener("keydown", onKeyDown, { passive: false });
+      window.addEventListener("keyup", onKeyUp);
+      window.addEventListener("blur", () => {
+        if (!AUTO_PAUSE_INACTIVE) return;
+        if (!state.gameOver && !state.paused) {
+          state.paused = true;
+          state.keyState.left = false;
+          state.keyState.right = false;
+          state.keyState.down = false;
+          state.keyState.repeatDir = 0;
+          state.keyState.heldElapsed = 0;
+          state.keyState.repeatElapsed = 0;
+          state.keyState.softElapsed = 0;
+          audio.sfxPause();
+        }
+      });
+
+      applyResize();
+      resetGame();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
