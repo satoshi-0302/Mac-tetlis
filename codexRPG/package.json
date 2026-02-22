@@ -1,0 +1,17 @@
+{
+  "name": "codexRPG",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/generateSpritesheet.mjs",
+    "dev": "vite",
+    "prebuild": "node scripts/generateSpritesheet.mjs",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.2.0"
+  }
+}

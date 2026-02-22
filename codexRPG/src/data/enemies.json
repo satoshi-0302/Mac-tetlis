@@ -1,0 +1,105 @@
+{
+  "profiles": {
+    "goblin": {
+      "name": "ゴブリン",
+      "xp": 10,
+      "sprite": "goblin"
+    },
+    "orc_soldier": {
+      "name": "オーク兵",
+      "xp": 14,
+      "sprite": "orc_soldier"
+    },
+    "skeleton_knight": {
+      "name": "スケルトンナイト",
+      "xp": 14,
+      "sprite": "skeleton_knight"
+    },
+    "demon_lord": {
+      "name": "魔王",
+      "xp": 120,
+      "sprite": "demon_lord"
+    }
+  },
+  "floorStats": [
+    {
+      "from": 1,
+      "to": 3,
+      "stats": {
+        "goblin": { "hp": 8, "atk": 5, "def": 0, "mdef": 0 },
+        "orc_soldier": { "hp": 14, "atk": 5, "def": 3, "mdef": 0 }
+      }
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "stats": {
+        "goblin": { "hp": 20, "atk": 8, "def": 3, "mdef": 3 },
+        "orc_soldier": { "hp": 30, "atk": 8, "def": 8, "mdef": 3 }
+      }
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "stats": {
+        "goblin": { "hp": 20, "atk": 8, "def": 3, "mdef": 3 },
+        "orc_soldier": { "hp": 30, "atk": 8, "def": 8, "mdef": 3 },
+        "skeleton_knight": { "hp": 26, "atk": 8, "def": 3, "mdef": 8 }
+      }
+    },
+    {
+      "from": 8,
+      "to": 9,
+      "stats": {
+        "goblin": { "hp": 28, "atk": 11, "def": 5, "mdef": 5 },
+        "orc_soldier": { "hp": 42, "atk": 11, "def": 12, "mdef": 5 },
+        "skeleton_knight": { "hp": 36, "atk": 11, "def": 5, "mdef": 12 }
+      }
+    },
+    {
+      "from": 10,
+      "to": 10,
+      "stats": {
+        "demon_lord": { "hp": 160, "atk": 14, "def": 12, "mdef": 12 }
+      }
+    }
+  ],
+  "spawnSets": [
+    {
+      "from": 1,
+      "to": 3,
+      "counts": [
+        { "count": 1, "weight": 60 },
+        { "count": 2, "weight": 40 }
+      ],
+      "types": ["goblin", "orc_soldier"]
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "counts": [
+        { "count": 2, "weight": 75 },
+        { "count": 3, "weight": 25 }
+      ],
+      "types": ["goblin", "orc_soldier"]
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "counts": [
+        { "count": 2, "weight": 75 },
+        { "count": 3, "weight": 25 }
+      ],
+      "types": ["goblin", "orc_soldier", "skeleton_knight"]
+    },
+    {
+      "from": 8,
+      "to": 9,
+      "counts": [
+        { "count": 2, "weight": 60 },
+        { "count": 3, "weight": 40 }
+      ],
+      "types": ["goblin", "orc_soldier", "skeleton_knight"]
+    }
+  ]
+}

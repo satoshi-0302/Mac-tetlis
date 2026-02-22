@@ -1,0 +1,62 @@
+[
+  {
+    "floor": 1,
+    "id": "far_sight",
+    "name": "遠視",
+    "description": "階段の位置を表示する"
+  },
+  {
+    "floor": 2,
+    "id": "regen_step",
+    "name": "回復",
+    "description": "1歩ごとにHP+1（待機では回復しない）"
+  },
+  {
+    "floor": 3,
+    "id": "might",
+    "name": "剛力",
+    "description": "武器ダメージが3倍"
+  },
+  {
+    "floor": 4,
+    "id": "arcane_mastery",
+    "name": "魔法",
+    "description": "魔法ダメージと回復量が3倍"
+  },
+  {
+    "floor": 5,
+    "id": "iron_wall",
+    "name": "鉄壁",
+    "description": "受ける武器ダメージが1/2"
+  },
+  {
+    "floor": 6,
+    "id": "counter",
+    "name": "反撃",
+    "description": "被近接時に1/2で反撃"
+  },
+  {
+    "floor": 7,
+    "id": "mana_drain",
+    "name": "魔力",
+    "description": "撃破ごとにMP+2"
+  },
+  {
+    "floor": 8,
+    "id": "swift",
+    "name": "俊足",
+    "description": "1ターンに2回移動できる"
+  },
+  {
+    "floor": 9,
+    "id": "demon_guard",
+    "name": "魔王",
+    "description": "受けるダメージが1/3"
+  },
+  {
+    "floor": 10,
+    "id": "holy_blade",
+    "name": "破邪の剣",
+    "description": "魔王への武器ダメージが3倍"
+  }
+]

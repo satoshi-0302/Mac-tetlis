@@ -1,0 +1,23 @@
+{
+  "maxPlayerLevel": 10,
+  "pxThresholds": [0, 40, 90, 150, 220, 300, 390, 490, 600, 720],
+  "baseStats": {
+    "hp": 24,
+    "mp": 12,
+    "atk": 6,
+    "matk": 6,
+    "def": 0
+  },
+  "growthPerLevel": {
+    "hp": 4,
+    "mp": 2,
+    "atk": 1,
+    "matk": 1,
+    "defEveryEvenLevel": 1
+  },
+  "pxFormula": {
+    "runXpRate": 0.35,
+    "floorBonus": 10,
+    "flatBonus": 5
+  }
+}
