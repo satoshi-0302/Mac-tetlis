@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSnake: Neon Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="game-container">
+        <!-- The CRT Scanline effect overlay -->
+        <div class="crt-overlay"></div>
+
+        <!-- Score Display -->
+        <div id="hud">
+            <div class="hud-left">
+                <div class="score-box">TIME: <span id="time-left">60</span>s</div>
+                <div class="score-box">SCORE: <span id="current-score">0</span></div>
+            </div>
+            <div class="hud-right">
+                <div id="mode-banner" class="score-box hidden"></div>
+                <div class="score-box">HIGH: <span id="high-score">0</span></div>
+                <button id="replay-exit" class="score-box hud-button hidden" type="button">EXIT REPLAY</button>
+            </div>
+        </div>
+
+        <!-- The Canvas -->
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <!-- UI Overlays -->
+        <div id="ui-layer" class="overlay-screen active">
+            <!-- Title Screen -->
+            <div id="title-screen" class="screen active">
+                <h1 class="glitch" data-text="WebSnake">WebSnake</h1>
+                <p class="subtitle">NEON EDITION</p>
+
+                <!-- TOP 10 Leaderboard -->
+                <div id="leaderboard" class="leaderboard-container">
+                    <h3>TOP 10 SYSTEMS</h3>
+                    <div class="leaderboard-header">
+                        <span>RANK</span><span>NAME</span><span>SCORE</span><span>MESSAGE</span><span>ACT</span>
+                    </div>
+                    <ul id="leaderboard-list">
+                        <!-- Populated by JS -->
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+
+                <div class="start-prompt blink">PRESS [SPACE] TO START</div>
+                <div class="controls-hint">Use Arrow Keys to move / Free turning for human play</div>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="gameover-screen" class="screen hidden">
+                <h2 id="gameover-title" class="game-over-text">SYSTEM FAILURE</h2>
+                <div class="final-scorebox">
+                    SCORE: <span id="final-score">0</span>
+                </div>
+
+                <!-- High Score Entry Form (Hidden by default) -->
+                <div id="highscore-entry" class="highscore-form hidden">
+                    <h3>NEW HIGH SCORE!</h3>
+                    <div class="input-group">
+                        <label>NAME</label>
+                        <input type="text" id="hs-name" maxlength="5" placeholder="AAAAA" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label>MSG </label>
+                        <input type="text" id="hs-message" maxlength="30" placeholder="Enter message..."
+                            autocomplete="off">
+                    </div>
+                    <button id="hs-submit" class="neon-button">SUBMIT TO NETWORK</button>
+                    <div class="skip-hint">Press ESC to skip</div>
+                </div>
+
+                <div id="restart-prompt" class="start-prompt blink">PRESS [SPACE] TO REBOOT</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="audio.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
