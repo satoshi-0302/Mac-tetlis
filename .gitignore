@@ -1,1 +1,28 @@
 .DS_Store
+
+# Shared runtime data
+platform/data/
+
+# Dependency directories
+node_modules/
+games/*/node_modules/
+
+# Build outputs
+dist/
+build/
+games/*/dist/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Game runtime artifacts
+games/asteroid/server/data/
+games/missile-command/output/
+games/missile-command/data/replays/
+games/snake60/replays/
+games/snake60/scores.json
+
+# Local caches
+.cache/
+games/*/.cache/

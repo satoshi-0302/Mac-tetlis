@@ -1,0 +1,50 @@
+export const GAMES = [
+  {
+    id: 'snake60',
+    slug: 'snake60',
+    title: 'Snake60',
+    description: '60秒のネオンスネーク。短時間でどこまで伸ばせるかを競います。',
+    route: '/games/snake60/',
+    supportsTouch: false,
+    supportsReplay: true,
+    sortOrder: 1,
+    currentGameVersion: 'snake60-rule-v2'
+  },
+  {
+    id: 'missile-command',
+    slug: 'missile-command',
+    title: 'MissileCommand',
+    description: '4都市を守る60秒防衛戦。連鎖爆発で高得点を狙うゲームです。',
+    route: '/games/missile-command/',
+    supportsTouch: true,
+    supportsReplay: true,
+    sortOrder: 2,
+    currentGameVersion: 'orbital-shield-rl-poc-v3'
+  },
+  {
+    id: 'asteroid',
+    slug: 'asteroid',
+    title: 'Asteroid',
+    description: '固定60tickのアステロイド戦。AIのベストスコアが目標になります。',
+    route: '/games/asteroid/',
+    supportsTouch: true,
+    supportsReplay: true,
+    sortOrder: 3,
+    currentGameVersion: 'sim-60tick-v2'
+  },
+  {
+    id: 'slot60',
+    slug: 'slot60',
+    title: 'Slot60',
+    description: '60秒のスロットチャレンジ。揃えて稼いだスコアでランキングを競います。',
+    route: '/games/slot60/',
+    supportsTouch: true,
+    supportsReplay: false,
+    sortOrder: 4,
+    currentGameVersion: 'slot60-rule-v1'
+  }
+];
+
+export function getGameById(gameId) {
+  return GAMES.find((game) => game.id === gameId) ?? null;
+}
