@@ -71,6 +71,46 @@ Railway の次点は Render です。
 - ローカル SQLite をそのまま永続化しにくい
 - 常時動く単一 Node サーバー構成と相性がよくない
 
+## Cloudflare Workers + D1 + Durable Objects
+
+Cloudflare で進める場合は、この構成に寄せます。
+
+- `Workers`
+  API と静的配信の入口
+- `Assets`
+  ロビーと各ゲームの静的ファイル
+- `D1`
+  ランキング保存
+- `Durable Objects`
+  レート制限
+
+追加した主なファイル:
+
+- `wrangler.toml`
+- `cloudflare/worker.mjs`
+- `cloudflare/rate-limiter-do.mjs`
+- `cloudflare/migrations/0001_init.sql`
+- `scripts/build-cloudflare-assets.mjs`
+
+最初のセットアップ:
+
+1. `wrangler login`
+2. `wrangler d1 create codex-web-platform`
+3. 返ってきた `database_id` を `wrangler.toml` に入れる
+4. `npm run cf:d1:migrate:local`
+5. `npm run cf:dev`
+
+本番反映:
+
+1. `npm run cf:build-assets`
+2. `wrangler d1 migrations apply codex-web-platform --remote`
+3. `npm run cf:deploy`
+
+注意:
+
+- Cloudflare 版は既存の Node サーバーとは別入口です
+- まずは Workers 側で公開できる状態まで寄せ、必要ならあとで全面移行します
+
 ## 公開前に見る点
 
 1. ロビーが `/` で開くか

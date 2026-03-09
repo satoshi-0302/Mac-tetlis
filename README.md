@@ -81,6 +81,14 @@ PORT=9191 npm run platform:start
 
 詳しい手順は `docs/DEPLOYMENT.md` を参照してください。
 
+Cloudflare Workers + D1 + Durable Objects 版も進めています。
+
+```bash
+npm run cf:build-assets
+npm run cf:dev
+npm run cf:deploy
+```
+
 ## ゲームを追加するときの流れ
 
 1. `games/<slug>/` を作る

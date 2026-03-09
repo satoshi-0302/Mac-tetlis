@@ -26,3 +26,5 @@ games/snake60/scores.json
 # Local caches
 .cache/
 games/*/.cache/
+.wrangler/
+.cloudflare/assets/

@@ -5,8 +5,15 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "cf:build-assets": "node ./scripts/build-cloudflare-assets.mjs",
+    "cf:d1:migrate:local": "wrangler d1 migrations apply codex-web-platform --local",
+    "cf:deploy": "npm run cf:build-assets && wrangler deploy",
+    "cf:dev": "npm run cf:build-assets && wrangler dev",
     "platform:build": "npm run platform:build:asteroid",
     "platform:build:asteroid": "npm run build --prefix ./games/asteroid",
     "platform:start": "node ./platform/server.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.71.0"
   }
 }
