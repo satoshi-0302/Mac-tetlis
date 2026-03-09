@@ -71,6 +71,16 @@ npm run platform:build:asteroid
 PORT=9191 npm run platform:start
 ```
 
+## デプロイ
+
+まずは `Railway` を第一候補にするのが扱いやすいです。
+
+- 単一の Node サービスでそのまま動かせる
+- SQLite 用の永続ボリュームを付けやすい
+- このリポジトリには `Dockerfile` を追加済みなので、そのまま載せやすい
+
+詳しい手順は `docs/DEPLOYMENT.md` を参照してください。
+
 ## ゲームを追加するときの流れ
 
 1. `games/<slug>/` を作る

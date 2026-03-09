@@ -1,7 +1,11 @@
 {
   "name": "codex-web-platform",
   "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
+    "platform:build": "npm run platform:build:asteroid",
     "platform:build:asteroid": "npm run build --prefix ./games/asteroid",
     "platform:start": "node ./platform/server.mjs"
   }

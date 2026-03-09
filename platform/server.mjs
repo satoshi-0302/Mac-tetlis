@@ -15,10 +15,10 @@ import { parseStoredJson } from './sanitize.mjs';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT_DIR = resolve(__dirname, '..');
 const PLATFORM_PUBLIC_DIR = join(__dirname, 'public');
-const DATA_DIR = join(__dirname, 'data');
-const DB_PATH = join(DATA_DIR, 'leaderboard.db');
+const DATA_DIR = resolve(process.env.PLATFORM_DATA_DIR || join(__dirname, 'data'));
+const DB_PATH = resolve(process.env.PLATFORM_DB_PATH || join(DATA_DIR, 'leaderboard.db'));
 const PORT = Number(process.env.PORT || 9090);
-const HOST = '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 const MAX_REQUEST_BYTES = 25_000_000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 12;
@@ -679,4 +679,5 @@ const server = createServer(async (request, response) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`Platform server running on http://${HOST}:${PORT}`);
+  console.log(`Platform data directory: ${DATA_DIR}`);
 });
