@@ -105,11 +105,30 @@ Cloudflare で進める場合は、この構成に寄せます。
 1. `npm run cf:build-assets`
 2. `wrangler d1 migrations apply codex-web-platform --remote`
 3. `npm run cf:deploy`
+4. `npm run cf:smoke -- https://<your-domain-or-workers-dev>`
 
 注意:
 
 - Cloudflare 版は既存の Node サーバーとは別入口です
 - まずは Workers 側で公開できる状態まで寄せ、必要ならあとで全面移行します
+
+### 独自ドメイン反映後の手順
+
+ネームサーバー反映が終わって、Cloudflare に `satoshi-0302.com` の zone が見えるようになったら次を行います。
+
+1. `wrangler.toml` に以下を追加する
+
+```toml
+[[routes]]
+pattern = "games.satoshi-0302.com"
+zone_name = "satoshi-0302.com"
+custom_domain = true
+```
+
+2. `npm run cf:deploy`
+3. `npm run cf:smoke -- https://games.satoshi-0302.com`
+
+もし deploy 時に zone が見つからない場合は、まだネームサーバー反映待ちです。
 
 ## 無料枠で壊れにくくする方針
 
