@@ -9,6 +9,7 @@ import { RateLimiterDO } from './rate-limiter-do.mjs';
 const MAX_REQUEST_BYTES = 25_000_000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 12;
+const GAMES_CACHE_TTL_SECONDS = 60;
 
 const adapters = new Map([
   ['snake60', snakeAdapter],
@@ -17,16 +18,53 @@ const adapters = new Map([
   ['slot60', slotAdapter]
 ]);
 
-function jsonResponse(status, payload) {
+function jsonResponse(status, payload, extraHeaders = {}) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store',
       'Referrer-Policy': 'same-origin',
-      'X-Content-Type-Options': 'nosniff'
+      'X-Content-Type-Options': 'nosniff',
+      ...extraHeaders
     }
   });
+}
+
+function buildCacheHeaders(ttlSeconds) {
+  return {
+    'Cache-Control': `public, max-age=0, s-maxage=${ttlSeconds}, stale-while-revalidate=${ttlSeconds}`
+  };
+}
+
+function cacheKeyFor(request, suffix = '') {
+  const url = new URL(request.url);
+  if (suffix) {
+    url.searchParams.set('__cache', suffix);
+  }
+  return new Request(url.toString(), {
+    method: 'GET',
+    headers: request.headers
+  });
+}
+
+async function getCachedJson(request, ttlSeconds, producer) {
+  const cache = caches.default;
+  const key = cacheKeyFor(request, String(ttlSeconds));
+  const cached = await cache.match(key);
+  if (cached) {
+    return cached;
+  }
+
+  const payload = await producer();
+  const response = jsonResponse(200, payload, buildCacheHeaders(ttlSeconds));
+  await cache.put(key, response.clone());
+  return response;
+}
+
+async function purgeApiCache(request, gameId = null) {
+  const cache = caches.default;
+  await cache.delete(cacheKeyFor(request, String(GAMES_CACHE_TTL_SECONDS)));
 }
 
 async function ensureGames(db) {
@@ -256,7 +294,7 @@ async function handleApi(env, request, url) {
   await ensureGames(env.DB);
 
   if (request.method === 'GET' && url.pathname === '/api/games') {
-    return jsonResponse(200, await buildGamesPayload(env.DB));
+    return getCachedJson(request, GAMES_CACHE_TTL_SECONDS, () => buildGamesPayload(env.DB));
   }
 
   if (request.method === 'GET' && url.pathname === '/api/leaderboard') {
@@ -317,6 +355,7 @@ async function handleApi(env, request, url) {
 
     const payload = await readJsonBody(request);
     const result = await submitEntryForGame(env, 'snake60', payload);
+    await purgeApiCache(request);
     return jsonResponse(200, result.leaderboard.combinedEntries);
   }
 
@@ -336,7 +375,9 @@ async function handleApi(env, request, url) {
       return jsonResponse(429, { error: 'Too many submissions', retryAfterSeconds: rateLimit.retryAfterSeconds });
     }
 
-    return jsonResponse(200, await submitEntryForGame(env, gameId, payload));
+    const result = await submitEntryForGame(env, gameId, payload);
+    await purgeApiCache(request);
+    return jsonResponse(200, result);
   }
 
   if (request.method === 'GET' && url.pathname === '/api/health') {
