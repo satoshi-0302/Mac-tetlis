@@ -1,6 +1,7 @@
 name = "codex-web-platform"
 main = "cloudflare/worker.mjs"
 compatibility_date = "2026-03-09"
+workers_dev = true
 
 [assets]
 directory = "./.cloudflare/assets"
