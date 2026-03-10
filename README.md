@@ -2,6 +2,10 @@
 
 4種類のブラウザゲームを、1つのロビーと共通ランキング基盤でまとめて運用するためのリポジトリです。
 
+公開URL:
+
+- `https://codex-web-platform.yqs01140.workers.dev`
+
 ## できること
 
 - 共通ロビーからゲームを選んで遊ぶ
@@ -89,6 +93,16 @@ npm run cf:dev
 npm run cf:deploy
 ```
 
+現在の公開先:
+
+- `https://codex-web-platform.yqs01140.workers.dev`
+
+公開確認:
+
+```bash
+npm run cf:smoke -- https://codex-web-platform.yqs01140.workers.dev
+```
+
 ## ゲームを追加するときの流れ
 
 1. `games/<slug>/` を作る
@@ -103,3 +117,11 @@ npm run cf:deploy
 - 共通機能は `platform/` に寄せる
 - 新しいゲームも同じ配置ルールで追加する
 - 生成物やローカルデータは親の `.gitignore` でまとめて管理する
+
+## 公開前の最終チェック
+
+1. ルートURLが開く
+2. 4ゲームへ遷移できる
+3. `api/health` が返る
+4. `slot60` のスコア投稿が通る
+5. スマホ表示でレイアウト崩れがない

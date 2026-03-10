@@ -107,6 +107,10 @@ Cloudflare で進める場合は、この構成に寄せます。
 3. `npm run cf:deploy`
 4. `npm run cf:smoke -- https://<your-domain-or-workers-dev>`
 
+現在の安定公開先:
+
+- `https://codex-web-platform.yqs01140.workers.dev`
+
 注意:
 
 - Cloudflare 版は既存の Node サーバーとは別入口です
