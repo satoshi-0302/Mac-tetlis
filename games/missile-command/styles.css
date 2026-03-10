@@ -1012,8 +1012,8 @@ body[data-mobile="true"][data-mode="replay"] .topbar {
 body[data-mobile="true"][data-mode="playing"] .stage-frame,
 body[data-mobile="true"][data-mode="deploying"] .stage-frame,
 body[data-mobile="true"][data-mode="replay"] .stage-frame {
-  width: min(100%, calc((100dvh - 12px) * 16 / 9));
-  margin-top: 1em;
+  width: min(100%, calc((100dvh - 6px) * 16 / 9));
+  margin-top: 0.45em;
 }
 
 body[data-mobile="true"][data-portrait="true"] .rotate-screen {
