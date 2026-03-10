@@ -1,4 +1,5 @@
 const FALLBACK_API_BASE = "http://127.0.0.1:8787";
+const GAME_ID = "missile-command";
 let preferredBase = null;
 
 function unique(values) {
@@ -50,13 +51,14 @@ async function requestJson(path, init = {}) {
 }
 
 export async function fetchLeaderboard() {
-  return requestJson("/api/leaderboard", {
+  return requestJson(`/api/leaderboard?gameId=${encodeURIComponent(GAME_ID)}`, {
     method: "GET",
   });
 }
 
 export async function fetchReplay(replayId) {
-  return requestJson(`/api/replay/${encodeURIComponent(String(replayId ?? ""))}`, {
+  const entryId = encodeURIComponent(String(replayId ?? ""));
+  return requestJson(`/api/replay?gameId=${encodeURIComponent(GAME_ID)}&entryId=${entryId}`, {
     method: "GET",
   });
 }
@@ -64,6 +66,9 @@ export async function fetchReplay(replayId) {
 export async function submitLeaderboardEntry(payload) {
   return requestJson("/api/submit", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      gameId: GAME_ID,
+    }),
   });
 }

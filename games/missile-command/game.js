@@ -141,6 +141,27 @@ export class Game {
       compact: compactUi,
       constrainedHeight: constrainedTitleLayout,
     });
+    this.syncOrientationLock({ compactUi, isPortrait });
+  }
+
+  async syncOrientationLock({ compactUi, isPortrait }) {
+    const orientation = window.screen?.orientation;
+    if (!orientation?.lock) {
+      return;
+    }
+
+    try {
+      if (compactUi && isPortrait) {
+        await orientation.lock("landscape");
+        return;
+      }
+
+      if (!compactUi && orientation.unlock) {
+        orientation.unlock();
+      }
+    } catch (error) {
+      // Some browsers require fullscreen or user activation for orientation lock.
+    }
   }
 
   setupInput() {

@@ -16,6 +16,9 @@ export class GameUI {
     this.timeValue = document.getElementById("timeValue");
     this.citiesValue = document.getElementById("citiesValue");
     this.highScoreValue = document.getElementById("highScoreValue");
+    this.mobileScoreValue = document.getElementById("mobileScoreValue");
+    this.mobileTimeValue = document.getElementById("mobileTimeValue");
+    this.mobileCitiesValue = document.getElementById("mobileCitiesValue");
     this.titleHighScore = document.getElementById("titleHighScore");
     this.statusLine = document.getElementById("statusLine");
 
@@ -68,6 +71,15 @@ export class GameUI {
     this.timeValue.textContent = `${timeLeft.toFixed(1)}s`;
     this.citiesValue.textContent = `${aliveCities} / ${cityCount}`;
     this.highScoreValue.textContent = highScore.toLocaleString("ja-JP");
+    if (this.mobileScoreValue) {
+      this.mobileScoreValue.textContent = score.toLocaleString("ja-JP");
+    }
+    if (this.mobileTimeValue) {
+      this.mobileTimeValue.textContent = `${timeLeft.toFixed(1)}s`;
+    }
+    if (this.mobileCitiesValue) {
+      this.mobileCitiesValue.textContent = `${aliveCities} / ${cityCount}`;
+    }
     this.titleHighScore.textContent = highScore.toLocaleString("ja-JP");
     document.body.dataset.mode = state;
   }

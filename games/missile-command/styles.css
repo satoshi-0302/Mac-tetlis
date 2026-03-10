@@ -142,6 +142,32 @@ summary {
   align-content: space-between;
 }
 
+.mobile-hud-overlay {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 4;
+  display: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  pointer-events: none;
+}
+
+.mobile-hud-card {
+  min-height: 56px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 60%),
+    rgba(4, 12, 21, 0.62);
+  backdrop-filter: blur(10px);
+}
+
+.mobile-hud-card strong {
+  font-size: 1rem;
+}
+
 .hud-label,
 .hero-stat span,
 .result-stat span {
@@ -215,6 +241,30 @@ summary {
 
 .is-visible {
   opacity: 1;
+}
+
+.rotate-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  background:
+    linear-gradient(180deg, rgba(1, 6, 12, 0.72), rgba(1, 6, 12, 0.9)),
+    radial-gradient(circle at 50% 30%, rgba(126, 248, 255, 0.16), transparent 28%);
+}
+
+.rotate-panel {
+  width: min(420px, 100%);
+  padding: 22px 20px;
+  border-radius: 24px;
+  border: 1px solid var(--panel-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 18%),
+    rgba(4, 12, 21, 0.88);
+  box-shadow: var(--shadow-soft);
+  text-align: center;
 }
 
 .screen-panel {
@@ -726,9 +776,7 @@ button:focus-visible {
   }
 
   .hud {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    width: 100%;
+    display: none;
   }
 
   .hero-stats,
@@ -737,7 +785,7 @@ button:focus-visible {
   }
 
   .stage-frame {
-    width: min(100%, calc((100dvh - 210px) * 16 / 9));
+    width: min(100%, calc((100dvh - 134px) * 16 / 9));
     aspect-ratio: 16 / 9;
     min-height: 0;
   }
@@ -932,8 +980,24 @@ button:focus-visible {
 }
 
 body[data-mobile="true"][data-portrait="true"] .stage-frame {
-  width: min(100%, calc((100dvh - 210px) * 16 / 9));
+  width: 100%;
   min-height: 0;
+}
+
+body[data-mobile="true"][data-portrait="false"] .mobile-hud-overlay {
+  display: grid;
+}
+
+body[data-mobile="true"][data-portrait="true"] .rotate-screen {
+  display: grid;
+}
+
+body[data-mobile="true"][data-portrait="true"] #gameCanvas,
+body[data-mobile="true"][data-portrait="true"] .stage-grid,
+body[data-mobile="true"][data-portrait="true"] .mobile-hud-overlay,
+body[data-mobile="true"][data-portrait="true"] .screen {
+  opacity: 0;
+  pointer-events: none;
 }
 
 @media (max-height: 760px) and (min-width: 960px) {

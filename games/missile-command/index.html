@@ -49,6 +49,21 @@
       </header>
 
       <main class="stage-frame">
+        <div class="mobile-hud-overlay" aria-hidden="true">
+          <div class="hud-card mobile-hud-card">
+            <span class="hud-label">Score</span>
+            <strong id="mobileScoreValue">0</strong>
+          </div>
+          <div class="hud-card mobile-hud-card">
+            <span class="hud-label">Time</span>
+            <strong id="mobileTimeValue">60.0s</strong>
+          </div>
+          <div class="hud-card mobile-hud-card">
+            <span class="hud-label">Cities</span>
+            <strong id="mobileCitiesValue">4 / 4</strong>
+          </div>
+        </div>
+
         <canvas
           id="gameCanvas"
           width="1280"
@@ -56,6 +71,15 @@
           aria-label="ミサイル防衛ゲームのプレイ画面"
         ></canvas>
         <div class="stage-grid" aria-hidden="true"></div>
+        <section class="rotate-screen" id="rotateScreen" aria-live="polite">
+          <div class="rotate-panel">
+            <p class="screen-kicker">Landscape Required</p>
+            <h2>横向きで遊んでください</h2>
+            <p class="screen-copy">
+              Orbital Shield 60 は横画面前提で調整しています。端末を横向きにすると、照準と爆風が見やすくなります。
+            </p>
+          </div>
+        </section>
 
         <section class="screen is-visible" id="titleScreen">
           <div class="screen-panel">
