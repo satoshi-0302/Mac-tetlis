@@ -505,23 +505,24 @@ canvas {
 }
 
 .touch-button {
-    min-width: min(42vw, 220px);
-    min-height: 58px;
-    border: 1px solid rgba(0, 243, 255, 0.8);
+    min-width: min(100%, 360px);
+    min-height: 88px;
+    border: 2px solid rgba(0, 243, 255, 0.8);
     color: #ffffff;
     background: rgba(0, 0, 0, 0.58);
     font-family: var(--font-main);
-    font-size: 0.72rem;
+    font-size: 1rem;
     letter-spacing: 0.06em;
     text-shadow: 0 0 8px var(--neon-blue);
-    border-radius: 14px;
+    border-radius: 18px;
     pointer-events: auto;
     touch-action: manipulation;
+    box-shadow: 0 0 18px rgba(0, 243, 255, 0.18);
 }
 
 .touch-turn-button {
     flex: 1 1 0;
-    max-width: 220px;
+    max-width: none;
 }
 
 .touch-button:active {
@@ -598,13 +599,13 @@ canvas {
     }
 
     .snake-topbar {
-        width: min(calc(100vw - 8px), calc((100dvh - 92px) * 4 / 3), 800px);
+        width: min(calc(100vw - 4px), calc((100dvh - 84px) * 4 / 3), 800px);
         max-width: 100%;
         gap: 8px;
     }
 
     #game-container {
-        width: min(calc(100vw - 8px), calc((100dvh - 92px) * 4 / 3), 800px);
+        width: min(calc(100vw - 4px), calc((100dvh - 84px) * 4 / 3), 800px);
         height: auto;
         max-width: 100%;
         aspect-ratio: 4 / 3;
@@ -628,7 +629,7 @@ canvas {
     }
 
     .mobile-controls {
-        width: min(calc(100vw - 8px), calc((100dvh - 92px) * 4 / 3), 800px);
+        width: min(calc(100vw - 4px), calc((100dvh - 84px) * 4 / 3), 800px);
         max-width: 100%;
         padding-bottom: max(2px, env(safe-area-inset-bottom));
     }
