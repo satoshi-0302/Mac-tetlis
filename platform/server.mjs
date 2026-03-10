@@ -33,8 +33,11 @@ const MIME_TYPES = {
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
-  '.txt': 'text/plain; charset=utf-8'
+  '.txt': 'text/plain; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8'
 };
+
+const PLATFORM_ROOT_FILES = new Set(['index.html', 'manifest.webmanifest', 'sw.js']);
 
 const adapters = new Map([
   ['snake60', snake60Adapter],
@@ -47,7 +50,8 @@ const staticMounts = [
   {
     prefix: '/static/',
     rootDir: PLATFORM_PUBLIC_DIR,
-    allowRootFiles: new Set(['styles.css', 'lobby.js'])
+    allowRootFiles: new Set(['styles.css', 'lobby.js']),
+    allowDirs: new Set(['icons'])
   },
   {
     prefix: '/games/snake60/',
@@ -617,6 +621,12 @@ async function serveFile(response, filePath) {
 async function handleStatic(response, pathname) {
   if (pathname === '/' || pathname === '/index.html') {
     await serveFile(response, join(PLATFORM_PUBLIC_DIR, 'index.html'));
+    return;
+  }
+
+  const rootPublicFile = pathname.replace(/^\//, '');
+  if (PLATFORM_ROOT_FILES.has(rootPublicFile)) {
+    await serveFile(response, join(PLATFORM_PUBLIC_DIR, rootPublicFile));
     return;
   }
 

@@ -29,11 +29,14 @@ function ensureAsteroidBuild() {
 
 function copyPlatform() {
   const publicDir = resolve(ROOT, 'platform', 'public');
-  copyPath(resolve(publicDir, 'index.html'), resolve(OUT_DIR, 'index.html'), false);
+  for (const fileName of ['index.html', 'manifest.webmanifest', 'sw.js']) {
+    copyPath(resolve(publicDir, fileName), resolve(OUT_DIR, fileName), false);
+  }
   mkdirSync(resolve(OUT_DIR, 'static'), { recursive: true });
   for (const fileName of ['styles.css', 'lobby.js']) {
     copyPath(resolve(publicDir, fileName), resolve(OUT_DIR, 'static', fileName), false);
   }
+  copyPath(resolve(publicDir, 'icons'), resolve(OUT_DIR, 'static', 'icons'), true);
 }
 
 function copySnake() {

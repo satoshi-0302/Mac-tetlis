@@ -2,6 +2,68 @@ function formatScore(score) {
   return Number(score ?? 0).toLocaleString('ja-JP');
 }
 
+let deferredInstallPrompt = null;
+
+function updateInstallStatus(message) {
+  const status = document.getElementById('installStatus');
+  if (status instanceof HTMLElement) {
+    status.textContent = message;
+  }
+}
+
+function toggleInstallButton(visible) {
+  const button = document.getElementById('installButton');
+  if (!(button instanceof HTMLButtonElement)) {
+    return;
+  }
+  button.classList.toggle('hidden', !visible);
+}
+
+async function registerPwaSupport() {
+  if ('serviceWorker' in navigator) {
+    try {
+      await navigator.serviceWorker.register('/sw.js');
+    } catch (error) {
+      console.error('Service worker registration failed', error);
+    }
+  }
+
+  const installButton = document.getElementById('installButton');
+  if (!(installButton instanceof HTMLButtonElement)) {
+    return;
+  }
+
+  installButton.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) {
+      updateInstallStatus('この端末では共有メニューから「ホーム画面に追加」を選んでください。');
+      return;
+    }
+
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    if (choice.outcome === 'accepted') {
+      updateInstallStatus('ホーム画面への追加を開始しました。');
+    } else {
+      updateInstallStatus('あとで追加できます。必要なときにもう一度押してください。');
+    }
+    deferredInstallPrompt = null;
+    toggleInstallButton(false);
+  });
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    toggleInstallButton(true);
+    updateInstallStatus('ホーム画面に追加すると、60秒ゲームをすぐ起動できます。');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    toggleInstallButton(false);
+    updateInstallStatus('ホーム画面に追加されました。アプリのように開けます。');
+  });
+}
+
 function renderGameCard(game) {
   const article = document.createElement('article');
   article.className = 'game-card';
@@ -83,4 +145,5 @@ async function loadGames() {
   }
 }
 
+void registerPwaSupport();
 void loadGames();
