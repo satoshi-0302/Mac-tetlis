@@ -11,8 +11,8 @@ function resetOutput() {
   mkdirSync(resolve(OUT_DIR, 'games'), { recursive: true });
 }
 
-function copyRecursive(from, to) {
-  cpSync(from, to, { recursive: true });
+function copyPath(from, to, recursive = true) {
+  cpSync(from, to, { recursive });
 }
 
 function ensureAsteroidBuild() {
@@ -28,14 +28,19 @@ function ensureAsteroidBuild() {
 }
 
 function copyPlatform() {
-  copyRecursive(resolve(ROOT, 'platform', 'public'), resolve(OUT_DIR, 'static'));
+  const publicDir = resolve(ROOT, 'platform', 'public');
+  copyPath(resolve(publicDir, 'index.html'), resolve(OUT_DIR, 'index.html'), false);
+  mkdirSync(resolve(OUT_DIR, 'static'), { recursive: true });
+  for (const fileName of ['styles.css', 'lobby.js']) {
+    copyPath(resolve(publicDir, fileName), resolve(OUT_DIR, 'static', fileName), false);
+  }
 }
 
 function copySnake() {
   const targetDir = resolve(OUT_DIR, 'games', 'snake60');
   mkdirSync(targetDir, { recursive: true });
   for (const fileName of ['index.html', 'style.css', 'game.js', 'audio.js']) {
-    copyRecursive(resolve(ROOT, 'games', 'snake60', fileName), resolve(targetDir, fileName));
+    copyPath(resolve(ROOT, 'games', 'snake60', fileName), resolve(targetDir, fileName), false);
   }
 }
 
@@ -56,20 +61,20 @@ function copyMissile() {
     'replay.js',
     'ui.js'
   ]) {
-    copyRecursive(resolve(sourceDir, fileName), resolve(targetDir, fileName));
+    copyPath(resolve(sourceDir, fileName), resolve(targetDir, fileName), false);
   }
   for (const dirName of ['public', 'rl', 'sim']) {
-    copyRecursive(resolve(sourceDir, dirName), resolve(targetDir, dirName));
+    copyPath(resolve(sourceDir, dirName), resolve(targetDir, dirName), true);
   }
 }
 
 function copySlot() {
-  copyRecursive(resolve(ROOT, 'games', 'slot60'), resolve(OUT_DIR, 'games', 'slot60'));
+  copyPath(resolve(ROOT, 'games', 'slot60'), resolve(OUT_DIR, 'games', 'slot60'), true);
 }
 
 function copyAsteroid() {
   ensureAsteroidBuild();
-  copyRecursive(resolve(ROOT, 'games', 'asteroid', 'dist'), resolve(OUT_DIR, 'games', 'asteroid'));
+  copyPath(resolve(ROOT, 'games', 'asteroid', 'dist'), resolve(OUT_DIR, 'games', 'asteroid'), true);
 }
 
 resetOutput();
