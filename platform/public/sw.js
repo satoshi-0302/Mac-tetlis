@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-lobby-v1';
+const CACHE_NAME = 'arcade-lobby-v2';
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
@@ -40,8 +40,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(cacheFirst(event.request));
+  if (isNavigationRequest(event.request) || url.pathname.startsWith('/games/')) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
+
+  if (APP_SHELL.includes(url.pathname) || url.pathname.startsWith('/static/')) {
+    event.respondWith(cacheFirst(event.request));
+    return;
+  }
+
+  event.respondWith(networkFirst(event.request));
 });
+
+function isNavigationRequest(request) {
+  return request.mode === 'navigate' || request.destination === 'document';
+}
 
 async function cacheFirst(request) {
   const cached = await caches.match(request);
