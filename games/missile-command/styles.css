@@ -503,6 +503,13 @@ button {
     filter 140ms ease;
 }
 
+.nav-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 button:hover {
   transform: translateY(-2px);
   filter: brightness(1.05);
@@ -730,8 +737,9 @@ button:focus-visible {
   }
 
   .stage-frame {
-    aspect-ratio: auto;
-    min-height: clamp(430px, 63dvh, 760px);
+    width: min(100%, calc((100dvh - 210px) * 16 / 9));
+    aspect-ratio: 16 / 9;
+    min-height: 0;
   }
 
   .screen {
@@ -860,6 +868,12 @@ button:focus-visible {
     padding: 11px 16px;
   }
 
+  .nav-link-button {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 16px;
+  }
+
   .replay-exit-button {
     width: 100%;
     min-width: 0;
@@ -874,12 +888,7 @@ button:focus-visible {
   }
 
   .status-line {
-    padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(4, 12, 21, 0.72);
-    backdrop-filter: blur(12px);
-    font-size: 0.84rem;
-    line-height: 1.45;
+    display: none;
   }
 }
 
@@ -923,7 +932,8 @@ button:focus-visible {
 }
 
 body[data-mobile="true"][data-portrait="true"] .stage-frame {
-  min-height: clamp(460px, 64dvh, 780px);
+  width: min(100%, calc((100dvh - 210px) * 16 / 9));
+  min-height: 0;
 }
 
 @media (max-height: 760px) and (min-width: 960px) {
