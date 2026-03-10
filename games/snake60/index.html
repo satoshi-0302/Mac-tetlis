@@ -11,6 +11,10 @@
 
 <body>
     <div id="game-container">
+        <div class="top-actions" aria-label="Page actions">
+            <a class="top-action-button" href="/">LOBBY</a>
+        </div>
+
         <!-- The CRT Scanline effect overlay -->
         <div class="crt-overlay"></div>
 
@@ -50,7 +54,7 @@
                 </div>
 
                 <div class="start-prompt blink">PRESS [SPACE] TO START</div>
-                <div class="controls-hint">Use Arrow Keys to move / Free turning for human play</div>
+                <button id="touch-start-button" class="neon-button touch-only" type="button">TAP TO START</button>
             </div>
 
             <!-- Game Over Screen -->
@@ -77,22 +81,13 @@
                 </div>
 
                 <div id="restart-prompt" class="start-prompt blink">PRESS [SPACE] TO REBOOT</div>
+                <button id="touch-restart-button" class="neon-button touch-only hidden" type="button">PLAY AGAIN</button>
             </div>
         </div>
 
         <div id="mobile-controls" class="mobile-controls hidden" aria-label="Touch controls">
-            <div class="mobile-controls-left">
-                <button type="button" class="touch-button" data-touch-dir="U">UP</button>
-                <div class="mobile-middle-row">
-                    <button type="button" class="touch-button" data-touch-dir="L">LEFT</button>
-                    <button type="button" class="touch-button" data-touch-dir="R">RIGHT</button>
-                </div>
-                <button type="button" class="touch-button" data-touch-dir="D">DOWN</button>
-            </div>
-            <div class="mobile-controls-right">
-                <button type="button" class="touch-button touch-action" data-touch-action="primary">ACT</button>
-                <button type="button" class="touch-button touch-action" data-touch-action="back">BACK</button>
-            </div>
+            <button type="button" class="touch-button touch-turn-button" data-touch-turn="left">LEFT</button>
+            <button type="button" class="touch-button touch-turn-button" data-touch-turn="right">RIGHT</button>
         </div>
     </div>
 

@@ -19,6 +19,8 @@ const restartPrompt = document.getElementById('restart-prompt');
 const replayExitBtn = document.getElementById('replay-exit');
 const modeBanner = document.getElementById('mode-banner');
 const mobileControls = document.getElementById('mobile-controls');
+const touchStartButton = document.getElementById('touch-start-button');
+const touchRestartButton = document.getElementById('touch-restart-button');
 
 const GRID_SIZE = 20;
 const TILE_COUNT_X = canvas.width / GRID_SIZE;
@@ -79,6 +81,18 @@ function directionCodeFromVector(vector) {
     if (vector.x === 0 && vector.y === 1) return 'D';
     if (vector.x === -1 && vector.y === 0) return 'L';
     return 'R';
+}
+
+function rotateDirectionCode(baseCode, turnSide) {
+    const leftTurns = { U: 'L', L: 'D', D: 'R', R: 'U' };
+    const rightTurns = { U: 'R', R: 'D', D: 'L', L: 'U' };
+    if (turnSide === 'left') {
+        return leftTurns[baseCode] ?? baseCode;
+    }
+    if (turnSide === 'right') {
+        return rightTurns[baseCode] ?? baseCode;
+    }
+    return baseCode;
 }
 
 function sanitizeName(value) {
@@ -159,6 +173,8 @@ function startGame() {
     hideAllOverlays();
     restartPrompt.classList.remove('hidden');
     restartPrompt.innerText = 'PRESS [SPACE] TO REBOOT';
+    touchStartButton?.classList.add('hidden');
+    touchRestartButton?.classList.add('hidden');
     recordedDirections = [];
     replayPlayback = null;
     currentGameState = 'PLAYING';
@@ -213,6 +229,16 @@ function queueDirectionForGameplay(key) {
     }
 }
 
+function queueRelativeTurn(turnSide) {
+    const baseCode = inputQueue[inputQueue.length - 1] || directionCodeFromVector(velocity);
+    const nextCode = rotateDirectionCode(baseCode, turnSide);
+    if (nextCode === baseCode) return;
+    inputQueue.push(nextCode);
+    if (inputQueue.length > 2) {
+        inputQueue.shift();
+    }
+}
+
 function handlePrimaryAction() {
     if (currentGameState === 'TITLE') {
         startGame();
@@ -251,36 +277,43 @@ function bindMobileControls() {
     const isCoarsePointer =
         typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
     mobileControls.classList.toggle('hidden', !isCoarsePointer);
+    touchStartButton?.classList.toggle('hidden', !isCoarsePointer);
+    touchRestartButton?.classList.toggle('hidden', !isCoarsePointer);
 
-    const triggerTouchDirection = (dirCode) => {
-        if (currentGameState !== 'PLAYING') return;
-        const keyMap = { U: 'ArrowUp', D: 'ArrowDown', L: 'ArrowLeft', R: 'ArrowRight' };
-        const key = keyMap[dirCode];
-        if (key) {
-            queueDirectionForGameplay(key);
+    const triggerTouchTurn = (turnSide) => {
+        if (currentGameState === 'TITLE') {
+            startGame();
+            return;
+        }
+        if (currentGameState === 'PLAYING') {
+            queueRelativeTurn(turnSide);
+            return;
+        }
+        if (
+            currentGameState === 'GAMEOVER' ||
+            currentGameState === 'REPLAY_OVER' ||
+            currentGameState === 'REPLAY'
+        ) {
+            returnToTitle();
         }
     };
 
-    mobileControls.querySelectorAll('[data-touch-dir]').forEach((button) => {
-        const dirCode = String(button.getAttribute('data-touch-dir') || '').trim();
+    mobileControls.querySelectorAll('[data-touch-turn]').forEach((button) => {
+        const turnSide = String(button.getAttribute('data-touch-turn') || '').trim();
         button.addEventListener('pointerdown', (event) => {
             event.preventDefault();
-            triggerTouchDirection(dirCode);
+            triggerTouchTurn(turnSide);
         });
     });
 
-    mobileControls.querySelectorAll('[data-touch-action]').forEach((button) => {
-        const action = String(button.getAttribute('data-touch-action') || '').trim();
-        button.addEventListener('pointerdown', (event) => {
-            event.preventDefault();
-            if (action === 'primary') {
-                handlePrimaryAction();
-                return;
-            }
-            if (action === 'back') {
-                handleBackAction();
-            }
-        });
+    touchStartButton?.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        handlePrimaryAction();
+    });
+
+    touchRestartButton?.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        handlePrimaryAction();
     });
 }
 
@@ -347,11 +380,13 @@ function finishRun() {
             currentGameState = 'SUBMITTING';
             hsEntryForm.classList.remove('hidden');
             restartPrompt.classList.add('hidden');
+            touchRestartButton?.classList.add('hidden');
             hsNameInput.value = '';
             hsMsgInput.value = '';
             hsNameInput.focus();
         } else {
             hsEntryForm.classList.add('hidden');
+            touchRestartButton?.classList.remove('hidden');
         }
     }, 800);
 }
@@ -374,6 +409,8 @@ function returnToTitle() {
     gameoverScreen.classList.remove('active');
     gameoverScreen.classList.add('hidden');
     hsEntryForm.classList.add('hidden');
+    touchRestartButton?.classList.add('hidden');
+    touchStartButton?.classList.remove('hidden');
 }
 
 async function fetchScores() {
@@ -808,6 +845,8 @@ function gameLoop(timestamp) {
     drawGame(timestamp);
     gameLoopId = requestAnimationFrame(gameLoop);
 }
+
+titleScreen.classList.toggle('touch-mode', window.matchMedia?.('(pointer: coarse)').matches ?? false);
 
 window.addEventListener('keydown', (event) => {
     if (synth.ctx.state === 'suspended') {

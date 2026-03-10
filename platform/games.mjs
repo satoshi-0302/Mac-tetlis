@@ -5,7 +5,7 @@ export const GAMES = [
     title: 'Snake60',
     description: '60秒のネオンスネーク。短時間でどこまで伸ばせるかを競います。',
     route: '/games/snake60/',
-    supportsTouch: false,
+    supportsTouch: true,
     supportsReplay: true,
     sortOrder: 1,
     currentGameVersion: 'snake60-rule-v2'
