@@ -11,15 +11,11 @@
 
 <body>
     <div class="snake-layout">
-        <div id="game-container">
+        <div class="snake-topbar">
             <div class="top-actions" aria-label="Page actions">
                 <a class="top-action-button" href="/">LOBBY</a>
             </div>
 
-            <!-- The CRT Scanline effect overlay -->
-            <div class="crt-overlay"></div>
-
-            <!-- Score Display -->
             <div id="hud">
                 <div class="hud-left">
                     <div class="score-box">TIME: <span id="time-left">60</span>s</div>
@@ -31,6 +27,11 @@
                     <button id="replay-exit" class="score-box hud-button hidden" type="button">EXIT REPLAY</button>
                 </div>
             </div>
+        </div>
+
+        <div id="game-container">
+            <!-- The CRT Scanline effect overlay -->
+            <div class="crt-overlay"></div>
 
             <!-- The Canvas -->
             <canvas id="gameCanvas" width="800" height="600"></canvas>
