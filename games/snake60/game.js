@@ -21,6 +21,12 @@ const modeBanner = document.getElementById('mode-banner');
 const mobileControls = document.getElementById('mobile-controls');
 const touchStartButton = document.getElementById('touch-start-button');
 const touchRestartButton = document.getElementById('touch-restart-button');
+const routeModeParam = new URLSearchParams(window.location.search).get('mode');
+const hasCoarsePointer =
+    typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+const isMobileRoute = routeModeParam === 'mobile' || (routeModeParam !== 'desktop' && hasCoarsePointer);
+
+document.body.dataset.routeMode = isMobileRoute ? 'mobile' : 'desktop';
 
 const GRID_SIZE = 20;
 const TILE_COUNT_X = canvas.width / GRID_SIZE;
@@ -274,11 +280,9 @@ function handleBackAction() {
 function bindMobileControls() {
     if (!mobileControls) return;
 
-    const isCoarsePointer =
-        typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
-    mobileControls.classList.toggle('hidden', !isCoarsePointer);
-    touchStartButton?.classList.toggle('hidden', !isCoarsePointer);
-    touchRestartButton?.classList.toggle('hidden', !isCoarsePointer);
+    mobileControls.classList.toggle('hidden', !isMobileRoute);
+    touchStartButton?.classList.toggle('hidden', !isMobileRoute);
+    touchRestartButton?.classList.toggle('hidden', !isMobileRoute);
 
     const triggerTouchTurn = (turnSide) => {
         if (currentGameState === 'TITLE') {

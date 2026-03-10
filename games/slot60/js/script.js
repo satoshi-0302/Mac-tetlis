@@ -342,6 +342,7 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
+        this.routeMode = document.body?.dataset?.routeMode === 'mobile' ? 'mobile' : 'desktop';
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
@@ -508,8 +509,22 @@ class Game {
 
     resize() {
         const aspect = CONFIG.CANVAS_WIDTH / CONFIG.CANVAS_HEIGHT;
-        let w = window.innerWidth;
-        let h = window.innerHeight;
+        const shell = document.querySelector('.slot-shell');
+        const topbar = document.querySelector('.slot-topbar');
+        const hint = document.querySelector('.slot-mobile-hint');
+        const reservedHeight =
+            (topbar?.getBoundingClientRect().height || 0) +
+            (this.routeMode === 'mobile' ? (hint?.getBoundingClientRect().height || 0) + 12 : 0) +
+            20;
+
+        let w = window.innerWidth - 16;
+        let h = window.innerHeight - reservedHeight;
+
+        if (shell) {
+            w = Math.min(w, shell.clientWidth - 4);
+        }
+        h = Math.max(220, h);
+        w = Math.max(280, w);
 
         if (w / h > aspect) {
             w = h * aspect;
@@ -1159,6 +1174,10 @@ class Game {
 
 // Start Game
 window.addEventListener('load', () => {
+    const routePill = document.getElementById('route-pill');
+    if (routePill) {
+        routePill.textContent = document.body?.dataset?.routeMode === 'mobile' ? 'SMARTPHONE' : 'DESKTOP';
+    }
     const game = new Game();
     game.start();
 });

@@ -233,7 +233,12 @@ export class GameUI {
     this.titleHighScore.textContent = highScore.toLocaleString("ja-JP");
     this.setSubmitStatus("");
     this.setReplayState({ active: false });
-    this.setStatusLine("タイトル画面はクリックか Enter / Space でも開始できます。");
+    const routeMode = document.body.dataset.routeMode;
+    this.setStatusLine(
+      routeMode === "mobile"
+        ? "画面をタップして開始できます。横向きのまま遊ぶと照準が安定します。"
+        : "タイトル画面はクリックか Enter / Space でも開始できます。",
+    );
   }
 
   showPlaying({ demo = false, replay = false, replayLabel = "" } = {}) {

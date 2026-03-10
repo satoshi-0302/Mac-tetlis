@@ -35,7 +35,18 @@ if (!app) {
   throw new Error('Missing #app root');
 }
 
+const routeModeParam = new URLSearchParams(window.location.search).get('mode');
+const routeMode = routeModeParam === 'mobile' ? 'mobile' : routeModeParam === 'desktop' ? 'desktop' : 'auto';
+const prefersTouch =
+  typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+const compactRoute = routeMode === 'mobile' || (routeMode !== 'desktop' && prefersTouch);
+document.body.dataset.routeMode = compactRoute ? 'mobile' : 'desktop';
+
 app.innerHTML = `
+  <div class="route-bar">
+    <a class="btn tiny nav-button" href="/">LOBBY</a>
+    <span class="route-pill">${compactRoute ? 'SMARTPHONE' : 'DESKTOP'}</span>
+  </div>
   <div class="layout">
     <section class="game-column">
       <div class="canvas-wrap">
@@ -45,6 +56,9 @@ app.innerHTML = `
         <span id="runtimeStatus" class="runtime-status">Press Space to start the 60-second run.</span>
         <button id="stopReplayButton" class="btn tiny hidden" type="button">Stop Replay</button>
       </div>
+      <p class="mobile-quick-help ${compactRoute ? '' : 'hidden'}">
+        左ドラッグで向きと加速、右側タッチでショット、右側2本指でボムです。未開始時は画面タップで開始できます。
+      </p>
     </section>
 
     <aside class="side-column">
@@ -640,6 +654,26 @@ function startRun() {
     setRuntimeStatus('Run started. 60-second timer is real-time and will not pause in background tabs.');
   }
 }
+
+canvas.addEventListener(
+  'pointerdown',
+  (event) => {
+    if (!compactRoute || event.pointerType === 'mouse') {
+      return;
+    }
+    if (replaySession || demoEnabled) {
+      return;
+    }
+    if (runStarted && !didFinish) {
+      return;
+    }
+
+    event.preventDefault();
+    resetRun();
+    startRun();
+  },
+  { passive: false }
+);
 
 function renderResultPanel(summary = summarizeRun(state)) {
   const accuracy = `${(summary.accuracy * 100).toFixed(1)}%`;

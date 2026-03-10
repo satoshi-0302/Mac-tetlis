@@ -2,6 +2,27 @@ function formatScore(score) {
   return Number(score ?? 0).toLocaleString('ja-JP');
 }
 
+function shouldPreferMobileRoute() {
+  const coarsePointer =
+    typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+  const narrowViewport =
+    typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 900px)').matches;
+  return coarsePointer || narrowViewport;
+}
+
+function resolveRoute(game, mode = 'auto') {
+  if (mode === 'desktop' && game.desktopRoute) {
+    return game.desktopRoute;
+  }
+  if (mode === 'mobile' && game.mobileRoute) {
+    return game.mobileRoute;
+  }
+  if (shouldPreferMobileRoute()) {
+    return game.mobileRoute || game.route;
+  }
+  return game.desktopRoute || game.route;
+}
+
 let deferredInstallPrompt = null;
 
 function updateInstallStatus(message) {
@@ -99,12 +120,26 @@ function renderGameCard(game) {
   const actionRow = document.createElement('div');
   actionRow.className = 'action-row';
 
-  const link = document.createElement('a');
-  link.className = 'play-button';
-  link.href = game.route;
-  link.textContent = 'PLAY';
+  const primaryLink = document.createElement('a');
+  primaryLink.className = 'play-button';
+  primaryLink.href = resolveRoute(game, 'auto');
+  primaryLink.textContent = shouldPreferMobileRoute() ? 'PLAY MOBILE' : 'PLAY DESKTOP';
 
-  actionRow.append(link);
+  const variantRow = document.createElement('div');
+  variantRow.className = 'variant-row';
+
+  const desktopLink = document.createElement('a');
+  desktopLink.className = 'variant-link';
+  desktopLink.href = resolveRoute(game, 'desktop');
+  desktopLink.textContent = 'PC版';
+
+  const mobileLink = document.createElement('a');
+  mobileLink.className = 'variant-link';
+  mobileLink.href = resolveRoute(game, 'mobile');
+  mobileLink.textContent = 'スマホ版';
+
+  variantRow.append(desktopLink, mobileLink);
+  actionRow.append(primaryLink, variantRow);
   article.append(meta, title, description, scoreBlock, actionRow);
   return article;
 }

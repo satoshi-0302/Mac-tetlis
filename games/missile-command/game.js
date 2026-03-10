@@ -36,6 +36,8 @@ import { GameUI } from "./ui.js";
 
 export class Game {
   constructor() {
+    const routeModeParam = new URLSearchParams(window.location.search).get("mode");
+    this.routeMode = routeModeParam === "mobile" ? "mobile" : routeModeParam === "desktop" ? "desktop" : "auto";
     this.canvas = document.getElementById("gameCanvas");
     this.renderer = new Renderer(this.canvas);
     this.ui = new GameUI({
@@ -141,9 +143,12 @@ export class Game {
       availableWidth * (9 / 16),
     );
     const constrainedTitleLayout = estimatedStageHeight < 760;
-    const compactUi = coarsePointer || isNarrow;
+    const compactUi =
+      this.routeMode === "mobile" ||
+      (this.routeMode !== "desktop" && (coarsePointer || isNarrow));
 
     this.effectIntensity = coarsePointer && isPortrait ? 0.74 : isNarrow ? 0.88 : 1;
+    document.body.dataset.routeMode = compactUi ? "mobile" : "desktop";
     document.body.dataset.mobile = compactUi ? "true" : "false";
     document.body.dataset.portrait = isPortrait ? "true" : "false";
     this.ui.syncResponsivePanels({
@@ -154,6 +159,10 @@ export class Game {
   }
 
   async syncOrientationLock({ compactUi, isPortrait }) {
+    if (this.routeMode === "desktop") {
+      return;
+    }
+
     const orientation = window.screen?.orientation;
     if (!orientation?.lock) {
       return;
@@ -174,6 +183,10 @@ export class Game {
   }
 
   async requestImmersiveMode() {
+    if (this.routeMode === "desktop") {
+      return;
+    }
+
     const root = document.documentElement;
 
     try {

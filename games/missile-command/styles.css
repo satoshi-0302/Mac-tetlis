@@ -988,27 +988,38 @@ button:focus-visible {
   }
 }
 
+body[data-route-mode="mobile"][data-portrait="true"] .stage-frame,
 body[data-mobile="true"][data-portrait="true"] .stage-frame {
   width: 100%;
   min-height: 0;
 }
 
+body[data-route-mode="mobile"][data-portrait="false"] .mobile-hud-overlay,
 body[data-mobile="true"][data-portrait="false"] .mobile-hud-overlay {
   display: grid;
 }
 
+body[data-route-mode="mobile"][data-mode="playing"] .nav-link-button,
+body[data-route-mode="mobile"][data-mode="deploying"] .nav-link-button,
+body[data-route-mode="mobile"][data-mode="replay"] .nav-link-button,
 body[data-mobile="true"][data-mode="playing"] .nav-link-button,
 body[data-mobile="true"][data-mode="deploying"] .nav-link-button,
 body[data-mobile="true"][data-mode="replay"] .nav-link-button {
   display: none;
 }
 
+body[data-route-mode="mobile"][data-mode="playing"] .topbar,
+body[data-route-mode="mobile"][data-mode="deploying"] .topbar,
+body[data-route-mode="mobile"][data-mode="replay"] .topbar,
 body[data-mobile="true"][data-mode="playing"] .topbar,
 body[data-mobile="true"][data-mode="deploying"] .topbar,
 body[data-mobile="true"][data-mode="replay"] .topbar {
   display: none;
 }
 
+body[data-route-mode="mobile"][data-mode="playing"] .stage-frame,
+body[data-route-mode="mobile"][data-mode="deploying"] .stage-frame,
+body[data-route-mode="mobile"][data-mode="replay"] .stage-frame,
 body[data-mobile="true"][data-mode="playing"] .stage-frame,
 body[data-mobile="true"][data-mode="deploying"] .stage-frame,
 body[data-mobile="true"][data-mode="replay"] .stage-frame {
@@ -1016,10 +1027,15 @@ body[data-mobile="true"][data-mode="replay"] .stage-frame {
   margin-top: 0.45em;
 }
 
+body[data-route-mode="mobile"][data-portrait="true"] .rotate-screen,
 body[data-mobile="true"][data-portrait="true"] .rotate-screen {
   display: grid;
 }
 
+body[data-route-mode="mobile"][data-portrait="true"] #gameCanvas,
+body[data-route-mode="mobile"][data-portrait="true"] .stage-grid,
+body[data-route-mode="mobile"][data-portrait="true"] .mobile-hud-overlay,
+body[data-route-mode="mobile"][data-portrait="true"] .screen,
 body[data-mobile="true"][data-portrait="true"] #gameCanvas,
 body[data-mobile="true"][data-portrait="true"] .stage-grid,
 body[data-mobile="true"][data-portrait="true"] .mobile-hud-overlay,

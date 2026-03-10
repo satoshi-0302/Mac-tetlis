@@ -9,6 +9,7 @@
 ## できること
 
 - 共通ロビーからゲームを選んで遊ぶ
+- ロビーから `自動 / PC版 / スマホ版` を選べる
 - ゲームごとにランキングを持つ
 - 対応ゲームは replay を使ってスコア検証できる
 
@@ -16,10 +17,16 @@
 
 | Game | Path | Touch | Replay |
 | --- | --- | --- | --- |
-| Snake60 | `games/snake60/` | No | Yes |
+| Snake60 | `games/snake60/` | Yes | Yes |
 | Missile Command | `games/missile-command/` | Yes | Yes |
 | Asteroid | `games/asteroid/` | Yes | Yes |
 | Slot60 | `games/slot60/` | Yes | No |
+
+## 端末別の入口
+
+- ロビーの `PLAY` は端末に合わせて `PC版 / スマホ版` を自動で選びます
+- 各カードの下に `PC版` と `スマホ版` の直リンクもあります
+- スマホ版は `iPhone 11 以降` の横画面を基準に詰めています
 
 ## ディレクトリ構成
 

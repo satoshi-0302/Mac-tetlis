@@ -9,8 +9,23 @@
 </head>
 
 <body>
-    <div id="game-container">
-        <canvas id="game-canvas"></canvas>
+    <script>
+        (() => {
+            const mode = new URLSearchParams(window.location.search).get('mode');
+            const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+            const routeMode = mode === 'mobile' || (mode !== 'desktop' && coarse) ? 'mobile' : 'desktop';
+            document.body.dataset.routeMode = routeMode;
+        })();
+    </script>
+    <div class="slot-shell">
+        <header class="slot-topbar">
+            <a class="slot-nav-button" href="/">LOBBY</a>
+            <span class="slot-route-pill" id="route-pill">DESKTOP</span>
+        </header>
+        <div id="game-container">
+            <canvas id="game-canvas"></canvas>
+        </div>
+        <p class="slot-mobile-hint">タップでスタート・停止。60秒でどこまで伸ばせるかの勝負です。</p>
     </div>
     <script src="js/script.js"></script>
 </body>

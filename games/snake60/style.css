@@ -530,10 +530,14 @@ canvas {
     transform: scale(0.98);
 }
 
-@media (pointer: coarse) {
-    .mobile-controls {
-        display: flex;
-    }
+body[data-route-mode="mobile"] .mobile-controls {
+    display: flex;
+}
+
+body[data-route-mode="mobile"] .touch-only {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 @media (max-width: 900px) {
@@ -581,71 +585,101 @@ canvas {
     }
 }
 
+body[data-route-mode="mobile"] {
+    align-items: center;
+    overflow: auto;
+    padding:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+}
+
+body[data-route-mode="mobile"] .snake-layout {
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+}
+
+body[data-route-mode="mobile"] .snake-topbar {
+    width: min(calc(100vw - 2px), calc((100dvh - 68px) * 4 / 3), 800px);
+    max-width: 100%;
+    gap: 6px;
+}
+
+body[data-route-mode="mobile"] #game-container {
+    width: min(calc(100vw - 2px), calc((100dvh - 68px) * 4 / 3), 800px);
+    height: auto;
+    max-width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+}
+
+body[data-route-mode="mobile"] .screen {
+    gap: 18px;
+    padding: 72px 14px 92px;
+}
+
+body[data-route-mode="mobile"] .leaderboard-container {
+    width: min(100%, 420px);
+    max-height: 34dvh;
+}
+
+body[data-route-mode="mobile"] .mobile-controls {
+    width: min(calc(100vw - 2px), calc((100dvh - 68px) * 4 / 3), 800px);
+    max-width: 100%;
+    padding-bottom: max(2px, env(safe-area-inset-bottom));
+}
+
+body[data-route-mode="mobile"] .leaderboard-header,
+body[data-route-mode="mobile"] .lb-row {
+    grid-template-columns: 0.6fr 1.1fr 0.9fr 1.8fr 0.9fr;
+}
+
+body[data-route-mode="mobile"] .start-prompt {
+    margin-top: 12px;
+}
+
+body[data-route-mode="mobile"] .final-scorebox,
+body[data-route-mode="mobile"] .game-over-text {
+    text-align: center;
+}
+
+body[data-route-mode="mobile"] #hud {
+    font-size: 0.5rem;
+}
+
+body[data-route-mode="mobile"] .top-action-button {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 0.52rem;
+}
+
+body[data-route-mode="mobile"] .glitch {
+    font-size: 2.3rem;
+    letter-spacing: -2px;
+}
+
+body[data-route-mode="mobile"] .subtitle {
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+}
+
+body[data-route-mode="mobile"] .input-group input {
+    width: 160px;
+}
+
+body[data-route-mode="mobile"] #hs-name {
+    width: 120px;
+}
+
+body[data-route-mode="mobile"] #hs-message {
+    width: 170px;
+}
+
 @media (pointer: coarse) {
     body {
-        align-items: center;
-        overflow: auto;
-        padding:
-            max(12px, env(safe-area-inset-top))
-            max(12px, env(safe-area-inset-right))
-            max(12px, env(safe-area-inset-bottom))
-            max(12px, env(safe-area-inset-left));
-    }
-
-    .snake-layout {
-        gap: 8px;
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .snake-topbar {
-        width: min(calc(100vw - 2px), calc((100dvh - 68px) * 4 / 3), 800px);
-        max-width: 100%;
-        gap: 6px;
-    }
-
-    #game-container {
-        width: min(calc(100vw - 2px), calc((100dvh - 68px) * 4 / 3), 800px);
-        height: auto;
-        max-width: 100%;
-        aspect-ratio: 4 / 3;
-        border-radius: 12px;
-    }
-
-    .touch-only {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .screen {
-        gap: 18px;
-        padding: 72px 14px 92px;
-    }
-
-    .leaderboard-container {
-        width: min(100%, 420px);
-        max-height: 34dvh;
-    }
-
-    .mobile-controls {
-        width: min(calc(100vw - 2px), calc((100dvh - 68px) * 4 / 3), 800px);
-        max-width: 100%;
-        padding-bottom: max(2px, env(safe-area-inset-bottom));
-    }
-
-    .leaderboard-header,
-    .lb-row {
-        grid-template-columns: 0.6fr 1.1fr 0.9fr 1.8fr 0.9fr;
-    }
-
-    .start-prompt {
-        margin-top: 12px;
-    }
-
-    .final-scorebox,
-    .game-over-text {
-        text-align: center;
+        touch-action: manipulation;
     }
 }
 
