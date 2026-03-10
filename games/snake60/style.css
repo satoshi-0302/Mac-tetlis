@@ -27,6 +27,14 @@ body {
     padding: 8px;
 }
 
+.snake-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+}
+
 #game-container {
     position: relative;
     width: 800px;
@@ -480,11 +488,8 @@ canvas {
 }
 
 .mobile-controls {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    z-index: 40;
+    position: relative;
+    width: min(800px, 100%);
     display: flex;
     justify-content: center;
     gap: 14px;
@@ -594,12 +599,17 @@ canvas {
             max(12px, env(safe-area-inset-left));
     }
 
+    .snake-layout {
+        gap: 12px;
+        width: 100%;
+        max-width: 100%;
+    }
+
     #game-container {
-        width: auto;
-        height: min(calc(100dvh - 24px), 600px);
-        max-width: calc(100vw - 24px);
-        max-height: calc(100dvh - 24px);
-        min-height: 0;
+        width: min(calc(100vw - 24px), calc((100dvh - 150px) * 4 / 3), 800px);
+        height: auto;
+        max-width: 100%;
+        aspect-ratio: 4 / 3;
         border-radius: 12px;
     }
 
@@ -617,6 +627,12 @@ canvas {
     .leaderboard-container {
         width: min(100%, 420px);
         max-height: 34dvh;
+    }
+
+    .mobile-controls {
+        width: min(calc(100vw - 24px), calc((100dvh - 150px) * 4 / 3), 800px);
+        max-width: 100%;
+        padding-bottom: max(4px, env(safe-area-inset-bottom));
     }
 
     .leaderboard-header,
