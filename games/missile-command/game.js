@@ -39,11 +39,20 @@ export class Game {
     this.canvas = document.getElementById("gameCanvas");
     this.renderer = new Renderer(this.canvas);
     this.ui = new GameUI({
-      onStart: () => this.startRun({ demo: false }),
-      onRetry: () => this.startRun({ demo: this.isDemoRun }),
+      onStart: () => {
+        void this.requestImmersiveMode();
+        this.startRun({ demo: false });
+      },
+      onRetry: () => {
+        void this.requestImmersiveMode();
+        this.startRun({ demo: this.isDemoRun });
+      },
       onTitle: () => this.showTitle(),
       onToggleAudio: () => this.toggleAudio(),
-      onDemo: () => this.startPreferredDemo(),
+      onDemo: () => {
+        void this.requestImmersiveMode();
+        this.startPreferredDemo();
+      },
       onReplay: (entry) => this.startReplayFromEntry(entry),
       onExitReplay: () => this.exitReplay(),
       onRefreshLeaderboard: () => this.refreshLeaderboard(),
@@ -164,6 +173,20 @@ export class Game {
     }
   }
 
+  async requestImmersiveMode() {
+    const root = document.documentElement;
+
+    try {
+      if (root.requestFullscreen && !document.fullscreenElement) {
+        await root.requestFullscreen({ navigationUI: "hide" });
+      }
+    } catch (error) {
+      // Fullscreen is best-effort only.
+    }
+
+    await this.syncOrientationLock({ compactUi: true, isPortrait: false });
+  }
+
   setupInput() {
     this.ui.titleScreen.addEventListener("pointerdown", (event) => {
       if (this.state !== "title") {
@@ -177,6 +200,7 @@ export class Game {
         return;
       }
 
+      void this.requestImmersiveMode();
       this.startRun();
     });
 
@@ -196,6 +220,7 @@ export class Game {
       }
 
       event.preventDefault();
+      void this.requestImmersiveMode();
       this.startRun();
     });
 
@@ -208,6 +233,27 @@ export class Game {
       const position = this.renderer.toWorld(event.clientX, event.clientY);
       this.queueLaunchRequest(position.x, position.y);
     });
+
+    let lastTouchEndAt = 0;
+    document.addEventListener(
+      "touchend",
+      (event) => {
+        const now = performance.now();
+        if (now - lastTouchEndAt < 320) {
+          event.preventDefault();
+        }
+        lastTouchEndAt = now;
+      },
+      { passive: false },
+    );
+
+    document.addEventListener(
+      "dblclick",
+      (event) => {
+        event.preventDefault();
+      },
+      { passive: false },
+    );
   }
 
   exposeDebugApi() {

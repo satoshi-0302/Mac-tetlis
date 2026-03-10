@@ -149,23 +149,31 @@ summary {
   right: 12px;
   z-index: 4;
   display: none;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-between;
   gap: 8px;
   pointer-events: none;
 }
 
-.mobile-hud-card {
-  min-height: 56px;
-  padding: 8px 10px;
-  border-radius: 14px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 60%),
-    rgba(4, 12, 21, 0.62);
-  backdrop-filter: blur(10px);
+.mobile-hud-line {
+  display: grid;
+  gap: 2px;
+  color: #f7fbff;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
 }
 
-.mobile-hud-card strong {
-  font-size: 1rem;
+.mobile-hud-line span {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(224, 238, 255, 0.82);
+}
+
+.mobile-hud-line strong {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
 }
 
 .hud-label,
@@ -764,6 +772,7 @@ button:focus-visible {
     padding-right: calc(12px + env(safe-area-inset-right));
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
     padding-left: calc(12px + env(safe-area-inset-left));
+    touch-action: none;
   }
 
   .app-shell {
@@ -785,7 +794,7 @@ button:focus-visible {
   }
 
   .stage-frame {
-    width: min(100%, calc((100dvh - 134px) * 16 / 9));
+    width: min(100%, calc((100dvh - 96px) * 16 / 9));
     aspect-ratio: 16 / 9;
     min-height: 0;
   }
@@ -986,6 +995,24 @@ body[data-mobile="true"][data-portrait="true"] .stage-frame {
 
 body[data-mobile="true"][data-portrait="false"] .mobile-hud-overlay {
   display: grid;
+}
+
+body[data-mobile="true"][data-mode="playing"] .nav-link-button,
+body[data-mobile="true"][data-mode="deploying"] .nav-link-button,
+body[data-mobile="true"][data-mode="replay"] .nav-link-button {
+  display: none;
+}
+
+body[data-mobile="true"][data-mode="playing"] .topbar,
+body[data-mobile="true"][data-mode="deploying"] .topbar,
+body[data-mobile="true"][data-mode="replay"] .topbar {
+  display: none;
+}
+
+body[data-mobile="true"][data-mode="playing"] .stage-frame,
+body[data-mobile="true"][data-mode="deploying"] .stage-frame,
+body[data-mobile="true"][data-mode="replay"] .stage-frame {
+  width: min(100%, calc((100dvh - 12px) * 16 / 9));
 }
 
 body[data-mobile="true"][data-portrait="true"] .rotate-screen {
