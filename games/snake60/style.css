@@ -606,7 +606,7 @@ canvas {
     }
 
     #game-container {
-        width: min(calc(100vw - 24px), calc((100dvh - 150px) * 4 / 3), 800px);
+        width: min(calc(100vw - 16px), calc((100dvh - 112px) * 4 / 3), 800px);
         height: auto;
         max-width: 100%;
         aspect-ratio: 4 / 3;
@@ -630,7 +630,7 @@ canvas {
     }
 
     .mobile-controls {
-        width: min(calc(100vw - 24px), calc((100dvh - 150px) * 4 / 3), 800px);
+        width: min(calc(100vw - 16px), calc((100dvh - 112px) * 4 / 3), 800px);
         max-width: 100%;
         padding-bottom: max(4px, env(safe-area-inset-bottom));
     }
