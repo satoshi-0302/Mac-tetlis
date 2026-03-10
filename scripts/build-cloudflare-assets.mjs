@@ -28,7 +28,7 @@ function ensureAsteroidBuild() {
 }
 
 function copyPlatform() {
-  copyRecursive(resolve(ROOT, 'platform', 'public'), OUT_DIR);
+  copyRecursive(resolve(ROOT, 'platform', 'public'), resolve(OUT_DIR, 'static'));
 }
 
 function copySnake() {
