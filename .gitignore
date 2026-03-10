@@ -28,3 +28,4 @@ games/snake60/scores.json
 games/*/.cache/
 .wrangler/
 .cloudflare/assets/
+docs/screenshots/generated/

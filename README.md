@@ -110,6 +110,20 @@ npm run cf:deploy
 npm run cf:smoke -- https://codex-web-platform.yqs01140.workers.dev
 ```
 
+スマホ表示の自動確認:
+
+```bash
+npm run ui:capture:iphone14
+```
+
+横画面で1ページだけ撮る例:
+
+```bash
+npm run ui:capture:iphone14 -- --landscape '/games/missile-command/?mode=mobile'
+```
+
+出力先は `docs/screenshots/generated/` です。
+
 ## ゲームを追加するときの流れ
 
 1. `games/<slug>/` を作る
