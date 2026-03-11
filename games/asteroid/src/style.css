@@ -443,7 +443,8 @@ body[data-route-mode='mobile'] .status-bar {
 }
 
 body[data-route-mode='mobile'] .runtime-status {
-  font-size: 0.82rem;
+  font-size: 0.76rem;
+  line-height: 1.35;
 }
 
 body[data-route-mode='mobile'] .side-column {
@@ -452,4 +453,8 @@ body[data-route-mode='mobile'] .side-column {
 
 body[data-route-mode='mobile'] .panel {
   padding: 10px 12px;
+}
+
+body[data-route-mode='mobile'] .mobile-quick-help {
+  font-size: 0.76rem;
 }

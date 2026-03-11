@@ -79,6 +79,7 @@
             <p class="screen-copy">
               クリックで迎撃弾を発射します。0.25秒で指定地点に到達し、爆風と二次爆発の連鎖で敵をまとめて止めます。最後の10秒を耐えると地球圏バリアが空を覆います。
             </p>
+            <p class="mobile-title-summary">タップで迎撃し、60秒生き残ればクリアです。</p>
             <p class="inline-meta">High Score <strong id="titleHighScore">0</strong></p>
 
             <div class="field-block">
@@ -92,7 +93,7 @@
                 autocomplete="nickname"
               />
             </div>
-            <div class="field-block">
+            <div class="field-block mobile-optional-block">
               <label class="field-label" for="playerComment">Comment</label>
               <input
                 class="text-input text-input-wide"
@@ -103,13 +104,17 @@
                 autocomplete="off"
               />
             </div>
-            <p class="inline-note" id="demoStatus">AIデモを準備中です。</p>
+            <p class="inline-note mobile-optional-block" id="demoStatus">AIデモを準備中です。</p>
+            <div class="mobile-screen-actions">
+              <a class="secondary-button mobile-lobby-button" href="/">Lobby</a>
+            </div>
 
             <div class="button-row">
+              <a class="secondary-button mobile-inline-lobby" href="/">Lobby</a>
               <button class="primary-button" id="startButton" type="button">
                 防衛開始
               </button>
-              <button class="secondary-button demo-button" id="demoButton" type="button">
+              <button class="secondary-button demo-button mobile-optional-block" id="demoButton" type="button">
                 Demo Play
               </button>
             </div>
@@ -210,6 +215,9 @@
               <button class="secondary-button" id="titleButton" type="button">
                 タイトルへ
               </button>
+            </div>
+            <div class="mobile-screen-actions">
+              <a class="secondary-button mobile-lobby-button" href="/">Lobby</a>
             </div>
 
             <p class="submit-status" id="submitStatus" hidden></p>

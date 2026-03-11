@@ -86,3 +86,8 @@ canvas {
 body[data-route-mode="mobile"] .slot-mobile-hint {
     opacity: 1;
 }
+
+body[data-route-mode="mobile"] #game-container {
+    align-items: flex-start;
+    padding-top: 4px;
+}
