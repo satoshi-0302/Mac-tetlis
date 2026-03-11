@@ -1,0 +1,9 @@
+.git
+.DS_Store
+.codex-artifacts
+node_modules
+platform/data
+games/*/node_modules
+games/*/dist
+games/*/output
+games/*/server/data

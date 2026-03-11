@@ -1,0 +1,23 @@
+{
+  "name": "codex-web-platform",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "cf:build-assets": "node ./scripts/build-cloudflare-assets.mjs",
+    "cf:d1:migrate:local": "wrangler d1 migrations apply codex-web-platform --local",
+    "cf:deploy": "npm run cf:build-assets && wrangler deploy",
+    "cf:dev": "npm run cf:build-assets && wrangler dev",
+    "cf:smoke": "node ./scripts/smoke-test-cloudflare.mjs",
+    "platform:build": "npm run platform:build:asteroid",
+    "platform:build:asteroid": "npm run build --prefix ./games/asteroid",
+    "platform:start": "node ./platform/server.mjs",
+    "ui:capture": "node ./scripts/capture-device-screenshots.mjs",
+    "ui:capture:iphone14": "node ./scripts/capture-device-screenshots.mjs --device \"iPhone 14\""
+  },
+  "devDependencies": {
+    "playwright": "^1.58.2",
+    "wrangler": "^4.71.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "orbital-shield-60",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "server": "node ./server/server.js",
+    "start": "node ./server/server.js",
+    "train:rl": "node ./scripts/train-rl.js",
+    "eval:rl": "node ./scripts/eval-rl.js",
+    "train:pdca": "node ./scripts/pdca-train.js",
+    "train:heuristic-pdca": "node ./scripts/pdca-heuristic.js",
+    "compare:strategies": "node ./scripts/compare-strategies.js",
+    "bootstrap:ai-leaderboard": "node ./scripts/bootstrap-ai-leaderboard.js"
+  }
+}

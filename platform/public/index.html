@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Arcade Lobby</title>
+    <meta
+      name="description"
+      content="60秒で遊べるブラウザゲームをまとめたロビーです。ホーム画面に追加してすぐ遊べます。"
+    />
+    <meta name="theme-color" content="#07131a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Arcade 60" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/static/icons/icon-512.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <p class="eyebrow">Shared Web Arcade</p>
+        <h1>Game Lobby</h1>
+        <p class="lead">
+          共通のロビーから 4 本のゲームへ入れます。ランキングはゲームごと、AI は目標スコアとして同じ表に並びます。
+        </p>
+        <div class="hero-actions">
+          <button id="installButton" class="install-button hidden" type="button">ホーム画面に追加</button>
+          <p id="installStatus" class="install-status">ブラウザでそのまま遊べます。対応端末ではアプリのように追加できます。</p>
+        </div>
+      </header>
+
+      <main>
+        <section class="card-grid" id="gameGrid" aria-live="polite">
+          <article class="game-card loading-card">
+            <p>ゲーム一覧を読み込み中です。</p>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/static/lobby.js"></script>
+  </body>
+</html>

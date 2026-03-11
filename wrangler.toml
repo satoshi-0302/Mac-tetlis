@@ -1,0 +1,22 @@
+name = "codex-web-platform"
+main = "cloudflare/worker.mjs"
+compatibility_date = "2026-03-09"
+workers_dev = true
+
+[assets]
+directory = "./.cloudflare/assets"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "codex-web-platform"
+database_id = "afc90aa3-0760-46aa-8735-5972acfb9eed"
+migrations_dir = "./cloudflare/migrations"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiterDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiterDO"]
