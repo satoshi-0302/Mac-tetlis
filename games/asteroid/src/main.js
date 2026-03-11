@@ -45,6 +45,7 @@ document.body.dataset.routeMode = compactRoute ? 'mobile' : 'desktop';
 app.innerHTML = `
   <div class="route-bar">
     <a class="btn tiny nav-button" href="/">LOBBY</a>
+    <button id="mobileStartButton" class="btn tiny ${compactRoute ? '' : 'hidden'}" type="button">START</button>
     <span class="route-pill">${compactRoute ? 'SMARTPHONE' : 'DESKTOP'}</span>
   </div>
   <div class="layout">
@@ -127,6 +128,7 @@ const nameInput = document.querySelector('#nameInput');
 const messageInput = document.querySelector('#messageInput');
 const demoToggle = document.querySelector('#demoToggle');
 const demoStatus = document.querySelector('#demoStatus');
+const mobileStartButton = document.querySelector('#mobileStartButton');
 
 if (
   !(canvas instanceof HTMLCanvasElement) ||
@@ -143,7 +145,8 @@ if (
   !(nameInput instanceof HTMLInputElement) ||
   !(messageInput instanceof HTMLInputElement) ||
   !(demoToggle instanceof HTMLButtonElement) ||
-  !(demoStatus instanceof HTMLElement)
+  !(demoStatus instanceof HTMLElement) ||
+  !(mobileStartButton instanceof HTMLButtonElement)
 ) {
   throw new Error('Failed to initialize UI nodes');
 }
@@ -405,6 +408,12 @@ function setRuntimeStatus(text) {
   runtimeStatus.textContent = text;
 }
 
+function syncMobileStartButton() {
+  const shouldShow = compactRoute && !replaySession && (!runStarted || didFinish);
+  mobileStartButton.classList.toggle('hidden', !shouldShow);
+  mobileStartButton.textContent = didFinish ? 'PLAY AGAIN' : 'START';
+}
+
 function sanitizeName(value) {
   return value.replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12);
 }
@@ -628,6 +637,7 @@ function resetRun() {
   });
   inputTimeline = [{ t: 0, mask: 0 }];
   demoRestartAtMs = 0;
+  syncMobileStartButton();
 }
 
 function startRun() {
@@ -653,6 +663,7 @@ function startRun() {
   } else {
     setRuntimeStatus('Run started. 60-second timer is real-time and will not pause in background tabs.');
   }
+  syncMobileStartButton();
 }
 
 canvas.addEventListener(
@@ -761,6 +772,7 @@ function startReplayPlayback(payload) {
 
   const sourceLabel = replaySession.kind === 'ai' ? 'AI' : 'Human';
   setRuntimeStatus(`Watching ${sourceLabel} replay: ${replaySession.name} (${replaySession.score}).`);
+  syncMobileStartButton();
 }
 
 function stepReplayPlayback(nowMs) {
@@ -1089,8 +1101,16 @@ window.addEventListener('keydown', (event) => {
 reloadLeaderboardButton.addEventListener('click', () => {
   loadLeaderboard();
 });
+mobileStartButton.addEventListener('click', () => {
+  if (replaySession || (runStarted && !didFinish)) {
+    return;
+  }
+  resetRun();
+  startRun();
+});
 stopReplayButton.addEventListener('click', () => {
   stopReplayPlayback();
+  syncMobileStartButton();
 });
 demoToggle.addEventListener('click', () => {
   void setDemoModeEnabled(!demoEnabled);
@@ -1259,6 +1279,7 @@ const loop = createFixedLoop({
 
 prepareStartPreview();
 refreshDemoButton();
+syncMobileStartButton();
 loop.start();
 loadLeaderboard();
 

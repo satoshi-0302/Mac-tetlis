@@ -458,3 +458,7 @@ body[data-route-mode='mobile'] .panel {
 body[data-route-mode='mobile'] .mobile-quick-help {
   font-size: 0.76rem;
 }
+
+body[data-route-mode='mobile'] #mobileStartButton {
+  min-width: 108px;
+}
