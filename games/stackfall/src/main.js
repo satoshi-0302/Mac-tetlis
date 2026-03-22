@@ -544,7 +544,10 @@ class StackfallScene extends Phaser.Scene {
       active.x += dx;
       active.y += dy;
       if (dx !== 0) {
-        if (this.runMode === 'PLAYING') sfx.move();
+        if (this.runMode === 'PLAYING') {
+           sfx.move();
+           this.vibrate(2);
+        }
         active.lockTimer = 0;
       }
       return true;
@@ -579,6 +582,7 @@ class StackfallScene extends Phaser.Scene {
     if (distance > 0) {
       if (this.runMode === 'PLAYING') {
           sfx.hardDrop();
+          this.vibrate([15, 30, 15]);
           this.cameras.main.shake(80, 0.008);
           const impactY = BOARD_Y + (active.y + active.matrix.length) * BLOCK_SIZE;
           const flash = this.add.rectangle(BOARD_X + (COLS*BLOCK_SIZE)/2, impactY, COLS * BLOCK_SIZE, 10, 0xFFFFFF, 0.8);
@@ -617,7 +621,10 @@ class StackfallScene extends Phaser.Scene {
           }
           this.fallingPieces.splice(i, 1);
           lockedAny = true;
-          if (this.runMode === 'PLAYING') sfx.lock();
+          if (this.runMode === 'PLAYING') {
+             sfx.lock();
+             this.vibrate(10);
+          }
         }
       } else {
         piece.lockTimer = 0;
@@ -648,6 +655,7 @@ class StackfallScene extends Phaser.Scene {
       if (linesCleared.length >= 4) {
         if (this.runMode === 'PLAYING') {
             sfx.tetris();
+            this.vibrate([30, 50, 30, 50, 30]);
             this.cameras.main.shake(300, 0.015);
             for (const r of linesCleared) {
               this.sparkles.emitParticleAt(BOARD_X + (COLS * BLOCK_SIZE)/2, BOARD_Y + r * BLOCK_SIZE + BLOCK_SIZE/2, 40);
@@ -656,6 +664,7 @@ class StackfallScene extends Phaser.Scene {
       } else {
         if (this.runMode === 'PLAYING') {
             sfx.clear();
+            this.vibrate([20, 30, 20]);
             this.cameras.main.shake(100, 0.005 * linesCleared.length);
         }
       }
@@ -668,6 +677,13 @@ class StackfallScene extends Phaser.Scene {
       const points = [0, 100, 300, 500, 1500];
       this.score += (points[linesCleared.length] || 2000) * (this.lines > 10 ? 2 : 1);
       this.dropIntervalBase = Math.max(10, 60 - (this.lines * 2)); // speed up
+    }
+  }
+
+  vibrate(pattern) {
+    if (this.runMode !== 'PLAYING') return;
+    if (navigator.vibrate) {
+      try { navigator.vibrate(pattern); } catch(e) {}
     }
   }
 
@@ -817,7 +833,7 @@ class StackfallScene extends Phaser.Scene {
         for (let r = 0; r < active.matrix.length; r++) {
           for (let c = 0; c < active.matrix[r].length; c++) {
             if (active.matrix[r][c]) {
-              this.drawBlock(active.x + c, ghostY + r, active.color, 0.2, this.piecesGroup);
+              this.drawBlock(active.x + c, ghostY + r, active.color, 0.4, this.piecesGroup);
             }
           }
         }
