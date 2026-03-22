@@ -1,6 +1,6 @@
 # Web Game Platform
 
-4種類のブラウザゲームを、1つのロビーと共通ランキング基盤でまとめて運用するためのリポジトリです。
+5種類のブラウザゲームを、1つのロビーと共通ランキング基盤でまとめて運用するためのリポジトリです。
 
 公開URL:
 
@@ -21,6 +21,7 @@
 | Missile Command | `games/missile-command/` | Yes | Yes |
 | Asteroid | `games/asteroid/` | Yes | Yes |
 | Slot60 | `games/slot60/` | Yes | No |
+| Stackfall | `games/stackfall/` | Yes | Yes |
 
 ## 端末別の入口
 
@@ -36,7 +37,8 @@
 │   ├── snake60/
 │   ├── missile-command/
 │   ├── asteroid/
-│   └── slot60/
+│   ├── slot60/
+│   └── stackfall/
 ├── platform/
 ├── docs/
 ├── AGENTS.md
@@ -70,10 +72,17 @@
 npm run platform:start
 ```
 
-Asteroid のビルド:
+Asteroid / Stackfall のビルド:
+
+```bash
+npm run platform:build
+```
+
+または個別ビルド:
 
 ```bash
 npm run platform:build:asteroid
+npm run platform:build:stackfall
 ```
 
 ポートを変えたい場合:
@@ -84,15 +93,15 @@ PORT=9191 npm run platform:start
 
 ## デプロイ
 
-まずは `Railway` を第一候補にするのが扱いやすいです。
+現在は **Cloudflare Workers + D1 + Durable Objects** をメインの実行環境としています。
 
-- 単一の Node サービスでそのまま動かせる
-- SQLite 用の永続ボリュームを付けやすい
-- このリポジトリには `Dockerfile` を追加済みなので、そのまま載せやすい
+```bash
+npm run cf:build-assets
+npm run cf:dev
+npm run cf:deploy
+```
 
-詳しい手順は `docs/DEPLOYMENT.md` を参照してください。
-
-Cloudflare Workers + D1 + Durable Objects 版も進めています。
+Railway 等のコンテナ環境でも動作可能です（`Dockerfile` 完備）。
 
 ```bash
 npm run cf:build-assets
@@ -126,7 +135,7 @@ npm run ui:capture:iphone14 -- --landscape '/games/missile-command/?mode=mobile'
 
 ## ゲームを追加するときの流れ
 
-1. `games/<slug>/` を作る
+1. `games/<slug>/` を作る（技術スタックは **TypeScript + Phaser** を推奨）
 2. ゲーム本体をその中に置く
 3. `platform/games.mjs` にゲーム定義を追加する
 4. 必要なら `platform/adapters/` に verifier adapter を追加する
@@ -142,7 +151,7 @@ npm run ui:capture:iphone14 -- --landscape '/games/missile-command/?mode=mobile'
 ## 公開前の最終チェック
 
 1. ルートURLが開く
-2. 4ゲームへ遷移できる
+2. 5ゲームすべてへ遷移できる
 3. `api/health` が返る
 4. `slot60` のスコア投稿が通る
 5. スマホ表示でレイアウト崩れがない
