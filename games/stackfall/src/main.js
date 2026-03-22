@@ -924,6 +924,17 @@ class StackfallScene extends Phaser.Scene {
   }
 }
 
+// Prevent fatal viewport scrolling on mobile devices during swipe/flick gestures
+const preventScrollListener = (e) => e.preventDefault();
+const phaserRootEl = document.getElementById('phaser-root');
+if (phaserRootEl) {
+  phaserRootEl.addEventListener('touchmove', preventScrollListener, { passive: false });
+}
+const touchControlsEl = document.getElementById('touchControls');
+if (touchControlsEl) {
+  touchControlsEl.addEventListener('touchmove', preventScrollListener, { passive: false });
+}
+
 new Phaser.Game({
   type: Phaser.AUTO, parent: 'phaser-root', width: WIDTH, height: HEIGHT,
   backgroundColor: '#000', transparent: true,
