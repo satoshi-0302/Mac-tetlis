@@ -124,18 +124,6 @@ app.innerHTML = `
         <div id="phaser-root"></div>
       </div>
       
-      <div class="touch-controls" id="touchControls">
-        <div class="dpad">
-          <button id="tUp" class="t-btn r-btn">↻</button>
-          <button id="tLeft" class="t-btn">◀</button>
-          <button id="tRight" class="t-btn">▶</button>
-          <button id="tDown" class="t-btn">▼</button>
-        </div>
-        <div class="action-pad">
-          <button id="tHard" class="t-btn h-btn">⏬</button>
-        </div>
-      </div>
-
       <div class="status-bar">
         <span id="runtimeStatus" class="runtime-status">Press Space or Tap Canvas to start.</span>
         <button id="stopReplayBtn" class="btn tiny hidden" type="button">Stop Replay</button>
@@ -317,6 +305,7 @@ class StackfallScene extends Phaser.Scene {
       left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
       right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
       space: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
+      z: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z),
     };
     
     // Tap to start
@@ -324,14 +313,10 @@ class StackfallScene extends Phaser.Scene {
       if (this.runMode === 'READY' || this.runMode === 'GAMEOVER') this.startRun(null);
     });
 
-    window.touchStateObj = { l:0, r:0, u:0, d:0, s:0 };
-    this.prevTouchU = 0;
-    this.prevTouchS = 0;
-    
     // Gestures functionality for Mobile modes
     this.pointersData = {};
     this.gestureBuffer = [];
-    this.gestureInputs = { u: 0, s: 0, d: 0, l: 0, r: 0 };
+    this.gestureInputs = { u: 0, s: 0, d: 0, l: 0, r: 0, rr: 0 };
     this.softDropHold = 0;
 
     this.input.addPointer(2); // Enable full multi-touch
@@ -340,8 +325,7 @@ class StackfallScene extends Phaser.Scene {
       if (this.runMode === 'READY' || this.runMode === 'GAMEOVER') {
         this.startRun(null); return;
       }
-      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-      const isLeftHalf = pointer.x < 480;
+      const isRightHalf = pointer.x > 480;
 
       this.pointersData[pointer.id] = {
         active: true,
@@ -352,20 +336,13 @@ class StackfallScene extends Phaser.Scene {
         startTime: this.time.now,
         moved: false,
         gestureLock: null,
-        isLeftHalf: isLeftHalf
+        isRightHalf: isRightHalf
       };
-      
-      if (isPortrait || isLeftHalf) {
-        this.gestureBuffer = []; 
-        this.softDropHold = 0;
-      }
     });
 
     this.input.on('pointermove', (pointer) => {
       const pData = this.pointersData[pointer.id];
       if (!pData || !pData.active || this.runMode !== 'PLAYING') return;
-
-      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
       
       const totalDx = pointer.x - pData.startX;
       const dyTotal = pointer.y - pData.startY;
@@ -380,41 +357,36 @@ class StackfallScene extends Phaser.Scene {
         }
       }
 
-      if (isPortrait || pData.isLeftHalf) {
-        // If swiping down forcefully, drastically raise the resistance to lateral shifts
-        const moveThreshold = (pData.gestureLock === 'VERTICAL') ? 85 : 35;
-        
-        const dx = pointer.x - pData.lastX;
-        // X Movement: move based on threshold
-        if (dx > moveThreshold) {
-          const moves = Math.floor(dx / moveThreshold);
-          for(let i = 0; i < moves; i++) this.gestureBuffer.push('r');
-          pData.lastX += moves * moveThreshold;
-        } else if (dx < -moveThreshold) {
-          const moves = Math.floor(Math.abs(dx) / moveThreshold);
-          for(let i = 0; i < moves; i++) this.gestureBuffer.push('l');
-          pData.lastX -= moves * moveThreshold;
-        }
-        
-        // Y Soft Drop: hold down soft drop if dragged down enough
-        if (dyTotal > 40) {
-          this.softDropHold = 1;
-        } else {
-          this.softDropHold = 0;
-        }
+      // If swiping down forcefully, drastically raise the resistance to lateral shifts
+      const moveThreshold = (pData.gestureLock === 'VERTICAL') ? 85 : 35;
+      
+      const dx = pointer.x - pData.lastX;
+      // X Movement: move based on threshold
+      if (dx > moveThreshold) {
+        const moves = Math.floor(dx / moveThreshold);
+        for(let i = 0; i < moves; i++) this.gestureBuffer.push('r');
+        pData.lastX += moves * moveThreshold;
+      } else if (dx < -moveThreshold) {
+        const moves = Math.floor(Math.abs(dx) / moveThreshold);
+        for(let i = 0; i < moves; i++) this.gestureBuffer.push('l');
+        pData.lastX -= moves * moveThreshold;
       }
+      
+      // Y Soft Drop: hold down soft drop if dragged down enough
+      if (dyTotal > 40) {
+        pData.wantsSoftDrop = true;
+      } else {
+        pData.wantsSoftDrop = false;
+      }
+      this.softDropHold = Object.values(this.pointersData).some(p => p.active && p.wantsSoftDrop) ? 1 : 0;
     });
 
     this.input.on('pointerup', (pointer) => {
       const pData = this.pointersData[pointer.id];
       if (!pData || !pData.active) return;
       pData.active = false;
-      
-      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-      
-      if (isPortrait || pData.isLeftHalf) {
-        this.softDropHold = 0; // Release soft drop if this pointer was responsible
-      }
+      pData.wantsSoftDrop = false;
+      this.softDropHold = Object.values(this.pointersData).some(p => p.active && p.wantsSoftDrop) ? 1 : 0;
 
       if (this.runMode !== 'PLAYING') {
         delete this.pointersData[pointer.id];
@@ -426,32 +398,20 @@ class StackfallScene extends Phaser.Scene {
       const dt = this.time.now - pData.startTime;
       const vy = dyTotal / Math.max(1, dt);
 
-      if (isPortrait || !pData.isLeftHalf) {
-        if (!pData.moved) {
-          // Tap to rotate
-          this.gestureInputs.u = 1;
-        } else if (vy > 0.8 && dyTotal > 50 && dyTotal > Math.abs(totalDx) * 1.2) {
-          // Strong flick down for Hard Drop (must be primarily vertical)
-          this.gestureInputs.s = 1;
+      if (!pData.moved) {
+        // Tap to rotate
+        if (pData.isRightHalf) {
+           this.gestureInputs.rr = 1;
+        } else {
+           this.gestureInputs.u = 1;
         }
+      } else if (vy > 0.8 && dyTotal > 50 && dyTotal > Math.abs(totalDx) * 1.2) {
+        // Strong flick down for Hard Drop (must be primarily vertical)
+        this.gestureInputs.s = 1;
       }
       
       delete this.pointersData[pointer.id];
     });
-
-    const bindBtn = (id, key) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const press = (e) => { e.preventDefault(); window.touchStateObj[key] = 1; };
-        const release = (e) => { e.preventDefault(); window.touchStateObj[key] = 0; };
-        el.addEventListener('touchstart', press, {passive: false});
-        el.addEventListener('touchend', release, {passive: false});
-        el.addEventListener('mousedown', press);
-        el.addEventListener('mouseup', release);
-        el.addEventListener('mouseleave', release);
-    };
-    bindBtn('tLeft', 'l'); bindBtn('tRight', 'r'); bindBtn('tDown', 'd');
-    bindBtn('tUp', 'u'); bindBtn('tHard', 's');
   }
 
   startRun(seed, replayEvents = null) {
@@ -584,6 +544,23 @@ class StackfallScene extends Phaser.Scene {
     active.lockTimer = 0; 
   }
 
+  rotateActivePieceReverse() {
+    const active = this.getActivePiece();
+    if (!active) return;
+    const matrix = active.matrix;
+    const newMatrix = matrix[0].map((val, index) => matrix.map(row => row[matrix[0].length - 1 - index]));
+    if (!this.checkCollision(newMatrix, active.x, active.y, active.id)) {
+      active.matrix = newMatrix;
+    } else if (!this.checkCollision(newMatrix, active.x - 1, active.y, active.id)) {
+      active.matrix = newMatrix; active.x -= 1;
+    } else if (!this.checkCollision(newMatrix, active.x + 1, active.y, active.id)) {
+      active.matrix = newMatrix; active.x += 1;
+    } else return;
+    
+    if (this.runMode === 'PLAYING') sfx.rotate();
+    active.lockTimer = 0; 
+  }
+
   hardDropActivePiece() {
     const active = this.getActivePiece();
     if (!active) return;
@@ -700,7 +677,7 @@ class StackfallScene extends Phaser.Scene {
   }
 
   captureInputs() {
-    if (this.runMode !== 'PLAYING') return { l:0, r:0, u:0, d:0, s:0 };
+    if (this.runMode !== 'PLAYING') return { l:0, r:0, u:0, d:0, s:0, rr:0 };
     
     // Read one buffered gesture movement per tick
     let gL = 0, gR = 0;
@@ -710,23 +687,25 @@ class StackfallScene extends Phaser.Scene {
       if (g === 'r') gR = 1;
     }
 
-    const tU = window.touchStateObj.u || this.gestureInputs.u;
-    const tS = window.touchStateObj.s || this.gestureInputs.s;
-    const isU = Phaser.Input.Keyboard.JustDown(this.keys.up) || (tU && !this.prevTouchU) ? 1 : 0;
-    const isS = Phaser.Input.Keyboard.JustDown(this.keys.space) || (tS && !this.prevTouchS) ? 1 : 0;
+    const tU = this.gestureInputs.u;
+    const tRR = this.gestureInputs.rr;
+    const tS = this.gestureInputs.s;
     
-    this.prevTouchU = window.touchStateObj.u; // Track continuous physical touch status, not the 1-frame gesture flag
-    this.prevTouchS = window.touchStateObj.s;
+    const isU = Phaser.Input.Keyboard.JustDown(this.keys.up) || tU ? 1 : 0;
+    const isRR = Phaser.Input.Keyboard.JustDown(this.keys.z) || tRR ? 1 : 0;
+    const isS = Phaser.Input.Keyboard.JustDown(this.keys.space) || tS ? 1 : 0;
     
     this.gestureInputs.u = 0;
+    this.gestureInputs.rr = 0;
     this.gestureInputs.s = 0;
 
     return {
-      l: this.keys.left.isDown || window.touchStateObj.l || gL ? 1 : 0,
-      r: this.keys.right.isDown || window.touchStateObj.r || gR ? 1 : 0,
+      l: this.keys.left.isDown || gL ? 1 : 0,
+      r: this.keys.right.isDown || gR ? 1 : 0,
       u: isU,
-      d: this.keys.down.isDown || window.touchStateObj.d || this.softDropHold ? 1 : 0,
-      s: isS
+      d: this.keys.down.isDown || this.softDropHold ? 1 : 0,
+      s: isS,
+      rr: isRR
     };
   }
 
@@ -758,6 +737,8 @@ class StackfallScene extends Phaser.Scene {
     
     if (input.s) {
         this.hardDropActivePiece();
+    } else if (input.rr) {
+        this.rotateActivePieceReverse();
     } else if (input.u) {
         this.rotateActivePiece();
     }
@@ -937,15 +918,14 @@ class StackfallScene extends Phaser.Scene {
 }
 
 // Prevent fatal viewport scrolling on mobile devices during swipe/flick gestures
-const preventScrollListener = (e) => e.preventDefault();
-const phaserRootEl = document.getElementById('phaser-root');
-if (phaserRootEl) {
-  phaserRootEl.addEventListener('touchmove', preventScrollListener, { passive: false });
-}
-const touchControlsEl = document.getElementById('touchControls');
-if (touchControlsEl) {
-  touchControlsEl.addEventListener('touchmove', preventScrollListener, { passive: false });
-}
+const preventScrollListener = (e) => {
+  if (document.body.getAttribute('data-route-mode') === 'mobile') {
+    if (!e.target.closest('.side-column')) {
+      e.preventDefault();
+    }
+  }
+};
+document.body.addEventListener('touchmove', preventScrollListener, { passive: false });
 
 new Phaser.Game({
   type: Phaser.AUTO, parent: 'phaser-root', width: WIDTH, height: HEIGHT,

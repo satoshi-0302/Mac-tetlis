@@ -54,19 +54,23 @@ body[data-route-mode='mobile'] {
 }
 
 .canvas-wrap {
-  border-radius: 12px; overflow: hidden;
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 40px rgba(0, 255, 255, 0.1);
-  background: #000;
-  position: relative;
-  width: 100%;
-  aspect-ratio: 960 / 750;
+  width: 960px;
   max-width: 100%;
-  margin: 0 auto;
+  aspect-ratio: 960/750;
+  position: relative;
+  border: 2px solid var(--panel-border); /* Changed --border-color to --panel-border as it's defined */
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  flex-shrink: 0;
+}
+#phaser-root, .canvas-wrap {
+  touch-action: none;
 }
 #phaser-root {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  touch-action: none; user-select: none;
+  user-select: none;
 }
 
 .status-bar {
@@ -105,14 +109,6 @@ kbd {
 }
 
 .hidden { display: none !important; }
-
-/* Touch Controls */
-.touch-controls { display: none; }
-body[data-route-mode='mobile'] .touch-controls {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  padding: 10px; margin-top: 10px; gap: 20px;
-}
-.touch-controls.hidden { display: none !important; }
 
 .dpad {
   display: grid; grid-template-areas: ". up ." "left down right"; gap: 12px;
@@ -179,23 +175,26 @@ body[data-route-mode='mobile'] .touch-controls {
 
 /* Portrait Mobile Layout */
 @media (orientation: portrait) {
-  body[data-route-mode='mobile'] .layout { grid-template-columns: 1fr; }
+  body[data-route-mode='mobile'] .layout { grid-template-columns: 1fr; gap: 10px; }
   body[data-route-mode='mobile'] .side-column { order: 3; }
-  body[data-route-mode='mobile'] .status-bar { order: 2; margin-bottom: 20px; }
-  body[data-route-mode='mobile'] .touch-controls { order: 1; flex-direction: column; align-items: center; }
-  body[data-route-mode='mobile'] .game-column { display: flex; flex-direction: column; }
-  body[data-route-mode='mobile'] .dpad { display: none; }
-  body[data-route-mode='mobile'] .action-pad { width: 100%; justify-content: center; padding-bottom: 20px; }
-  body[data-route-mode='mobile'] .h-btn { width: 100px; height: 100px; font-size: 48px; box-shadow: 0 0 20px rgba(255, 221, 0, 0.4); border-width: 3px; }
+  body[data-route-mode='mobile'] .game-column { order: 1; align-items: stretch; display: flex; flex-direction: column; }
+  body[data-route-mode='mobile'] .nav-column { order: 2; margin-top: 10px; }
+  
+  body[data-route-mode='mobile'] .canvas-wrap {
+     width: 100%;
+     height: auto;
+     aspect-ratio: 960/750;
+     margin: 0;
+  }
 }
 
 /* Landscape Mobile Layout */
 @media (orientation: landscape) and (max-height: 600px) {
   body[data-route-mode='mobile'] .layout { grid-template-columns: 1fr; gap: 4px; }
   body[data-route-mode='mobile'] .side-column { display: none; }
+  body[data-route-mode='mobile'] .nav-column { display: none; }
   body[data-route-mode='mobile'] .route-bar { display: none; }
   body[data-route-mode='mobile'] #app { padding: 4px; max-width: none; }
   body[data-route-mode='mobile'] .canvas-wrap { height: 95vh; width: auto; aspect-ratio: 960/750; margin: 0 auto; }
-  body[data-route-mode='mobile'] .touch-controls { display: none !important; }
   body[data-route-mode='mobile'] .status-bar { display: none; }
 }
