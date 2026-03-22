@@ -2,6 +2,36 @@ import Phaser from 'phaser';
 import './style.css';
 import { fetchLeaderboard, fetchReplay, submitScore } from './net/api.js';
 
+  // Removed unused ShapeConfig
+
+interface Piece {
+  matrix: number[][];
+  color: number;
+  x: number; y: number;
+  lockTimer: number; id: number;
+}
+interface InputState {
+  l: number; r: number; u: number; d: number; s: number; rr: number;
+}
+interface PointerData {
+  active: boolean;
+  startX: number; startY: number;
+  lastX: number; lastY: number;
+  startTime: number;
+  moved: boolean;
+  gestureLock: 'HORIZONTAL' | 'VERTICAL' | null;
+  isRightHalf: boolean;
+  wantsSoftDrop?: boolean;
+}
+interface LeaderboardEntry {
+  kind: string;
+  score: number;
+  name: string;
+  message?: string;
+  replayDigest?: string;
+  id?: string;
+}
+
 const WIDTH = 960;
 const HEIGHT = 750;
 const RUN_SECONDS = 60;
@@ -22,7 +52,7 @@ const SHAPES = [
   { matrix: [[1,1,0],[0,1,1]], color: 0xFF0033 }
 ];
 
-function sfc32(a, b, c, d) {
+function sfc32(a: number, b: number, c: number, d: number) {
   return function() {
     a |= 0; b |= 0; c |= 0; d |= 0; 
     let t = (a + b | 0) + d | 0;
@@ -35,15 +65,15 @@ function sfc32(a, b, c, d) {
   }
 }
 
-async function computeSha256(str) {
+async function computeSha256(str: string) {
   const buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-const AudioContext = window.AudioContext || window.webkitAudioContext;
+const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
 const audioCtx = new AudioContext();
 
-function playTone(freq, type, duration, vol = 0.1, delay = 0) {
+function playTone(freq: number, type: OscillatorType, duration: number, vol = 0.1, delay = 0) {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
@@ -78,6 +108,11 @@ const sfx = {
 };
 
 class BGMPlayer {
+  isPlaying: boolean;
+  timerId: any;
+  notes: number[];
+  index: number;
+  
   constructor() {
     this.isPlaying = false;
     this.timerId = null;
@@ -166,7 +201,7 @@ app.innerHTML = `
   </div>
 `;
 
-const ui = {
+const ui: Record<string, any> = {
   runtimeStatus: document.getElementById('runtimeStatus'),
   stopReplayBtn: document.getElementById('stopReplayBtn'),
   leaderboardList: document.getElementById('leaderboardList'),
@@ -183,9 +218,46 @@ const ui = {
 
 ui.nameInput.value = localStorage.getItem(STORAGE_KEY) || '';
 
-let gameSceneInstance = null;
+let gameSceneInstance: StackfallScene | null = null;
 
 class StackfallScene extends Phaser.Scene {
+  runMode!: 'TITLE' | 'READY' | 'PLAYING' | 'REPLAY' | 'GAMEOVER';
+  score!: number;
+  lines!: number;
+  bestScore!: number;
+  timeLeft!: number;
+  rng!: any;
+  seed!: number;
+  tickCount!: number;
+  accumulator!: number;
+  inputEvents!: Record<number, InputState>;
+  replayEvents!: Record<number, InputState>;
+  grid!: number[][];
+  fallingPieces!: Piece[];
+  dropIntervalBase!: number;
+  dropInterval!: number;
+  dropTicks!: number;
+  activeLockDelayTicks!: number;
+  inactiveLockDelayTicks!: number;
+  moveDasTicks!: number;
+  softDropTicks!: number;
+  boardGroup!: Phaser.GameObjects.Group;
+  piecesGroup!: Phaser.GameObjects.Group;
+  fxGroup!: Phaser.GameObjects.Group;
+  particles!: Phaser.GameObjects.Particles.ParticleEmitter;
+  sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
+  hudTime!: Phaser.GameObjects.Text;
+  hudScore!: Phaser.GameObjects.Text;
+  hudLines!: Phaser.GameObjects.Text;
+  hudName!: Phaser.GameObjects.Text;
+  hudResult!: Phaser.GameObjects.Text;
+  hudFlash!: Phaser.GameObjects.Rectangle;
+  keys!: any;
+  pointersData!: Record<number, PointerData>;
+  gestureBuffer!: string[];
+  gestureInputs!: InputState;
+  softDropHold!: number;
+
   constructor() {
     super('stackfall');
   }
@@ -240,7 +312,7 @@ class StackfallScene extends Phaser.Scene {
   }
 
   generateBlockTexture() {
-    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    const g = this.make.graphics({ x: 0, y: 0, add: false } as any);
     g.fillStyle(0xFFFFFF, 1);
     g.fillRoundedRect(0, 0, BLOCK_SIZE, BLOCK_SIZE, 6);
     g.fillStyle(0x000000, 0.25);
@@ -249,12 +321,12 @@ class StackfallScene extends Phaser.Scene {
     g.strokeRoundedRect(2, 2, BLOCK_SIZE-4, BLOCK_SIZE-4, 4);
     g.generateTexture('modern_block', BLOCK_SIZE, BLOCK_SIZE);
     
-    const glow = this.make.graphics({ x: 0, y: 0, add: false });
+    const glow = this.make.graphics({ x: 0, y: 0, add: false } as any);
     glow.fillStyle(0xFFFFFF, 1);
     glow.fillCircle(8, 8, 8);
     glow.generateTexture('block_glow', 16, 16);
     
-    const flashRow = this.make.graphics({ x:0, y:0, add: false });
+    const flashRow = this.make.graphics({ x:0, y:0, add: false } as any);
     flashRow.fillStyle(0xFFFFFF, 1);
     flashRow.fillRect(0, 0, COLS * BLOCK_SIZE, BLOCK_SIZE);
     flashRow.generateTexture('flash_row', COLS * BLOCK_SIZE, BLOCK_SIZE);
@@ -300,12 +372,12 @@ class StackfallScene extends Phaser.Scene {
 
   createInput() {
     this.keys = {
-      up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
-      down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
-      left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
-      right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
-      space: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
-      z: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z),
+      up: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
+      down: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
+      left: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
+      right: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
+      space: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
+      z: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.Z),
     };
     
     // Tap to start
@@ -321,7 +393,7 @@ class StackfallScene extends Phaser.Scene {
 
     this.input.addPointer(2); // Enable full multi-touch
 
-    this.input.on('pointerdown', (pointer) => {
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (this.runMode === 'READY' || this.runMode === 'GAMEOVER') {
         this.startRun(null); return;
       }
@@ -340,7 +412,7 @@ class StackfallScene extends Phaser.Scene {
       };
     });
 
-    this.input.on('pointermove', (pointer) => {
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       const pData = this.pointersData[pointer.id];
       if (!pData || !pData.active || this.runMode !== 'PLAYING') return;
       
@@ -381,7 +453,7 @@ class StackfallScene extends Phaser.Scene {
       this.softDropHold = Object.values(this.pointersData).some(p => p.active && p.wantsSoftDrop) ? 1 : 0;
     });
 
-    this.input.on('pointerup', (pointer) => {
+    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
       const pData = this.pointersData[pointer.id];
       if (!pData || !pData.active) return;
       pData.active = false;
@@ -414,7 +486,7 @@ class StackfallScene extends Phaser.Scene {
     });
   }
 
-  startRun(seed, replayEvents = null) {
+  startRun(seed: number | null, replayEvents: Record<number, InputState> | null = null) {
     ui.resultPanel.classList.add('hidden');
     ui.submitStatus.textContent = '';
     
@@ -445,10 +517,10 @@ class StackfallScene extends Phaser.Scene {
     ui.runtimeStatus.textContent = this.runMode === 'REPLAY' ? 'Replaying run...' : 'Playing...';
     if (this.runMode === 'REPLAY') {
       ui.stopReplayBtn.classList.remove('hidden');
-      document.getElementById('touchControls').classList.add('hidden');
+      document.getElementById('touchControls')?.classList.add('hidden');
     } else {
       ui.stopReplayBtn.classList.add('hidden');
-      document.getElementById('touchControls').classList.remove('hidden');
+      document.getElementById('touchControls')?.classList.remove('hidden');
     }
   }
 
@@ -478,7 +550,7 @@ class StackfallScene extends Phaser.Scene {
     return this.fallingPieces.reduce((lowest, piece) => (piece.y > lowest.y ? piece : lowest), this.fallingPieces[0]);
   }
 
-  checkCollision(matrix, px, py, ignoreId) {
+  checkCollision(matrix: number[][], px: number, py: number, ignoreId: number) {
     for (let r = 0; r < matrix.length; r++) {
       for (let c = 0; c < matrix[r].length; c++) {
         if (matrix[r][c]) {
@@ -509,7 +581,7 @@ class StackfallScene extends Phaser.Scene {
     return false;
   }
 
-  moveActivePiece(dx, dy) {
+  moveActivePiece(dx: number, dy: number) {
     const active = this.getActivePiece();
     if (!active) return false;
     if (!this.checkCollision(active.matrix, active.x + dx, active.y + dy, active.id)) {
@@ -531,7 +603,7 @@ class StackfallScene extends Phaser.Scene {
     const active = this.getActivePiece();
     if (!active) return;
     const matrix = active.matrix;
-    const newMatrix = matrix[0].map((val, index) => matrix.map(row => row[index]).reverse());
+    const newMatrix = matrix[0].map((_val, index) => matrix.map(row => row[index]).reverse());
     if (!this.checkCollision(newMatrix, active.x, active.y, active.id)) {
       active.matrix = newMatrix;
     } else if (!this.checkCollision(newMatrix, active.x - 1, active.y, active.id)) {
@@ -548,7 +620,7 @@ class StackfallScene extends Phaser.Scene {
     const active = this.getActivePiece();
     if (!active) return;
     const matrix = active.matrix;
-    const newMatrix = matrix[0].map((val, index) => matrix.map(row => row[matrix[0].length - 1 - index]));
+    const newMatrix = matrix[0].map((_val, index) => matrix.map(row => row[matrix[0].length - 1 - index]));
     if (!this.checkCollision(newMatrix, active.x, active.y, active.id)) {
       active.matrix = newMatrix;
     } else if (!this.checkCollision(newMatrix, active.x - 1, active.y, active.id)) {
@@ -623,7 +695,7 @@ class StackfallScene extends Phaser.Scene {
   }
 
   clearLines() {
-    let linesCleared = [];
+    let linesCleared: number[] = [];
     for (let r = ROWS - 1; r >= 0; r--) {
       if (this.grid[r].every(cell => cell !== 0)) {
         linesCleared.push(r);
@@ -719,7 +791,7 @@ class StackfallScene extends Phaser.Scene {
         }
     }
 
-    let input = { l:0, r:0, u:0, d:0, s:0 };
+    let input: InputState = { l:0, r:0, u:0, d:0, s:0, rr: 0 };
     if (this.runMode === 'PLAYING') {
         input = this.captureInputs();
         if (input.l || input.r || input.u || input.d || input.s) {
@@ -784,7 +856,7 @@ class StackfallScene extends Phaser.Scene {
     this.lockPieces();
   }
 
-  update(time, delta) {
+  update(_time: number, delta: number) {
     if (this.runMode !== 'PLAYING' && this.runMode !== 'REPLAY') return;
     
     // Fixed timestep accumulation
@@ -797,7 +869,7 @@ class StackfallScene extends Phaser.Scene {
     while (this.accumulator >= TICK_MS) {
         this.accumulator -= TICK_MS;
         this.logicTick();
-        if (this.runMode === 'GAMEOVER') break;
+        if (this.runMode === 'GAMEOVER' as any) break;
     }
     
     this.syncHud();
@@ -870,7 +942,7 @@ class StackfallScene extends Phaser.Scene {
     
     ui.runtimeStatus.textContent = '';
     ui.stopReplayBtn.classList.add('hidden');
-    document.getElementById('touchControls').classList.add('hidden');
+    document.getElementById('touchControls')?.classList.add('hidden');
     
     if (isPlaying) {
       const payloadObj = { seed: this.seed, events: this.inputEvents };
@@ -891,17 +963,20 @@ class StackfallScene extends Phaser.Scene {
         try {
           const playerName = ui.nameInput.value.trim().toUpperCase() || 'PLAYER';
           localStorage.setItem(STORAGE_KEY, playerName);
-          await submitScore({
+          const payload = {
             name: playerName,
             message: ui.messageInput.value.trim(),
             score: this.score,
+            lines: this.lines,
             replayData: replayDataStr,
             replayDigest: digest
-          });
-          ui.submitStatus.textContent = 'Score submitted!';
-          ui.submitForm.reset();
-          refreshLeaderboard();
-        } catch (err) {
+          };
+          const res = await submitScore(payload);
+          if (res.success) {
+            ui.submitForm.reset();
+            refreshLeaderboard();
+          }
+        } catch (err: any) {
           ui.submitStatus.textContent = `Fail: ${err.message}`;
         } finally {
           ui.submitButton.disabled = false;
@@ -918,9 +993,9 @@ class StackfallScene extends Phaser.Scene {
 }
 
 // Prevent fatal viewport scrolling on mobile devices during swipe/flick gestures
-const preventScrollListener = (e) => {
+const preventScrollListener = (e: Event) => {
   if (document.body.getAttribute('data-route-mode') === 'mobile') {
-    if (!e.target.closest('.side-column')) {
+    if (!(e.target as Element).closest('.side-column')) {
       e.preventDefault();
     }
   }
@@ -938,7 +1013,7 @@ new Phaser.Game({
 async function refreshLeaderboard() {
   try {
     const lbResp = await fetchLeaderboard();
-    const lb = lbResp?.entries || [];
+    const lb: LeaderboardEntry[] = lbResp?.entries || [];
     ui.leaderboardList.innerHTML = '';
     
     if (!lb || lb.length === 0) {
@@ -946,7 +1021,7 @@ async function refreshLeaderboard() {
       return;
     }
     
-    lb.slice(0, 10).forEach((entry, i) => {
+    lb.slice(0, 10).forEach((entry: LeaderboardEntry, i: number) => {
       const el = document.createElement('div');
       el.className = 'leaderboard-slot';
       el.innerHTML = `
@@ -971,24 +1046,25 @@ async function refreshLeaderboard() {
     });
     
     document.querySelectorAll('.play-replay-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
+      btn.addEventListener('click', async (_e: Event) => {
         if (!gameSceneInstance) return;
         ui.leaderboardStatus.textContent = 'Loading replay...';
-        btn.disabled = true;
+        (btn as HTMLButtonElement).disabled = true;
         try {
-          const run = await fetchReplay(btn.dataset.kind, btn.dataset.id);
-          const parsed = JSON.parse(atob(run.replayData));
-          gameSceneInstance.startRun(parsed.seed, parsed.events);
-          ui.leaderboardStatus.textContent = 'Playing replay!';
-        } catch(err) {
+          const run = await fetchReplay((btn as HTMLElement).dataset.kind as string, (btn as HTMLElement).dataset.id as string);
+          if (run && run.events) {
+            gameSceneInstance.startRun(run.seed, run.events);
+            ui.leaderboardStatus.textContent = 'Playing replay!';
+          }
+        } catch (err: any) {
           ui.leaderboardStatus.textContent = `Error: ${err.message}`;
         } finally {
-          btn.disabled = false;
+          (btn as HTMLButtonElement).disabled = false;
         }
       });
     });
     ui.leaderboardStatus.textContent = 'Loaded.';
-  } catch (err) {
+  } catch (err: any) {
     ui.leaderboardStatus.textContent = `Failed to load leaderboard.`;
   }
 }
