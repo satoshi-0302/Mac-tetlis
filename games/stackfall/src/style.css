@@ -193,9 +193,6 @@ body[data-route-mode='mobile'] .touch-controls {
   body[data-route-mode='mobile'] .route-bar { display: none; }
   body[data-route-mode='mobile'] #app { padding: 4px; max-width: none; }
   body[data-route-mode='mobile'] .canvas-wrap { height: 95vh; width: auto; aspect-ratio: 960/750; margin: 0 auto; }
-  body[data-route-mode='mobile'] .touch-controls {
-     position: absolute; bottom: 10px; left: 10%; right: 10%; pointer-events: none; z-index: 100;
-  }
-  body[data-route-mode='mobile'] .touch-controls > * { pointer-events: auto; }
+  body[data-route-mode='mobile'] .touch-controls { display: none !important; }
   body[data-route-mode='mobile'] .status-bar { display: none; }
 }

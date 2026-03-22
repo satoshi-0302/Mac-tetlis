@@ -328,78 +328,103 @@ class StackfallScene extends Phaser.Scene {
     this.prevTouchU = 0;
     this.prevTouchS = 0;
     
-    // Gestures functionality for Portrait mode
-    this.swipeData = { active: false, startX: 0, startY: 0, lastX: 0, lastY: 0, startTime: 0, moved: false };
+    // Gestures functionality for Mobile modes
+    this.pointersData = {};
     this.gestureBuffer = [];
     this.gestureInputs = { u: 0, s: 0, d: 0, l: 0, r: 0 };
     this.softDropHold = 0;
+
+    this.input.addPointer(2); // Enable full multi-touch
 
     this.input.on('pointerdown', (pointer) => {
       if (this.runMode === 'READY' || this.runMode === 'GAMEOVER') {
         this.startRun(null); return;
       }
-      this.swipeData.active = true;
-      this.swipeData.startX = pointer.x;
-      this.swipeData.startY = pointer.y;
-      this.swipeData.lastX = pointer.x;
-      this.swipeData.lastY = pointer.y;
-      this.swipeData.startTime = this.time.now;
-      this.swipeData.moved = false;
-      this.gestureBuffer = []; // Clear move buffer on new touch
-      this.softDropHold = 0;
-    });
-
-    this.input.on('pointermove', (pointer) => {
-      if (!this.swipeData.active || this.runMode !== 'PLAYING') return;
       const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-      if (!isPortrait) return;
+      const isLeftHalf = pointer.x < 480;
 
-      const dx = pointer.x - this.swipeData.lastX;
-      const dyTotal = pointer.y - this.swipeData.startY;
+      this.pointersData[pointer.id] = {
+        active: true,
+        startX: pointer.x,
+        startY: pointer.y,
+        lastX: pointer.x,
+        lastY: pointer.y,
+        startTime: this.time.now,
+        moved: false,
+        isLeftHalf: isLeftHalf
+      };
       
-      if (Math.abs(pointer.x - this.swipeData.startX) > 20 || Math.abs(dyTotal) > 20) {
-        this.swipeData.moved = true;
-      }
-
-      // X Movement: 1 block per 35px
-      if (dx > 35) {
-        const moves = Math.floor(dx / 35);
-        for(let i = 0; i < moves; i++) this.gestureBuffer.push('r');
-        this.swipeData.lastX += moves * 35;
-      } else if (dx < -35) {
-        const moves = Math.floor(Math.abs(dx) / 35);
-        for(let i = 0; i < moves; i++) this.gestureBuffer.push('l');
-        this.swipeData.lastX -= moves * 35;
-      }
-      
-      // Y Soft Drop: hold down soft drop if dragged down enough
-      if (dyTotal > 40) {
-        this.softDropHold = 1;
-      } else {
+      if (isPortrait || isLeftHalf) {
+        this.gestureBuffer = []; 
         this.softDropHold = 0;
       }
     });
 
+    this.input.on('pointermove', (pointer) => {
+      const pData = this.pointersData[pointer.id];
+      if (!pData || !pData.active || this.runMode !== 'PLAYING') return;
+
+      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+      
+      const dx = pointer.x - pData.lastX;
+      const dyTotal = pointer.y - pData.startY;
+      
+      if (Math.abs(pointer.x - pData.startX) > 20 || Math.abs(dyTotal) > 20) {
+        pData.moved = true;
+      }
+
+      if (isPortrait || pData.isLeftHalf) {
+        // X Movement: 1 block per 35px
+        if (dx > 35) {
+          const moves = Math.floor(dx / 35);
+          for(let i = 0; i < moves; i++) this.gestureBuffer.push('r');
+          pData.lastX += moves * 35;
+        } else if (dx < -35) {
+          const moves = Math.floor(Math.abs(dx) / 35);
+          for(let i = 0; i < moves; i++) this.gestureBuffer.push('l');
+          pData.lastX -= moves * 35;
+        }
+        
+        // Y Soft Drop: hold down soft drop if dragged down enough
+        if (dyTotal > 40) {
+          this.softDropHold = 1;
+        } else {
+          this.softDropHold = 0;
+        }
+      }
+    });
+
     this.input.on('pointerup', (pointer) => {
-      if (!this.swipeData.active) return;
-      this.swipeData.active = false;
+      const pData = this.pointersData[pointer.id];
+      if (!pData || !pData.active) return;
+      pData.active = false;
       
       const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-      this.softDropHold = 0; // Release soft drop
+      
+      if (isPortrait || pData.isLeftHalf) {
+        this.softDropHold = 0; // Release soft drop if this pointer was responsible
+      }
 
-      if (this.runMode !== 'PLAYING' || !isPortrait) return;
+      if (this.runMode !== 'PLAYING') {
+        delete this.pointersData[pointer.id];
+        return;
+      }
 
-      const dyTotal = pointer.y - this.swipeData.startY;
-      const dt = this.time.now - this.swipeData.startTime;
+      const dyTotal = pointer.y - pData.startY;
+      const dt = this.time.now - pData.startTime;
       const vy = dyTotal / Math.max(1, dt);
 
-      if (!this.swipeData.moved) {
-        // Tap to rotate
-        this.gestureInputs.u = 1;
-      } else if (vy > 0.8 && dyTotal > 50) {
-        // Strong flick down for Hard Drop
-        this.gestureInputs.s = 1;
+      if (isPortrait || !pData.isLeftHalf) {
+        if (!pData.moved) {
+          // Tap to rotate
+          this.gestureInputs.u = 1;
+        } else if (vy > 0.8 && dyTotal > 50) {
+          // Strong flick down for Hard Drop
+          this.gestureInputs.s = 1;
+        }
       }
+      
+      delete this.pointersData[pointer.id];
     });
 
     const bindBtn = (id, key) => {
