@@ -80,11 +80,28 @@ function copyAsteroid() {
   copyPath(resolve(ROOT, 'games', 'asteroid', 'dist'), resolve(OUT_DIR, 'games', 'asteroid'), true);
 }
 
+function ensureStackfallBuild() {
+  const stackfallDist = resolve(ROOT, 'games', 'stackfall', 'dist', 'index.html');
+  if (existsSync(stackfallDist)) {
+    return;
+  }
+  execFileSync('npm', ['run', 'platform:build:stackfall'], {
+    cwd: ROOT,
+    stdio: 'inherit'
+  });
+}
+
+function copyStackfall() {
+  ensureStackfallBuild();
+  copyPath(resolve(ROOT, 'games', 'stackfall', 'dist'), resolve(OUT_DIR, 'games', 'stackfall'), true);
+}
+
 resetOutput();
 copyPlatform();
 copySnake();
 copyMissile();
 copySlot();
 copyAsteroid();
+copyStackfall();
 
 console.log(`Cloudflare assets built at ${OUT_DIR}`);

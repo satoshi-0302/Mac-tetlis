@@ -50,6 +50,19 @@ export const GAMES = [
     supportsReplay: false,
     sortOrder: 4,
     currentGameVersion: 'slot60-rule-v1'
+  },
+  {
+    id: 'stackfall',
+    slug: 'stackfall',
+    title: 'Stackfall',
+    description: '60秒でどれだけラインを消せるかを競う、変形テトリスです。',
+    route: '/games/stackfall/',
+    desktopRoute: '/games/stackfall/?mode=desktop',
+    mobileRoute: '/games/stackfall/?mode=mobile',
+    supportsTouch: true,
+    supportsReplay: true,
+    sortOrder: 5,
+    currentGameVersion: 'stackfall-events-v1'
   }
 ];
 
