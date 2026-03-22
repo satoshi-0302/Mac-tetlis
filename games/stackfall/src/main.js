@@ -328,6 +328,80 @@ class StackfallScene extends Phaser.Scene {
     this.prevTouchU = 0;
     this.prevTouchS = 0;
     
+    // Gestures functionality for Portrait mode
+    this.swipeData = { active: false, startX: 0, startY: 0, lastX: 0, lastY: 0, startTime: 0, moved: false };
+    this.gestureBuffer = [];
+    this.gestureInputs = { u: 0, s: 0, d: 0, l: 0, r: 0 };
+    this.softDropHold = 0;
+
+    this.input.on('pointerdown', (pointer) => {
+      if (this.runMode === 'READY' || this.runMode === 'GAMEOVER') {
+        this.startRun(null); return;
+      }
+      this.swipeData.active = true;
+      this.swipeData.startX = pointer.x;
+      this.swipeData.startY = pointer.y;
+      this.swipeData.lastX = pointer.x;
+      this.swipeData.lastY = pointer.y;
+      this.swipeData.startTime = this.time.now;
+      this.swipeData.moved = false;
+      this.gestureBuffer = []; // Clear move buffer on new touch
+      this.softDropHold = 0;
+    });
+
+    this.input.on('pointermove', (pointer) => {
+      if (!this.swipeData.active || this.runMode !== 'PLAYING') return;
+      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+      if (!isPortrait) return;
+
+      const dx = pointer.x - this.swipeData.lastX;
+      const dyTotal = pointer.y - this.swipeData.startY;
+      
+      if (Math.abs(pointer.x - this.swipeData.startX) > 20 || Math.abs(dyTotal) > 20) {
+        this.swipeData.moved = true;
+      }
+
+      // X Movement: 1 block per 35px
+      if (dx > 35) {
+        const moves = Math.floor(dx / 35);
+        for(let i = 0; i < moves; i++) this.gestureBuffer.push('r');
+        this.swipeData.lastX += moves * 35;
+      } else if (dx < -35) {
+        const moves = Math.floor(Math.abs(dx) / 35);
+        for(let i = 0; i < moves; i++) this.gestureBuffer.push('l');
+        this.swipeData.lastX -= moves * 35;
+      }
+      
+      // Y Soft Drop: hold down soft drop if dragged down enough
+      if (dyTotal > 40) {
+        this.softDropHold = 1;
+      } else {
+        this.softDropHold = 0;
+      }
+    });
+
+    this.input.on('pointerup', (pointer) => {
+      if (!this.swipeData.active) return;
+      this.swipeData.active = false;
+      
+      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+      this.softDropHold = 0; // Release soft drop
+
+      if (this.runMode !== 'PLAYING' || !isPortrait) return;
+
+      const dyTotal = pointer.y - this.swipeData.startY;
+      const dt = this.time.now - this.swipeData.startTime;
+      const vy = dyTotal / Math.max(1, dt);
+
+      if (!this.swipeData.moved) {
+        // Tap to rotate
+        this.gestureInputs.u = 1;
+      } else if (vy > 0.8 && dyTotal > 50) {
+        // Strong flick down for Hard Drop
+        this.gestureInputs.s = 1;
+      }
+    });
+
     const bindBtn = (id, key) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -575,19 +649,30 @@ class StackfallScene extends Phaser.Scene {
   captureInputs() {
     if (this.runMode !== 'PLAYING') return { l:0, r:0, u:0, d:0, s:0 };
     
-    const tU = window.touchStateObj.u;
-    const tS = window.touchStateObj.s;
+    // Read one buffered gesture movement per tick
+    let gL = 0, gR = 0;
+    if (this.gestureBuffer && this.gestureBuffer.length > 0) {
+      const g = this.gestureBuffer.shift();
+      if (g === 'l') gL = 1;
+      if (g === 'r') gR = 1;
+    }
+
+    const tU = window.touchStateObj.u || this.gestureInputs.u;
+    const tS = window.touchStateObj.s || this.gestureInputs.s;
     const isU = Phaser.Input.Keyboard.JustDown(this.keys.up) || (tU && !this.prevTouchU) ? 1 : 0;
     const isS = Phaser.Input.Keyboard.JustDown(this.keys.space) || (tS && !this.prevTouchS) ? 1 : 0;
     
-    this.prevTouchU = tU;
-    this.prevTouchS = tS;
+    this.prevTouchU = window.touchStateObj.u; // Track continuous physical touch status, not the 1-frame gesture flag
+    this.prevTouchS = window.touchStateObj.s;
+    
+    this.gestureInputs.u = 0;
+    this.gestureInputs.s = 0;
 
     return {
-      l: this.keys.left.isDown || window.touchStateObj.l ? 1 : 0,
-      r: this.keys.right.isDown || window.touchStateObj.r ? 1 : 0,
+      l: this.keys.left.isDown || window.touchStateObj.l || gL ? 1 : 0,
+      r: this.keys.right.isDown || window.touchStateObj.r || gR ? 1 : 0,
       u: isU,
-      d: this.keys.down.isDown || window.touchStateObj.d ? 1 : 0,
+      d: this.keys.down.isDown || window.touchStateObj.d || this.softDropHold ? 1 : 0,
       s: isS
     };
   }

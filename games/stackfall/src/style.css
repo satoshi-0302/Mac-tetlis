@@ -179,8 +179,11 @@ body[data-route-mode='mobile'] .touch-controls {
   body[data-route-mode='mobile'] .layout { grid-template-columns: 1fr; }
   body[data-route-mode='mobile'] .side-column { order: 3; }
   body[data-route-mode='mobile'] .status-bar { order: 2; margin-bottom: 20px; }
-  body[data-route-mode='mobile'] .touch-controls { order: 1; }
+  body[data-route-mode='mobile'] .touch-controls { order: 1; flex-direction: column; align-items: center; }
   body[data-route-mode='mobile'] .game-column { display: flex; flex-direction: column; }
+  body[data-route-mode='mobile'] .dpad { display: none; }
+  body[data-route-mode='mobile'] .action-pad { width: 100%; justify-content: center; padding-bottom: 20px; }
+  body[data-route-mode='mobile'] .h-btn { width: 100px; height: 100px; font-size: 48px; box-shadow: 0 0 20px rgba(255, 221, 0, 0.4); border-width: 3px; }
 }
 
 /* Landscape Mobile Layout */
