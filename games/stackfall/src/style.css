@@ -55,9 +55,14 @@ body {
   border: 1px solid var(--panel-border);
   box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 40px rgba(0, 255, 255, 0.1);
   background: #000;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 960 / 750;
+  max-width: 100%;
+  margin: 0 auto;
 }
 #phaser-root {
-  display: block; width: 100%; height: auto; aspect-ratio: 960 / 750;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   touch-action: none; user-select: none;
 }
 
@@ -172,7 +177,6 @@ body[data-route-mode='mobile'] .touch-controls {
 /* Portrait Mobile Layout */
 @media (orientation: portrait) {
   body[data-route-mode='mobile'] .layout { grid-template-columns: 1fr; }
-  body[data-route-mode='mobile'] .canvas-wrap { width: 100%; aspect-ratio: 960/750; }
   body[data-route-mode='mobile'] .side-column { order: 3; }
   body[data-route-mode='mobile'] .status-bar { order: 2; margin-bottom: 20px; }
   body[data-route-mode='mobile'] .touch-controls { order: 1; }
@@ -185,8 +189,7 @@ body[data-route-mode='mobile'] .touch-controls {
   body[data-route-mode='mobile'] .side-column { display: none; }
   body[data-route-mode='mobile'] .route-bar { display: none; }
   body[data-route-mode='mobile'] #app { padding: 4px; max-width: none; }
-  body[data-route-mode='mobile'] .canvas-wrap { height: 95vh; overflow: hidden; display: flex; justify-content: center; }
-  body[data-route-mode='mobile'] #phaser-root { height: 100%; width: auto; aspect-ratio: 960/750; }
+  body[data-route-mode='mobile'] .canvas-wrap { height: 95vh; width: auto; aspect-ratio: 960/750; margin: 0 auto; }
   body[data-route-mode='mobile'] .touch-controls {
      position: absolute; bottom: 10px; left: 10%; right: 10%; pointer-events: none; z-index: 100;
   }
