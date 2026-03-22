@@ -149,46 +149,62 @@ const app = document.querySelector('#app');
 if (!app) throw new Error('Missing #app root');
 
 app.innerHTML = `
-  <div class="route-bar">
-    <a class="btn tiny nav-button" href="/">LOBBY</a>
-    <span class="route-pill">${isMobile ? 'SMARTPHONE' : 'STACKFALL 60'}</span>
-  </div>
-  <div class="layout">
-    <section class="game-column">
-      <div class="canvas-wrap">
-        <div id="phaser-root"></div>
+  <div id="game-viewport" class="game-viewport">
+    <div id="phaser-root"></div>
+    
+    <div id="ui-overlay" class="ui-overlay">
+      <div class="top-bar">
+        <a class="btn" href="/">LOBBY</a>
+        <div class="top-score-display">
+          <div class="small-label">TOP 1</div>
+          <div id="top-one-label" class="top-value">--- : 0</div>
+        </div>
+        <div class="top-actions">
+          <button id="btn-top10" class="btn">TOP10</button>
+          <button id="btn-help" class="btn">？</button>
+        </div>
       </div>
       
-      <div class="status-bar">
-        <span id="runtimeStatus" class="runtime-status">Press Space or Tap Canvas to start.</span>
-        <button id="stopReplayBtn" class="btn tiny hidden" type="button">Stop Replay</button>
-      </div>
-    </section>
-    
-    <aside class="side-column">
-      <section class="panel controls-panel">
-        <h1>STACKFALL 60</h1>
-        <ul>
-          <li><strong>Continuous Drop</strong>: 3マスごとに次々とブロックが降り立つ！</li>
-          <li><strong>Active Piece</strong>: 操作できるのは最下部のブロックだけ！</li>
-          <li>Rotate: <kbd>↑</kbd></li>
-          <li>Move: <kbd>←</kbd> / <kbd>→</kbd></li>
-          <li>Soft Drop (Active Only): <kbd>↓</kbd></li>
-          <li>Hard Drop: <kbd>Space</kbd></li>
-        </ul>
-      </section>
+      <div id="runtimeStatus" class="runtime-status-overlay"></div>
 
-      <section class="panel leaderboard-panel">
+      <div class="bottom-bar">
+        <button id="btn-start" class="btn primary-btn">START / RESTART</button>
+        <button id="stopReplayBtn" class="btn primary-btn hidden">STOP REPLAY</button>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="modal-backdrop hidden">
+      <!-- Leaderboard Modal -->
+      <section id="leaderboard-modal" class="modal-panel hidden">
         <div class="panel-head">
           <h2>LEADERBOARD</h2>
-          <button id="reloadLeaderboard" class="btn tiny" type="button">Refresh</button>
+          <button class="btn tiny btn-close-modal">X</button>
         </div>
         <div id="leaderboardList" class="leaderboard-list"></div>
         <p id="leaderboardStatus" class="muted small"></p>
       </section>
 
-      <section class="panel result-panel hidden" id="resultPanel">
-        <h2>RUN RESULT</h2>
+      <!-- Help Modal -->
+      <section id="help-modal" class="modal-panel hidden">
+        <div class="panel-head">
+          <h2>HOW TO PLAY</h2>
+          <button class="btn tiny btn-close-modal">X</button>
+        </div>
+        <ul class="help-list">
+          <li><strong>Continuous Drop</strong>: 3マスごとにブロックが次々と落下！</li>
+          <li><strong>PC</strong>: 十字キー移動、↑回転、↓加速、[Space] 強落下</li>
+          <li><strong>スマホ(縦)</strong>: 左右ドラッグ(移動/加速)、タップ(回転)、下フリック(強落下)</li>
+          <li><strong>スマホ(横)</strong>: 左手でスワイプ操作、右手でタップ・フリック</li>
+        </ul>
+      </section>
+
+      <!-- Result Modal -->
+      <section id="resultPanel" class="modal-panel hidden">
+        <div class="panel-head">
+          <h2>RUN RESULT</h2>
+          <button class="btn tiny btn-close-modal">X</button>
+        </div>
         <div id="resultStats" class="result-stats"></div>
         <form id="submitForm" class="submit-form">
           <label>Name (max 12) <input id="nameInput" name="name" maxlength="12" required /></label>
@@ -197,26 +213,55 @@ app.innerHTML = `
         </form>
         <p id="submitStatus" class="muted small"></p>
       </section>
-    </aside>
+    </div>
   </div>
 `;
 
-const ui: Record<string, any> = {
-  runtimeStatus: document.getElementById('runtimeStatus'),
-  stopReplayBtn: document.getElementById('stopReplayBtn'),
-  leaderboardList: document.getElementById('leaderboardList'),
-  leaderboardStatus: document.getElementById('leaderboardStatus'),
-  reloadLeaderboard: document.getElementById('reloadLeaderboard'),
-  resultPanel: document.getElementById('resultPanel'),
-  resultStats: document.getElementById('resultStats'),
-  submitForm: document.getElementById('submitForm'),
-  submitButton: document.getElementById('submitButton'),
-  submitStatus: document.getElementById('submitStatus'),
-  nameInput: document.getElementById('nameInput'),
-  messageInput: document.getElementById('messageInput')
+const ui: any = {
+  runtimeStatus: document.getElementById('runtimeStatus')!,
+  stopReplayBtn: document.getElementById('stopReplayBtn')!,
+  leaderboardList: document.getElementById('leaderboardList')!,
+  leaderboardStatus: document.getElementById('leaderboardStatus')!,
+  resultPanel: document.getElementById('resultPanel')!,
+  resultStats: document.getElementById('resultStats')!,
+  submitForm: document.getElementById('submitForm') as HTMLFormElement,
+  submitButton: document.getElementById('submitButton') as HTMLButtonElement,
+  submitStatus: document.getElementById('submitStatus')!,
+  nameInput: document.getElementById('nameInput') as HTMLInputElement,
+  messageInput: document.getElementById('messageInput') as HTMLInputElement,
+  topOneLabel: document.getElementById('top-one-label')!,
+  btnStart: document.getElementById('btn-start')!,
+  btnTop10: document.getElementById('btn-top10')!,
+  btnHelp: document.getElementById('btn-help')!,
+  modalContainer: document.getElementById('modal-container')!,
+  leaderboardModal: document.getElementById('leaderboard-modal')!,
+  helpModal: document.getElementById('help-modal')!
 };
 
-ui.nameInput.value = localStorage.getItem(STORAGE_KEY) || '';
+function openModal(modalEl: HTMLElement) {
+  ui.modalContainer.classList.remove('hidden');
+  ui.leaderboardModal.classList.add('hidden');
+  ui.helpModal.classList.add('hidden');
+  ui.resultPanel.classList.add('hidden');
+  modalEl.classList.remove('hidden');
+}
+
+function closeModal() {
+  ui.modalContainer.classList.add('hidden');
+}
+
+document.querySelectorAll('.btn-close-modal').forEach(btn => {
+  btn.addEventListener('click', closeModal);
+});
+
+ui.btnTop10.addEventListener('click', () => { refreshLeaderboard(); openModal(ui.leaderboardModal); });
+ui.btnHelp.addEventListener('click', () => openModal(ui.helpModal));
+ui.btnStart.addEventListener('click', () => {
+   closeModal();
+   if (gameSceneInstance) gameSceneInstance.startRun(null);
+});
+
+(ui.nameInput as HTMLInputElement).value = localStorage.getItem(STORAGE_KEY) || '';
 
 let gameSceneInstance: StackfallScene | null = null;
 
@@ -487,7 +532,8 @@ class StackfallScene extends Phaser.Scene {
   }
 
   startRun(seed: number | null, replayEvents: Record<number, InputState> | null = null) {
-    ui.resultPanel.classList.add('hidden');
+    ui.btnStart.classList.add('hidden');
+    ui.modalContainer.classList.add('hidden');
     ui.submitStatus.textContent = '';
     
     this.runMode = replayEvents ? 'REPLAY' : 'PLAYING';
@@ -514,13 +560,13 @@ class StackfallScene extends Phaser.Scene {
     this.dropInterval = this.dropIntervalBase;
     
     bgm.start();
-    ui.runtimeStatus.textContent = this.runMode === 'REPLAY' ? 'Replaying run...' : 'Playing...';
+    ui.runtimeStatus.textContent = this.runMode === 'REPLAY' ? 'Replaying run...' : (this.runMode === 'PLAYING' ? '' : 'Press Start or Canvas to begin');
     if (this.runMode === 'REPLAY') {
       ui.stopReplayBtn.classList.remove('hidden');
-      document.getElementById('touchControls')?.classList.add('hidden');
+      ui.btnStart.classList.add('hidden');
     } else {
       ui.stopReplayBtn.classList.add('hidden');
-      document.getElementById('touchControls')?.classList.remove('hidden');
+      if (this.runMode !== 'PLAYING') ui.btnStart.classList.remove('hidden');
     }
   }
 
