@@ -351,6 +351,7 @@ class StackfallScene extends Phaser.Scene {
         lastY: pointer.y,
         startTime: this.time.now,
         moved: false,
+        gestureLock: null,
         isLeftHalf: isLeftHalf
       };
       
@@ -366,23 +367,33 @@ class StackfallScene extends Phaser.Scene {
 
       const isPortrait = window.matchMedia('(orientation: portrait)').matches;
       
-      const dx = pointer.x - pData.lastX;
+      const totalDx = pointer.x - pData.startX;
       const dyTotal = pointer.y - pData.startY;
       
-      if (Math.abs(pointer.x - pData.startX) > 20 || Math.abs(dyTotal) > 20) {
+      // Determine primary axis of gesture when first crossing the movement threshold
+      if (!pData.moved && (Math.abs(totalDx) > 15 || Math.abs(dyTotal) > 15)) {
         pData.moved = true;
+        if (Math.abs(dyTotal) > Math.abs(totalDx) * 1.5) {
+          pData.gestureLock = 'VERTICAL';
+        } else {
+          pData.gestureLock = 'HORIZONTAL';
+        }
       }
 
       if (isPortrait || pData.isLeftHalf) {
-        // X Movement: 1 block per 35px
-        if (dx > 35) {
-          const moves = Math.floor(dx / 35);
+        // If swiping down forcefully, drastically raise the resistance to lateral shifts
+        const moveThreshold = (pData.gestureLock === 'VERTICAL') ? 85 : 35;
+        
+        const dx = pointer.x - pData.lastX;
+        // X Movement: move based on threshold
+        if (dx > moveThreshold) {
+          const moves = Math.floor(dx / moveThreshold);
           for(let i = 0; i < moves; i++) this.gestureBuffer.push('r');
-          pData.lastX += moves * 35;
-        } else if (dx < -35) {
-          const moves = Math.floor(Math.abs(dx) / 35);
+          pData.lastX += moves * moveThreshold;
+        } else if (dx < -moveThreshold) {
+          const moves = Math.floor(Math.abs(dx) / moveThreshold);
           for(let i = 0; i < moves; i++) this.gestureBuffer.push('l');
-          pData.lastX -= moves * 35;
+          pData.lastX -= moves * moveThreshold;
         }
         
         // Y Soft Drop: hold down soft drop if dragged down enough
@@ -410,6 +421,7 @@ class StackfallScene extends Phaser.Scene {
         return;
       }
 
+      const totalDx = pointer.x - pData.startX;
       const dyTotal = pointer.y - pData.startY;
       const dt = this.time.now - pData.startTime;
       const vy = dyTotal / Math.max(1, dt);
@@ -418,8 +430,8 @@ class StackfallScene extends Phaser.Scene {
         if (!pData.moved) {
           // Tap to rotate
           this.gestureInputs.u = 1;
-        } else if (vy > 0.8 && dyTotal > 50) {
-          // Strong flick down for Hard Drop
+        } else if (vy > 0.8 && dyTotal > 50 && dyTotal > Math.abs(totalDx) * 1.2) {
+          // Strong flick down for Hard Drop (must be primarily vertical)
           this.gestureInputs.s = 1;
         }
       }
