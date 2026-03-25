@@ -88,6 +88,11 @@ async function registerPwaSupport() {
 function renderGameCard(game) {
   const article = document.createElement('article');
   article.className = 'game-card';
+  article.style.setProperty('--bg-img', `url("/static/assets/thumbnails/${game.id}.png")`);
+
+
+  const content = document.createElement('div');
+  content.className = 'card-content';
 
   const meta = document.createElement('div');
   meta.className = 'card-meta';
@@ -140,7 +145,8 @@ function renderGameCard(game) {
 
   variantRow.append(desktopLink, mobileLink);
   actionRow.append(primaryLink, variantRow);
-  article.append(meta, title, description, scoreBlock, actionRow);
+  content.append(meta, title, description, scoreBlock, actionRow);
+  article.append(content);
   return article;
 }
 

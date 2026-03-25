@@ -15,6 +15,7 @@
             <h1>Orbital Shield 60</h1>
             <div class="topbar-actions">
               <a class="secondary-button nav-link-button" href="/">Lobby</a>
+              <button class="secondary-button compact-button" id="top10Button" type="button">Top 10</button>
               <button class="secondary-button replay-exit-button" id="replayExitButton" type="button" hidden>
                 Exit Replay
               </button>
@@ -51,6 +52,9 @@
       <main class="stage-frame">
         <div class="mobile-hud-overlay" aria-hidden="true">
           <div class="mobile-hud-line"><span>Score</span><strong id="mobileScoreValue">0</strong></div>
+          <div class="mobile-hud-actions" style="pointer-events: auto;">
+            <button class="secondary-button compact-button" id="mobileTop10Button" type="button">TOP10</button>
+          </div>
           <div class="mobile-hud-line"><span>High</span><strong id="mobileHighScoreValue">0</strong></div>
           <div class="mobile-hud-line"><span>Time</span><strong id="mobileTimeValue">60.0s</strong></div>
         </div>
@@ -211,6 +215,9 @@
             <div class="button-row">
               <button class="primary-button" id="retryButton" type="button">
                 もう一度
+              </button>
+              <button class="secondary-button" id="resultTop10Button" type="button">
+                TOP10
               </button>
               <button class="secondary-button" id="titleButton" type="button">
                 タイトルへ

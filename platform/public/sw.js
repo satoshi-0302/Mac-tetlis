@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-lobby-v2';
+const CACHE_NAME = 'arcade-lobby-v4';
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',

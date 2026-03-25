@@ -151,7 +151,7 @@ if (
   throw new Error('Failed to initialize UI nodes');
 }
 
-const spawnSchedule = createSpawnSchedule();
+let spawnSchedule = createSpawnSchedule();
 const vfxRandom = createRng((Date.now() ^ 0x9e3779b9) >>> 0);
 const renderer = new Renderer(canvas, vfxRandom);
 const audio = new AudioEngine();
@@ -253,7 +253,9 @@ async function ensureDemoAgentLoaded() {
   }
 
   setDemoStatus('Loading demo policy...');
-  demoLoadPromise = loadDemoAgent()
+  // The policy path should be relative to the game's public dir or use a better locator
+  const policyPath = './rl/demo-policy.json';
+  demoLoadPromise = loadDemoAgent(policyPath)
     .then((loaded) => {
       demoAgent = loaded.agent;
       const trainedScore = Number(loaded.policy?.best?.score);
@@ -629,6 +631,7 @@ function resetSimulationState() {
 function resetRun() {
   replaySession = null;
   setStopReplayButtonVisible(false);
+  spawnSchedule = createSpawnSchedule();
   resetSimulationState();
   runStarted = false;
   didFinish = false;
@@ -747,6 +750,8 @@ function startReplayPlayback(payload) {
   }
 
   const replayBytes = decodeReplay(payload.replayData);
+  const seed = Number(payload.seed ?? payload.summary?.seed ?? 0);
+  spawnSchedule = createSpawnSchedule(seed);
 
   replaySession = {
     kind: payload.kind === 'ai' ? 'ai' : 'human',
@@ -784,12 +789,16 @@ function stepReplayPlayback(nowMs) {
     replaySession.startMs = nowMs;
   }
 
-  const targetTick = Math.min(
-    MAX_TICKS,
-    Math.floor((nowMs - replaySession.startMs) / TICK_MS)
-  );
+  // Refactor: We no longer calculate targetTick from wall clock here.
+  // Instead, the main loop calls stepReplayTick individually.
+}
 
-  while (replaySession.tickCursor < targetTick && !state.finished) {
+function stepReplayTick(nowMs = performance.now()) {
+  if (!replaySession) {
+    return;
+  }
+
+  if (!state.finished) {
     const inputMask = replaySession.replayBytes[replaySession.tickCursor] & INPUT_MASK;
     const events = stepSimulation(state, inputMask);
     handleSimulationEvents(events, inputMask);
@@ -1201,7 +1210,7 @@ const loop = createFixedLoop({
     const nowMs = performance.now();
 
     if (replaySession) {
-      stepReplayPlayback(nowMs);
+      stepReplayTick(nowMs);
       return;
     }
 

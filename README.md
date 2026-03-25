@@ -140,6 +140,8 @@ npm run ui:capture:iphone14 -- --landscape '/games/missile-command/?mode=mobile'
 3. `platform/games.mjs` にゲーム定義を追加する
 4. 必要なら `platform/adapters/` に verifier adapter を追加する
 5. `platform/server.mjs` に配信ルートを追加する
+6. `platform/public/assets/thumbnails/<slug>.png` にレトロゲーム風・シンセウェイヴテイストのAI生成イラストを配置する
+
 
 ## このリポジトリの方針
 

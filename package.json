@@ -15,7 +15,8 @@
     "platform:build:stackfall": "npm run build --prefix ./games/stackfall",
     "platform:start": "node ./platform/server.mjs",
     "ui:capture": "node ./scripts/capture-device-screenshots.mjs",
-    "ui:capture:iphone14": "node ./scripts/capture-device-screenshots.mjs --device \"iPhone 14\""
+    "ui:capture:iphone14": "node ./scripts/capture-device-screenshots.mjs --device \"iPhone 14\"",
+    "ui:check": "node ./scripts/capture-device-screenshots.mjs"
   },
   "devDependencies": {
     "playwright": "^1.58.2",

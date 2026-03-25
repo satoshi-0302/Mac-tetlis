@@ -8,9 +8,11 @@ export class GameUI {
     onReplay,
     onExitReplay,
     onRefreshLeaderboard,
+    onShowLeaderboard,
     onNameChange,
     onCommentChange,
   }) {
+    this.onShowLeaderboard = onShowLeaderboard;
     this.scoreValue = document.getElementById("scoreValue");
     this.chainValue = document.getElementById("chainValue");
     this.timeValue = document.getElementById("timeValue");
@@ -44,6 +46,9 @@ export class GameUI {
     this.leaderboardStatus = document.getElementById("leaderboardStatus");
     this.refreshLeaderboard = document.getElementById("refreshLeaderboard");
     this.submitStatus = document.getElementById("submitStatus");
+    this.top10Button = document.getElementById("top10Button");
+    this.mobileTop10Button = document.getElementById("mobileTop10Button");
+    this.resultTop10Button = document.getElementById("resultTop10Button");
     this.mobilePanelsMode = null;
 
     this.onStart = onStart;
@@ -57,6 +62,17 @@ export class GameUI {
     this.replayExitButton.addEventListener("click", onExitReplay);
     this.demoButton.addEventListener("click", onDemo);
     this.refreshLeaderboard.addEventListener("click", onRefreshLeaderboard);
+
+    const handleShowLeaderboard = () => {
+      this.leaderboardPanel.open = true;
+      this.leaderboardPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+      onShowLeaderboard?.();
+    };
+
+    if (this.top10Button) this.top10Button.addEventListener("click", handleShowLeaderboard);
+    if (this.mobileTop10Button) this.mobileTop10Button.addEventListener("click", handleShowLeaderboard);
+    if (this.resultTop10Button) this.resultTop10Button.addEventListener("click", handleShowLeaderboard);
+
     this.playerNameInput.addEventListener("change", (event) => onNameChange(event.target.value));
     this.playerNameInput.addEventListener("input", (event) => onNameChange(event.target.value));
     this.playerCommentInput.addEventListener("change", (event) => this.onCommentChange?.(event.target.value));
@@ -214,10 +230,13 @@ export class GameUI {
 
       if (entry.replayAvailable) {
         const replayButton = document.createElement("button");
-        replayButton.className = "secondary-button compact-button replay-button";
+        replayButton.className = "primary-button compact-button replay-button";
         replayButton.type = "button";
-        replayButton.textContent = "Replay";
-        replayButton.addEventListener("click", () => this.onReplay?.(entry));
+        replayButton.textContent = "PLAY";
+        replayButton.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.onReplay?.(entry);
+        });
         item.append(replayButton);
       }
 

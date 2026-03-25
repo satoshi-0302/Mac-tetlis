@@ -10,15 +10,13 @@ import { createEntryId, parseStoredJson, sanitizeComment, sanitizePlayerName, sh
 
 const ROOT_DIR = fileURLToPath(new URL('../../games/asteroid/', import.meta.url));
 const AI_LEADERBOARD_PATH = join(ROOT_DIR, 'public', 'rl', 'ai-top10.json');
-const spawnSchedule = createSpawnSchedule();
-
 function createSubmissionError(message, statusCode = 400) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
 }
 
-function verifyReplayData(replayData, claimedScore, replayDigest) {
+function verifyReplayData(replayData, claimedScore, replayDigest, seed = 0) {
   if (typeof replayData !== 'string' || replayData.length === 0) {
     throw createSubmissionError('replayData is required');
   }
@@ -42,16 +40,20 @@ function verifyReplayData(replayData, claimedScore, replayDigest) {
     throw createSubmissionError('replayDigest mismatch');
   }
 
+  const spawnSchedule = createSpawnSchedule(seed);
   const replayResult = runReplay(replayBytes, spawnSchedule);
   if (replayResult.summary.score !== claimedScore) {
     throw createSubmissionError(
-      `score mismatch after verification (submitted ${claimedScore}, verified ${replayResult.summary.score})`
+      `score mismatch after verification (submitted ${claimedScore}, verified ${replayResult.summary.score}, seed ${seed})`
     );
   }
 
   return {
     replayDigest: digest,
-    summary: replayResult.summary
+    summary: {
+      ...replayResult.summary,
+      seed
+    }
   };
 }
 
@@ -68,33 +70,47 @@ export const asteroidAdapter = {
       return entries
         .filter((entry) => typeof entry?.replayData === 'string' && entry.replayData.length > 0)
         .map((entry, index) => {
-          const verified = verifyReplayData(
-            entry.replayData,
-            Math.max(0, Math.round(Number(entry.score) || 0)),
-            entry.replayDigest
-          );
-          return {
-            id: String(entry.id ?? `asteroid-ai-${index + 1}`),
-            kind: 'ai',
-            name: sanitizePlayerName(entry.name, `AI-${index + 1}`),
-            comment: sanitizeComment(entry.message ?? ''),
-            score: Math.max(0, Math.round(Number(entry.score) || 0)),
-            summary: verified.summary,
-            gameVersion: String(parsed?.gameVersion ?? GAME_VERSION),
-            createdAt: generatedAt,
-            replayFormat: 'asteroid-input-base64-v1',
-            replayData: entry.replayData,
-            replayDigest: verified.replayDigest
-          };
-        });
-    } catch {
+          try {
+            const verified = verifyReplayData(
+              entry.replayData,
+              Math.max(0, Math.round(Number(entry.score) || 0)),
+              entry.replayDigest,
+              Number(entry.seed ?? 0)
+            );
+            return {
+              id: String(entry.id ?? `asteroid-ai-${index + 1}`),
+              kind: 'ai',
+              name: sanitizePlayerName(entry.name, `AI-${index + 1}`),
+              comment: sanitizeComment(entry.message ?? ''),
+              score: Math.max(0, Math.round(Number(entry.score) || 0)),
+              summary: verified.summary,
+              gameVersion: String(parsed?.gameVersion ?? GAME_VERSION),
+              createdAt: generatedAt,
+              replayFormat: 'asteroid-input-base64-v1',
+              replayData: entry.replayData,
+              replayDigest: verified.replayDigest,
+              seed: Number(entry.seed ?? 0)
+            };
+          } catch (e) {
+            console.warn(`[AsteroidAdapter] Seed entry #${index + 1} failed verification: ${e.message}`);
+            return null;
+          }
+        })
+        .filter(Boolean);
+    } catch (err) {
+      console.error(`[AsteroidAdapter] Critical failure loading seed entries: ${err.message}`);
       return [];
     }
   },
 
   validateSubmission(payload) {
     const claimedScore = Math.max(0, Math.round(Number(payload?.score ?? payload?.claimedScore) || 0));
-    const verified = verifyReplayData(payload?.replayData, claimedScore, payload?.replayDigest);
+    const verified = verifyReplayData(
+      payload?.replayData,
+      claimedScore,
+      payload?.replayDigest,
+      Number(payload?.seed ?? 0)
+    );
 
     return {
       id: createEntryId('asteroid'),
@@ -107,7 +123,8 @@ export const asteroidAdapter = {
       createdAt: new Date().toISOString(),
       replayFormat: 'asteroid-input-base64-v1',
       replayData: payload.replayData,
-      replayDigest: verified.replayDigest
+      replayDigest: verified.replayDigest,
+      seed: Number(payload?.seed ?? 0)
     };
   },
 
@@ -121,6 +138,7 @@ export const asteroidAdapter = {
       score: row.score,
       replayDigest: row.replayDigest,
       replayData: row.replayData,
+      seed: Number(summary.seed ?? row.seed ?? 0),
       summary
     };
   }

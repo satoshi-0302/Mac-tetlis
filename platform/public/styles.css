@@ -123,26 +123,49 @@ body::before {
 .game-card {
   position: relative;
   overflow: hidden;
-  min-height: 280px;
-  padding: 20px;
+  min-height: 300px;
   border-radius: 24px;
   border: 1px solid var(--card-border);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 22%),
-    var(--card);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(16px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.6);
+}
+
+.game-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--bg-img);
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+
+.game-card:hover::before {
+  transform: scale(1.06);
 }
 
 .game-card::after {
   content: "";
   position: absolute;
-  inset: auto -10% -30% auto;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(131, 248, 255, 0.14), transparent 68%);
+  inset: 0;
+  background: linear-gradient(to top, rgba(9, 22, 31, 0.95) 0%, rgba(9, 22, 31, 0.6) 50%, rgba(9, 22, 31, 0.2) 100%);
   pointer-events: none;
+  z-index: 1;
+}
+
+.card-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
 }
 
 .card-meta {
@@ -211,7 +234,8 @@ body::before {
 }
 
 .action-row {
-  margin-top: 20px;
+  margin-top: auto;
+  padding-top: 24px;
   display: grid;
   gap: 10px;
 }
@@ -256,6 +280,8 @@ body::before {
   place-items: center;
   text-align: center;
   color: var(--text-muted);
+  padding: 24px;
+  background: var(--card);
 }
 
 @media (max-width: 980px) {

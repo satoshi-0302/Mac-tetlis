@@ -672,8 +672,8 @@ button:focus-visible {
 
 .leaderboard-entry {
   display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) auto auto;
-  gap: 10px;
+  grid-template-columns: 26px minmax(0, 1fr) 80px 72px;
+  gap: 12px;
   align-items: center;
   padding: 8px 10px;
   border-radius: 12px;
@@ -719,11 +719,15 @@ button:focus-visible {
 
 .leaderboard-score {
   font-family: var(--font-display);
+  text-align: right;
+  color: var(--accent-gold);
 }
 
 .replay-button {
-  min-width: 88px;
-  padding-inline: 12px;
+  min-width: 64px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  height: 32px;
 }
 
 .result-panel {
@@ -975,17 +979,22 @@ button:focus-visible {
   }
 
   .leaderboard-entry {
-    grid-template-columns: 22px minmax(0, 1fr) auto;
+    grid-template-columns: 22px minmax(0, 1fr) 64px;
+    gap: 8px;
   }
 
   .leaderboard-score {
     grid-column: 2;
+    text-align: left;
+    font-size: 0.85rem;
   }
 
   .replay-button {
     grid-column: 3;
     grid-row: 1 / span 2;
-    align-self: stretch;
+    align-self: center;
+    min-width: 0;
+    width: 100%;
   }
 
   .screen-panel {
@@ -1017,6 +1026,23 @@ body[data-mobile="true"][data-mode="replay"][data-portrait="false"] .mobile-hud-
 
 body[data-route-mode="mobile"] {
   padding: 8px;
+}
+
+.mobile-hud-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.mobile-hud-actions button {
+  min-height: 36px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  background: rgba(126, 248, 255, 0.15);
+  border: 1px solid rgba(126, 248, 255, 0.4);
+  color: var(--accent-cyan);
+  pointer-events: auto;
 }
 
 body[data-route-mode="mobile"] .topbar {

@@ -58,6 +58,7 @@ export class Game {
       onReplay: (entry) => this.startReplayFromEntry(entry),
       onExitReplay: () => this.exitReplay(),
       onRefreshLeaderboard: () => this.refreshLeaderboard(),
+      onShowLeaderboard: () => this.refreshLeaderboard(),
       onNameChange: (value) => this.handlePlayerNameChange(value),
       onCommentChange: (value) => this.handlePlayerCommentChange(value),
     });

@@ -1,3 +1,4 @@
+import { exec } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -33,12 +34,13 @@ function normalizeRequestedUrls() {
   return values;
 }
 
-const DEFAULT_BASE_URL = 'https://codex-web-platform.yqs01140.workers.dev';
+const DEFAULT_BASE_URL = 'http://localhost:9090';
 const deviceName = readFlag('--device', 'iPhone 14');
 const outDir = resolve(readFlag('--out-dir', './docs/screenshots/generated'));
 const baseUrl = readFlag('--base-url', DEFAULT_BASE_URL).replace(/\/+$/, '');
 const landscape = hasFlag('--landscape');
 const fullPage = hasFlag('--full-page');
+const openOnFinish = hasFlag('--open') || process.platform === 'darwin';
 
 const defaultTargets = [
   { slug: 'lobby', path: '/' },
@@ -57,7 +59,12 @@ function buildTargets(urls) {
   }
 
   return urls.map((value, index) => {
-    const url = value.startsWith('http://') || value.startsWith('https://') ? value : `${baseUrl}${value}`;
+    let path = value;
+    // If it's a simple slug like 'stackfall', expand it
+    if (!value.includes('/') && !value.includes('.')) {
+      path = `/games/${value}/?mode=mobile`;
+    }
+    const url = path.startsWith('http://') || path.startsWith('https://') ? path : `${baseUrl}${path}`;
     const parsed = new URL(url);
     const slugBase = `${parsed.pathname}${parsed.search}`
       .replace(/[^a-zA-Z0-9]+/g, '-')
@@ -107,12 +114,17 @@ async function main() {
     for (const target of targets) {
       const page = await context.newPage();
       await page.goto(target.url, { waitUntil: 'networkidle' });
+      const screenshotPath = resolve(outDir, `${target.slug}${landscape ? '-landscape' : ''}.png`);
       await page.screenshot({
-        path: resolve(outDir, `${target.slug}${landscape ? '-landscape' : ''}.png`),
+        path: screenshotPath,
         fullPage
       });
       await page.close();
-      console.log(`Captured: ${target.url}`);
+      console.log(`Captured: ${target.url} -> ${screenshotPath}`);
+
+      if (openOnFinish) {
+        exec(`open "${screenshotPath}"`);
+      }
     }
   } finally {
     await context.close();

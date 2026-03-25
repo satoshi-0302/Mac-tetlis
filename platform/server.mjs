@@ -53,7 +53,7 @@ const staticMounts = [
     prefix: '/static/',
     rootDir: PLATFORM_PUBLIC_DIR,
     allowRootFiles: new Set(['styles.css', 'lobby.js']),
-    allowDirs: new Set(['icons'])
+    allowDirs: new Set(['icons', 'assets'])
   },
   {
     prefix: '/games/snake60/',

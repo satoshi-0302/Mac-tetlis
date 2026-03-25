@@ -24,6 +24,7 @@ import {
   SHIP_ROTATE_SPEED,
   SHIP_THRUST_ACCEL,
   SHOT_COOLDOWN_TICKS,
+  TICK_RATE
 } from '../engine/constants.js';
 import { createSpawnSchedule } from './spawn-schedule.js';
 
@@ -662,7 +663,10 @@ export function summarizeRun(state) {
     shotsFired: state.shotsFired,
     hits: state.hits,
     accuracy: state.shotsFired > 0 ? state.hits / state.shotsFired : 0,
-    maxCombo: state.maxCombo
+    maxCombo: state.maxCombo,
+    survivalTicks: state.tick,
+    survivalSeconds: Math.round((state.tick / TICK_RATE) * 10000) / 10000,
+    endReason: state.endReason
   };
 }
 
