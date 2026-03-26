@@ -57,8 +57,8 @@ const staticMounts = [
   },
   {
     prefix: '/games/snake60/',
-    rootDir: join(ROOT_DIR, 'games', 'snake60'),
-    allowRootFiles: new Set(['index.html', 'style.css', 'game.js', 'audio.js'])
+    rootDir: join(ROOT_DIR, 'games', 'snake60', 'dist'),
+    allowAll: true
   },
   {
     prefix: '/games/missile-command/',

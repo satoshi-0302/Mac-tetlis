@@ -287,8 +287,8 @@ class Reel {
         ctx.rect(this.x, this.y, this.width, this.height);
         ctx.clip();
 
-        // White background for the reel strip
-        ctx.fillStyle = '#ffffff';
+        // Dark translucent background for the reel strip
+        ctx.fillStyle = 'rgba(10, 5, 20, 0.8)';
         ctx.fillRect(this.x, this.y, this.width, this.height);
 
         const symbolHeight = CONFIG.SYMBOL_SIZE;
@@ -310,13 +310,17 @@ class Reel {
             const img = ASSETS[symbolData.img].img;
             if (img && img.complete) {
                 // Draw symbol image
-                // Add padding to make it look nice
-                const p = 10;
-                ctx.drawImage(img, this.x + p, drawY + p, this.width - p * 2, symbolHeight - p * 2);
+                // No padding needed as the new symbols have their own glow
+                ctx.drawImage(img, this.x, drawY, this.width, symbolHeight);
             } else {
-                // Fallback text
-                ctx.fillStyle = '#000';
+                // Fallback text with neon glow
+                ctx.shadowColor = symbolData.color || '#fff';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 24px Inter, sans-serif';
+                ctx.textAlign = 'center';
                 ctx.fillText(symbolData.name, this.x + this.width / 2, drawY + symbolHeight / 2);
+                ctx.shadowBlur = 0;
             }
         }
 
@@ -921,13 +925,12 @@ class Game {
             this.ctx.translate(dx, dy);
         }
 
-        this.ctx.fillStyle = '#1e1e1e';
+        this.ctx.fillStyle = '#0b011d';
         if (this.flashTimer > 0 && Math.floor(Date.now() / 50) % 2 === 0) {
-            this.ctx.fillStyle = '#555';
+            this.ctx.fillStyle = '#2a0a5a';
         }
         if (this.feverMode) {
-            const hue = (Date.now() / 10) % 360;
-            this.ctx.fillStyle = `hsl(${hue}, 20%, 20%)`;
+            this.ctx.fillStyle = '#1a0033';
         }
         this.ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
 
@@ -989,31 +992,22 @@ class Game {
 
     drawCabinet() {
         const ctx = this.ctx;
-        const totalReelWidth = (CONFIG.REEL_WIDTH * CONFIG.REEL_COUNT) + (20 * (CONFIG.REEL_COUNT - 1));
-        const startX = (CONFIG.CANVAS_WIDTH - totalReelWidth) / 2;
-        const startY = (CONFIG.CANVAS_HEIGHT - CONFIG.REEL_HEIGHT) / 2;
-
         ctx.save();
 
         if (ASSETS.cabinet.img.complete) {
             // Draw the cabinet image centered
-            // The image is 800x600, same as canvas
             ctx.drawImage(ASSETS.cabinet.img, 0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
-
-            // Black out the reel area so particles/background don't show through nicely if image is transparent
-            // The generated image might be transparent in the middle.
-            ctx.fillStyle = '#000';
-            // Draw a rect behind the reels
-            // (already drawn by clearScreen, but maybe cabinet image has alpha?)
-            // Let's assume cabinet image overlays everything except reel area.
         } else {
             // Fallback
+            const totalReelWidth = (CONFIG.REEL_WIDTH * CONFIG.REEL_COUNT) + (20 * (CONFIG.REEL_COUNT - 1));
+            const startX = (CONFIG.CANVAS_WIDTH - totalReelWidth) / 2;
+            const startY = (CONFIG.CANVAS_HEIGHT - CONFIG.REEL_HEIGHT) / 2;
             const padding = 30;
             const cx = startX - padding;
             const cy = startY - padding;
             const cw = totalReelWidth + (padding * 2);
             const ch = CONFIG.REEL_HEIGHT + (padding * 2);
-            this.fillRoundRect(cx - 20, cy - 20, cw + 40, ch + 40, 20, '#222');
+            this.fillRoundRect(cx - 20, cy - 20, cw + 40, ch + 40, 20, '#120458');
             ctx.fillStyle = '#000';
             this.fillRoundRect(startX - 10, startY - 10, totalReelWidth + 20, CONFIG.REEL_HEIGHT + 20, 5, '#000');
         }
@@ -1049,59 +1043,58 @@ class Game {
 
         ctx.save();
 
-        ctx.shadowColor = '#00ff00';
-        ctx.shadowBlur = 10;
+        // Neon Pink Payline
+        ctx.shadowColor = '#ff00ff';
+        ctx.shadowBlur = 15;
 
-        ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#ff00ff';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([10, 5]); // Dashed line for high-tech look
         ctx.beginPath();
-        // Since we have a cabinet image now, we might need to adjust line length
-        // to not look weird on top of it.
-        ctx.moveTo(startX - 30, paylineY);
-        ctx.lineTo(startX + totalReelWidth + 30, paylineY);
-        ctx.stroke();
-
-        ctx.fillStyle = '#ff0000';
-
-        // Arrows
-        ctx.beginPath();
-        ctx.moveTo(startX - 50, paylineY - 15);
-        ctx.lineTo(startX - 50, paylineY + 15);
-        ctx.lineTo(startX - 20, paylineY);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(startX + totalReelWidth + 50, paylineY - 15);
-        ctx.lineTo(startX + totalReelWidth + 50, paylineY + 15);
+        ctx.moveTo(startX - 20, paylineY);
         ctx.lineTo(startX + totalReelWidth + 20, paylineY);
-        ctx.closePath();
-        ctx.fill();
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 16px Arial';
-        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ff00ff';
+
+        // High-tech Arrows (Chevron style)
+        const drawChevron = (x, y, dir) => {
+            ctx.beginPath();
+            ctx.moveTo(x, y - 10);
+            ctx.lineTo(x + 10 * dir, y);
+            ctx.lineTo(x, y + 10);
+            ctx.lineTo(x - 5 * dir, y);
+            ctx.closePath();
+            ctx.fill();
+        };
+
+        drawChevron(startX - 35, paylineY, 1);
+        drawChevron(startX + totalReelWidth + 35, paylineY, -1);
+
+        ctx.fillStyle = '#00ffff';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#00ffff';
         ctx.textAlign = 'right';
-        ctx.fillText("PAYLINE", startX - 60, paylineY + 5);
+        ctx.fillText("SCAN LINE", startX - 50, paylineY + 4);
 
         ctx.restore();
     }
 
     drawUI() {
-        // Adjust UI positions to likely fit the cabinet image
-        // Usually top/bottom bars
         this.ctx.fillStyle = '#fff';
-        this.ctx.font = 'bold 30px Courier New';
-        this.ctx.shadowColor = '#000';
-        this.ctx.shadowBlur = 5;
+        this.ctx.font = 'bold 24px Inter, sans-serif';
+        this.ctx.shadowColor = '#ff00ff';
+        this.ctx.shadowBlur = 8;
 
         // Position score top left
         this.ctx.textAlign = 'left';
-        this.ctx.fillText(`SCORE: ${this.score}`, 40, 50);
+        this.ctx.fillText(`CREDITS: ${this.score}`, 60, 60);
 
         // Position best score top right
         this.ctx.textAlign = 'right';
-        this.ctx.fillText(`BEST: ${this.highScore}`, CONFIG.CANVAS_WIDTH - 40, 50);
+        this.ctx.fillText(`RECORD: ${this.highScore}`, CONFIG.CANVAS_WIDTH - 60, 60);
 
         const secondsLeft = this.timeLeftMs / 1000;
         let timeColor = '#ffffff';

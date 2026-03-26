@@ -88,66 +88,55 @@ async function registerPwaSupport() {
 function renderGameCard(game) {
   const article = document.createElement('article');
   article.className = 'game-card';
-  article.style.setProperty('--bg-img', `url("/static/assets/thumbnails/${game.id}.png")`);
 
+  const media = document.createElement('div');
+  media.className = 'card-media';
+
+  const thumb = document.createElement('img');
+  thumb.className = 'card-thumb';
+  thumb.src = `/static/assets/thumbnails/${game.id}.png`;
+  thumb.alt = `${game.title} thumbnail`;
+  thumb.loading = 'lazy';
+
+  const scoreLine = document.createElement('div');
+  scoreLine.className = 'score-line';
+  scoreLine.innerHTML = `
+    <span class="score-label">BEST ${game.topEntry ? formatScore(game.topEntry.score) : '--'}</span>
+    <span class="score-sub">${game.topEntry ? game.topEntry.name : 'NO RECORD'}</span>
+  `;
 
   const content = document.createElement('div');
   content.className = 'card-content';
 
-  const meta = document.createElement('div');
-  meta.className = 'card-meta';
-
-  const badge = document.createElement('span');
-  badge.className = `device-badge ${game.supportsTouch ? 'touch' : 'desktop'}`;
-  badge.textContent = game.supportsTouch ? 'PC / スマホ' : 'PC 優先';
-
-  const replayBadge = document.createElement('span');
-  replayBadge.className = 'device-badge replay';
-  replayBadge.textContent = game.supportsReplay ? 'Replay 対応' : 'Replay なし';
-
-  meta.append(badge, replayBadge);
-
-  const title = document.createElement('h2');
-  title.textContent = game.title;
-
-  const description = document.createElement('p');
-  description.className = 'card-copy';
-  description.textContent = game.description;
-
-  const scoreBlock = document.createElement('div');
-  scoreBlock.className = 'score-block';
-  scoreBlock.innerHTML = `
-    <span class="score-label">現在の 1 位</span>
-    <strong>${game.topEntry ? formatScore(game.topEntry.score) : '--'}</strong>
-    <span class="score-sub">${game.topEntry ? `${game.topEntry.name} / ${game.topEntry.kind === 'ai' ? 'AI' : 'PLAYER'}` : 'まだ記録がありません'}</span>
-  `;
-
-  const actionRow = document.createElement('div');
-  actionRow.className = 'action-row';
-
   const primaryLink = document.createElement('a');
   primaryLink.className = 'play-button';
-  primaryLink.href = resolveRoute(game, 'auto');
-  primaryLink.textContent = shouldPreferMobileRoute() ? 'PLAY MOBILE' : 'PLAY DESKTOP';
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentMode = urlParams.get('mode') || (shouldPreferMobileRoute() ? 'mobile' : 'desktop');
+  primaryLink.href = resolveRoute(game, currentMode);
+  primaryLink.textContent = 'PLAY';
 
-  const variantRow = document.createElement('div');
-  variantRow.className = 'variant-row';
-
-  const desktopLink = document.createElement('a');
-  desktopLink.className = 'variant-link';
-  desktopLink.href = resolveRoute(game, 'desktop');
-  desktopLink.textContent = 'PC版';
-
-  const mobileLink = document.createElement('a');
-  mobileLink.className = 'variant-link';
-  mobileLink.href = resolveRoute(game, 'mobile');
-  mobileLink.textContent = 'スマホ版';
-
-  variantRow.append(desktopLink, mobileLink);
-  actionRow.append(primaryLink, variantRow);
-  content.append(meta, title, description, scoreBlock, actionRow);
-  article.append(content);
+  media.append(thumb, scoreLine);
+  content.append(primaryLink);
+  article.append(media, content);
   return article;
+}
+
+function initModeSwitcher() {
+  const toggleBtn = document.getElementById('modeToggleButton');
+  const toggleText = document.getElementById('toggleText');
+  if (!toggleBtn || !toggleText) return;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentMode = urlParams.get('mode');
+  const isMobile = currentMode === 'mobile' || (!currentMode && shouldPreferMobileRoute());
+
+  toggleText.textContent = isMobile ? 'SWITCH TO DESKTOP' : 'SWITCH TO MOBILE';
+
+  toggleBtn.addEventListener('click', () => {
+    const nextMode = isMobile ? 'desktop' : 'mobile';
+    urlParams.set('mode', nextMode);
+    window.location.search = urlParams.toString();
+  });
 }
 
 async function loadGames() {
@@ -187,4 +176,14 @@ async function loadGames() {
 }
 
 void registerPwaSupport();
+void initModeSwitcher();
+void loadGames();
+errorCard.className = 'game-card loading-card';
+errorCard.textContent = 'ゲーム一覧の読み込みに失敗しました。';
+grid.append(errorCard);
+  }
+}
+
+void registerPwaSupport();
+void initModeSwitcher();
 void loadGames();

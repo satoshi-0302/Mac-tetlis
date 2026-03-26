@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-lobby-v4';
+const CACHE_NAME = 'arcade-lobby-v5';
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
@@ -41,6 +41,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isNavigationRequest(event.request) || url.pathname.startsWith('/games/')) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
+
+  if (url.pathname === '/static/styles.css' || url.pathname === '/static/lobby.js') {
     event.respondWith(networkFirst(event.request));
     return;
   }
