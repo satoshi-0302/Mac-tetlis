@@ -138,3 +138,52 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .btn.tiny { padding: 4px 8px; font-size: 0.75rem; }
 
 /* Removed media overrides since layout is fully responsive absolute overlay */
+
+/* Standardized Title Screen Styles */
+#title-overlay {
+  position: absolute; inset: 0; z-index: 150;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(2, 5, 10, 0.92); backdrop-filter: blur(8px);
+  padding: 20px; text-align: center; color: var(--text-main);
+  pointer-events: auto;
+}
+#title-overlay.hidden { display: none !important; }
+
+.game-title-thumbnail {
+  display: block; width: min(85%, 340px); aspect-ratio: 16 / 9;
+  margin: 0 auto 20px; border: 2px solid var(--accent-cyan);
+  border-radius: 12px; box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+  object-fit: cover;
+}
+
+.network-top-score {
+  margin-bottom: 28px;
+}
+.network-top-score .label {
+  display: block; font-size: 0.75rem; color: var(--accent-gold);
+  font-family: var(--font-display); letter-spacing: 2px; margin-bottom: 6px;
+}
+.network-top-score .value {
+  display: block; font-size: 2.4rem; font-weight: 900;
+  font-family: var(--font-display); color: #fff; line-height: 1;
+}
+.network-top-score .name {
+  display: block; font-size: 1rem; color: var(--text-dim); margin-top: 6px;
+}
+
+.platform-switcher {
+  margin-top: 36px; padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: min(100%, 320px);
+}
+.switch-link {
+  color: var(--accent-cyan); text-decoration: none;
+  font-family: var(--font-display); font-size: 0.8rem;
+  opacity: 0.8; letter-spacing: 1px;
+}
+.switch-link:hover { opacity: 1; text-decoration: underline; }
+
+@media (max-width: 600px) {
+  .game-title-thumbnail { width: 260px; }
+  .network-top-score .value { font-size: 1.8rem; }
+}

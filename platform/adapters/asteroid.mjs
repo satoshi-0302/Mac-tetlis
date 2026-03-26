@@ -6,7 +6,7 @@ import { GAME_VERSION, MAX_TICKS } from '../../games/asteroid/src/engine/constan
 import { runReplay } from '../../games/asteroid/src/game/sim-core.js';
 import { createSpawnSchedule } from '../../games/asteroid/src/game/spawn-schedule.js';
 import { decodeReplay, validateReplayBytes } from '../../games/asteroid/src/replay/replay.js';
-import { createEntryId, parseStoredJson, sanitizeComment, sanitizePlayerName, sha256 } from '../sanitize.mjs';
+import { createEntryId, parseStoredJson, sanitizePlayerName, sanitizeRequiredComment, sha256 } from '../sanitize.mjs';
 
 const ROOT_DIR = fileURLToPath(new URL('../../games/asteroid/', import.meta.url));
 const AI_LEADERBOARD_PATH = join(ROOT_DIR, 'public', 'rl', 'ai-top10.json');
@@ -16,7 +16,7 @@ function createSubmissionError(message, statusCode = 400) {
   return error;
 }
 
-function verifyReplayData(replayData, claimedScore, replayDigest, seed = 0) {
+function verifyReplayData(replayData, claimedScore, replayDigest, seed = 0, { requireClaimedScoreMatch = true } = {}) {
   if (typeof replayData !== 'string' || replayData.length === 0) {
     throw createSubmissionError('replayData is required');
   }
@@ -42,7 +42,7 @@ function verifyReplayData(replayData, claimedScore, replayDigest, seed = 0) {
 
   const spawnSchedule = createSpawnSchedule(seed);
   const replayResult = runReplay(replayBytes, spawnSchedule);
-  if (replayResult.summary.score !== claimedScore) {
+  if (requireClaimedScoreMatch && replayResult.summary.score !== claimedScore) {
     throw createSubmissionError(
       `score mismatch after verification (submitted ${claimedScore}, verified ${replayResult.summary.score}, seed ${seed})`
     );
@@ -75,14 +75,16 @@ export const asteroidAdapter = {
               entry.replayData,
               Math.max(0, Math.round(Number(entry.score) || 0)),
               entry.replayDigest,
-              Number(entry.seed ?? 0)
+              Number(entry.seed ?? 0),
+              { requireClaimedScoreMatch: false }
             );
+            const verifiedScore = Math.max(0, Math.round(Number(verified.summary?.score) || 0));
             return {
               id: String(entry.id ?? `asteroid-ai-${index + 1}`),
               kind: 'ai',
               name: sanitizePlayerName(entry.name, `AI-${index + 1}`),
-              comment: sanitizeComment(entry.message ?? ''),
-              score: Math.max(0, Math.round(Number(entry.score) || 0)),
+              comment: sanitizeRequiredComment(entry.message ?? '', `AI RUN ${index + 1}`),
+              score: verifiedScore,
               summary: verified.summary,
               gameVersion: String(parsed?.gameVersion ?? GAME_VERSION),
               createdAt: generatedAt,
@@ -116,7 +118,7 @@ export const asteroidAdapter = {
       id: createEntryId('asteroid'),
       kind: payload?.kind === 'ai' ? 'ai' : 'human',
       name: sanitizePlayerName(payload?.name, 'ANON'),
-      comment: sanitizeComment(payload?.message ?? payload?.comment ?? ''),
+      comment: sanitizeRequiredComment(payload?.message ?? payload?.comment ?? ''),
       score: verified.summary.score,
       summary: verified.summary,
       gameVersion: GAME_VERSION,

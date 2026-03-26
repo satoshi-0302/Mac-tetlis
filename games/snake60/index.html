@@ -40,6 +40,14 @@
             <div id="ui-layer" class="overlay-screen active">
                 <!-- Title Screen -->
                 <div id="title-screen" class="screen active">
+                    <img src="/static/assets/thumbnails/snake60.png" class="game-title-thumbnail" alt="Snake60 Thumbnail">
+                    
+                    <div class="top-score-display">
+                        <span class="label">NETWORK HIGH SCORE</span>
+                        <strong class="score-value" id="network-high-score-value">---</strong>
+                        <span class="score-name" id="network-high-score-name">---</span>
+                    </div>
+
                     <h1 class="glitch" data-text="WebSnake">WebSnake</h1>
                     <p class="subtitle">NEON EDITION</p>
 
@@ -56,7 +64,11 @@
                     </div>
 
                     <div class="start-prompt blink">PRESS [SPACE] TO START</div>
-                    <button id="touch-start-button" class="neon-button touch-only" type="button">TAP TO START</button>
+                    <button id="play-button" class="neon-button play-button" type="button">PLAY</button>
+
+                    <div class="platform-switcher">
+                        <a href="#" id="platform-switch-link" class="switch-link">---</a>
+                    </div>
                 </div>
 
                 <!-- Game Over Screen -->

@@ -22,6 +22,9 @@ export class GameUI {
     this.mobileHighScoreValue = document.getElementById("mobileHighScoreValue");
     this.mobileTimeValue = document.getElementById("mobileTimeValue");
     this.titleHighScore = document.getElementById("titleHighScore");
+    this.networkHighScoreValue = document.getElementById("networkHighScoreValue");
+    this.networkHighScoreName = document.getElementById("networkHighScoreName");
+    this.platformSwitchLink = document.getElementById("platformSwitchLink");
     this.statusLine = document.getElementById("statusLine");
 
     this.titleScreen = document.getElementById("titleScreen");
@@ -79,6 +82,24 @@ export class GameUI {
     this.playerCommentInput.addEventListener("input", (event) => this.onCommentChange?.(event.target.value));
     this.onReplay = onReplay;
     this.onCommentChange = onCommentChange;
+
+    this.setupPlatformSwitcher();
+  }
+
+  setupPlatformSwitcher() {
+    const params = new URLSearchParams(window.location.search);
+    const currentMode = params.get("mode");
+    const coarse = typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+    const isMobile = currentMode === "mobile" || (currentMode !== "desktop" && coarse);
+
+    if (isMobile) {
+      this.platformSwitchLink.textContent = "PC版で遊ぶ";
+      params.set("mode", "desktop");
+    } else {
+      this.platformSwitchLink.textContent = "スマホ版で遊ぶ";
+      params.set("mode", "mobile");
+    }
+    this.platformSwitchLink.href = `?${params.toString()}`;
   }
 
   updateHud({ score, maxChain, timeLeft, aliveCities, cityCount, highScore, state }) {
@@ -153,11 +174,22 @@ export class GameUI {
   }
 
   setLeaderboard(board) {
+    const entries = board?.combinedEntries ?? [];
     this.renderLeaderboardList(
       this.leaderboardList,
-      board?.combinedEntries ?? [],
+      entries,
       "Leader board is still empty",
     );
+
+    // Update title screen Top Score
+    if (entries.length > 0) {
+      const top = entries[0];
+      this.networkHighScoreValue.textContent = Number(top.score ?? 0).toLocaleString("ja-JP");
+      this.networkHighScoreName.textContent = top.name || "---";
+    } else {
+      this.networkHighScoreValue.textContent = "---";
+      this.networkHighScoreName.textContent = "---";
+    }
   }
 
   setLeaderboardStatus(text, isError = false) {

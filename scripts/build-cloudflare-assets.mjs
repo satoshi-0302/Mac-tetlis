@@ -37,6 +37,7 @@ function copyPlatform() {
     copyPath(resolve(publicDir, fileName), resolve(OUT_DIR, 'static', fileName), false);
   }
   copyPath(resolve(publicDir, 'icons'), resolve(OUT_DIR, 'static', 'icons'), true);
+  copyPath(resolve(publicDir, 'assets'), resolve(OUT_DIR, 'static', 'assets'), true);
 }
 
 function copySnake() {

@@ -20,7 +20,7 @@
 | Snake60 | `games/snake60/` | Yes | Yes |
 | Missile Command | `games/missile-command/` | Yes | Yes |
 | Asteroid | `games/asteroid/` | Yes | Yes |
-| Slot60 | `games/slot60/` | Yes | No |
+| Slot60 | `games/slot60/` | Yes | Yes |
 | Stackfall | `games/stackfall/` | Yes | Yes |
 
 ## 端末別の入口

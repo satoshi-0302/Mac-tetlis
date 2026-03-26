@@ -28,6 +28,11 @@ export function sanitizeComment(value) {
   return sanitizeText(value, 20);
 }
 
+export function sanitizeRequiredComment(value, fallback = 'NO COMMENT') {
+  const cleaned = sanitizeComment(value);
+  return cleaned || fallback;
+}
+
 export function sha256(value) {
   return createHash('sha256').update(String(value ?? '')).digest('hex');
 }

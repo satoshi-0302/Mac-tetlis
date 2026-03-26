@@ -56,6 +56,14 @@ const CONFIG = {
     LEADERBOARD_LIMIT: 10
 };
 
+const SLOT_REPLAY_VERSION = 'slot60-replay-v1';
+
+async function sha256Hex(value) {
+    const data = new TextEncoder().encode(String(value ?? ''));
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Assets
 const ASSETS = {
     cabinet: { src: 'assets/cabinet.png', img: new Image() },
@@ -385,10 +393,35 @@ class Game {
         this.finalRank = null;
         this.submittingScore = false;
         this.finalSubmissionError = '';
+        this.replayRounds = [];
+        this.replaySeed = Math.floor(Math.random() * 0x7fffffff);
 
         // Load Assets
         this.loadAssets();
         this.loadLeaderboardFromServer();
+        
+        this.titleOverlay = document.getElementById('title-screen');
+        this.playBtn = document.getElementById('play-button');
+        if (this.playBtn) {
+            this.playBtn.addEventListener('click', () => this.handleInput('primary'));
+        }
+        this.setupPlatformSwitcher();
+    }
+
+    setupPlatformSwitcher() {
+        const params = new URLSearchParams(window.location.search);
+        const link = document.getElementById('platform-switch-link');
+        const isMobile = document.body.dataset.routeMode === 'mobile';
+        if (!link) return;
+
+        if (isMobile) {
+            link.textContent = 'PC版で遊ぶ';
+            params.set('mode', 'desktop');
+        } else {
+            link.textContent = 'スマホ版で遊ぶ';
+            params.set('mode', 'mobile');
+        }
+        link.href = `?${params.toString()}`;
     }
 
     createEmptyStats() {
@@ -424,8 +457,23 @@ class Game {
             const payload = await response.json();
             this.leaderboard = this.normalizeLeaderboardRows(payload?.combinedEntries || payload?.entries || []);
             this.highScore = this.leaderboard[0]?.score || 0;
+            this.updateOverlay();
         } catch (error) {
             console.warn('Failed to load slot60 leaderboard:', error);
+        }
+    }
+
+    updateOverlay() {
+        const isActive = this.state === GAME_STATE.INTRO;
+        if (this.titleOverlay) {
+            this.titleOverlay.classList.toggle('active', isActive);
+            if (isActive && this.leaderboard.length > 0) {
+                const top = this.leaderboard[0];
+                const netVal = document.getElementById('net-high-score-value');
+                const netName = document.getElementById('net-high-score-name');
+                if (netVal) netVal.textContent = top.score.toLocaleString();
+                if (netName) netName.textContent = top.name;
+            }
         }
     }
 
@@ -433,17 +481,29 @@ class Game {
         if (score <= 0 || this.submittingScore) return;
         const nameInput = window.prompt('名前を入力してください（12文字まで）', 'PLAYER');
         const name = (nameInput || 'PLAYER').trim().slice(0, 12) || 'PLAYER';
+        const commentInput = window.prompt('コメントを入力してください（20文字まで）', 'HOT STREAK');
+        const message = (commentInput || 'NO COMMENT').trim().slice(0, 20) || 'NO COMMENT';
         this.submittingScore = true;
         this.finalSubmissionError = '';
 
         try {
+            const replayData = JSON.stringify({
+                version: SLOT_REPLAY_VERSION,
+                seed: this.replaySeed,
+                strips: this.reels.map((reel) => [...reel.symbols]),
+                rounds: this.replayRounds.map((round) => ({ ...round }))
+            });
+            const replayDigest = await sha256Hex(replayData);
             const response = await fetch('/api/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     gameId: 'slot60',
                     name,
-                    score
+                    message,
+                    score,
+                    replayData,
+                    replayDigest
                 })
             });
             const payload = await response.json();
@@ -605,6 +665,10 @@ class Game {
         if (this.state === GAME_STATE.STOPPING && allStopped) {
             this.evaluateResult();
         }
+        
+        if (this.state === GAME_STATE.INTRO && this.titleOverlay && !this.titleOverlay.classList.contains('active')) {
+             this.updateOverlay();
+        }
     }
 
     handleInput(action) {
@@ -654,6 +718,9 @@ class Game {
         this.finalRank = null;
         this.finalSubmissionError = '';
         this.submittingScore = false;
+        this.replayRounds = [];
+        this.replaySeed = Math.floor(Math.random() * 0x7fffffff);
+        this.updateOverlay();
     }
 
     spin() {
@@ -793,6 +860,16 @@ class Game {
             this.state = GAME_STATE.IDLE;
             this.message = "TRY AGAIN";
         }
+
+        this.replayRounds.push({
+            results: [...results],
+            payout,
+            scoreAfter: this.score,
+            timeLeftMs: Math.max(0, Math.floor(this.timeLeftMs)),
+            feverMode: this.feverMode,
+            reachMode: this.reachMode,
+            comboCount: this.comboCount
+        });
     }
 
     endTimeAttack() {

@@ -165,6 +165,22 @@ app.innerHTML = `
         </div>
       </div>
       
+      <div id="title-overlay">
+        <img src="/static/assets/thumbnails/stackfall.png" class="game-title-thumbnail" alt="Stackfall Thumbnail">
+        
+        <div class="network-top-score">
+          <span class="label">NETWORK HIGH SCORE</span>
+          <strong class="value" id="net-high-score-value">---</strong>
+          <span class="name" id="net-high-score-name">---</span>
+        </div>
+
+        <button id="btn-play-now" class="primary-btn">PLAY</button>
+
+        <div class="platform-switcher">
+          <a href="#" id="platform-switch-link" class="switch-link">---</a>
+        </div>
+      </div>
+
       <div id="runtimeStatus" class="runtime-status-overlay"></div>
 
       <div class="bottom-bar">
@@ -262,6 +278,29 @@ ui.btnStart.addEventListener('click', () => {
 });
 
 (ui.nameInput as HTMLInputElement).value = localStorage.getItem(STORAGE_KEY) || '';
+
+const titleOverlay = document.getElementById('title-overlay');
+const btnPlayNow = document.getElementById('btn-play-now');
+btnPlayNow?.addEventListener('click', () => {
+    titleOverlay?.classList.add('hidden');
+    if (gameSceneInstance) gameSceneInstance.startRun(null);
+});
+
+function setupPlatformSwitcher() {
+    const params = new URLSearchParams(window.location.search);
+    const link = document.getElementById('platform-switch-link') as HTMLAnchorElement;
+    if (!link) return;
+
+    if (isMobile) {
+        link.textContent = 'PC版で遊ぶ';
+        params.set('mode', 'desktop');
+    } else {
+        link.textContent = 'スマホ版で遊ぶ';
+        params.set('mode', 'mobile');
+    }
+    link.href = `?${params.toString()}`;
+}
+setupPlatformSwitcher();
 
 let gameSceneInstance: StackfallScene | null = null;
 
@@ -1011,14 +1050,14 @@ class StackfallScene extends Phaser.Scene {
           localStorage.setItem(STORAGE_KEY, playerName);
           const payload = {
             name: playerName,
-            message: ui.messageInput.value.trim(),
+            message: ui.messageInput.value.trim() || 'NO COMMENT',
             score: this.score,
             lines: this.lines,
             replayData: replayDataStr,
             replayDigest: digest
           };
           const res = await submitScore(payload);
-          if (res.success) {
+          if (res?.entry || res?.leaderboard) {
             ui.submitForm.reset();
             refreshLeaderboard();
           }
@@ -1029,6 +1068,9 @@ class StackfallScene extends Phaser.Scene {
         }
       };
     }
+    
+    const titleOverlay = document.getElementById('title-overlay');
+    if (titleOverlay) titleOverlay.classList.remove('hidden');
   }
 
   syncHud() {
@@ -1090,6 +1132,14 @@ async function refreshLeaderboard() {
       `;
       ui.leaderboardList.appendChild(el);
     });
+
+    if (lb.length > 0) {
+      const top = lb[0];
+      const netVal = document.getElementById('net-high-score-value');
+      const netName = document.getElementById('net-high-score-name');
+      if (netVal) netVal.textContent = top.score.toString();
+      if (netName) netName.textContent = top.name;
+    }
     
     document.querySelectorAll('.play-replay-btn').forEach(btn => {
       btn.addEventListener('click', async (_e: Event) => {

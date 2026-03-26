@@ -52,6 +52,18 @@ app.innerHTML = `
     <section class="game-column">
       <div class="canvas-wrap">
         <canvas id="gameCanvas" width="960" height="640" aria-label="Asteroids 60 game canvas"></canvas>
+        <div id="title-screen" class="active">
+          <img src="/static/assets/thumbnails/asteroid.png" class="game-title-thumbnail" alt="Asteroid Thumbnail">
+          <div class="top-score-display">
+            <span class="label">NETWORK HIGH SCORE</span>
+            <strong class="score-value" id="net-high-score-total">---</strong>
+            <span class="score-name" id="net-high-score-player">---</span>
+          </div>
+          <button class="play-button" id="title-play-button">PLAY</button>
+          <div class="platform-switcher">
+            <a href="#" id="platform-switch-link" class="switch-link">---</a>
+          </div>
+        </div>
       </div>
       <div class="status-bar">
         <span id="runtimeStatus" class="runtime-status">Press Space to start the 60-second run.</span>
@@ -1019,10 +1031,48 @@ async function loadLeaderboard() {
   try {
     const snapshot = await fetchLeaderboard();
     renderLeaderboard(snapshot);
+    
+    // Update title overlay if present
+    const entries = buildUnifiedLeaderboardEntries(snapshot);
+    if (entries.length > 0 && !entries[0].isPlaceholder) {
+      const top = entries[0];
+      const netVal = document.getElementById('net-high-score-total');
+      const netName = document.getElementById('net-high-score-player');
+      if (netVal) netVal.textContent = top.score.toLocaleString();
+      if (netName) netName.textContent = top.name;
+    }
   } catch (error) {
     refreshLeaderboardStatus(`Leaderboard error: ${error instanceof Error ? error.message : 'unknown'}`);
   }
 }
+
+function setupPlatformSwitcher() {
+  const params = new URLSearchParams(window.location.search);
+  const link = document.getElementById('platform-switch-link');
+  if (!link) return;
+
+  if (compactRoute) {
+    link.textContent = 'PC版で遊ぶ';
+    params.set('mode', 'desktop');
+  } else {
+    link.textContent = 'スマホ版で遊ぶ';
+    params.set('mode', 'mobile');
+  }
+  link.href = `?${params.toString()}`;
+}
+
+const titlePlayButton = document.getElementById('title-play-button');
+const titleScreen = document.getElementById('title-screen');
+if (titlePlayButton && titleScreen) {
+  titlePlayButton.addEventListener('click', () => {
+    titleScreen.classList.remove('active');
+    if (!runStarted) {
+      resetRun();
+      startRun();
+    }
+  });
+}
+setupPlatformSwitcher();
 
 async function playLeaderboardReplay(kind, id) {
   const requestId = ++replayLoadRequestId;
@@ -1102,6 +1152,8 @@ window.addEventListener('keydown', (event) => {
   }
 
   if (!runStarted) {
+    const titleOverlay = document.getElementById('title-screen');
+    if (titleOverlay) titleOverlay.classList.remove('active');
     resetRun();
     startRun();
   }
@@ -1172,7 +1224,7 @@ submitForm.addEventListener('submit', async (event) => {
   }
 
   const name = sanitizeName(nameInput.value);
-  const message = sanitizeMessage(messageInput.value);
+  const message = sanitizeMessage(messageInput.value) || 'NO COMMENT';
 
   if (!name) {
     submitStatus.textContent = 'Name is required.';

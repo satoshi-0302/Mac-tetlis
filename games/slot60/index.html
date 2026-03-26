@@ -24,6 +24,22 @@
         </header>
         <div id="game-container">
             <canvas id="game-canvas"></canvas>
+            
+            <div id="title-screen" class="active">
+                <img src="/static/assets/thumbnails/slot60.png" class="game-title-thumbnail" alt="Slot60 Thumbnail">
+                
+                <div class="top-score-display">
+                    <span class="label">NETWORK HIGH SCORE</span>
+                    <strong class="score-value" id="net-high-score-value">---</strong>
+                    <span class="score-name" id="net-high-score-name">---</span>
+                </div>
+
+                <button class="play-button" id="play-button">PLAY</button>
+
+                <div class="platform-switcher">
+                    <a href="#" id="platform-switch-link" class="switch-link">---</a>
+                </div>
+            </div>
         </div>
         <p class="slot-mobile-hint">タップでスタート・停止。60秒でどこまで伸ばせるかの勝負です。</p>
     </div>

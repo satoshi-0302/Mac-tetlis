@@ -47,7 +47,7 @@ export const GAMES = [
     desktopRoute: '/games/slot60/?mode=desktop',
     mobileRoute: '/games/slot60/?mode=mobile',
     supportsTouch: true,
-    supportsReplay: false,
+    supportsReplay: true,
     sortOrder: 4,
     currentGameVersion: 'slot60-rule-v1'
   },

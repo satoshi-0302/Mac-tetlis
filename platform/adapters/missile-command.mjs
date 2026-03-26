@@ -7,7 +7,7 @@ import {
   normalizeReplayPayload,
   readReplay
 } from '../../games/missile-command/server/replay-store.js';
-import { createEntryId, parseStoredJson, sanitizeComment, sanitizePlayerName, sha256 } from '../sanitize.mjs';
+import { createEntryId, parseStoredJson, sanitizePlayerName, sanitizeRequiredComment, sha256 } from '../sanitize.mjs';
 
 const ROOT_DIR = fileURLToPath(new URL('../../games/missile-command/', import.meta.url));
 const LEADERBOARD_PATH = join(ROOT_DIR, 'data', 'leaderboard.json');
@@ -46,7 +46,7 @@ export const missileCommandAdapter = {
             id: String(entry.id ?? createEntryId('missile')),
             kind: entry.kind === 'ai' ? 'ai' : 'human',
             name: sanitizePlayerName(entry.name, entry.kind === 'ai' ? 'DEMO AI' : 'PILOT'),
-            comment: sanitizeComment(entry.comment ?? ''),
+            comment: sanitizeRequiredComment(entry.comment ?? '', entry.kind === 'ai' ? 'AI BENCHMARK' : 'LEGACY SCORE'),
             score: verifiedSummary.score,
             summary: verifiedSummary,
             gameVersion: String(replay.meta?.gameVersion ?? parsed?.gameVersion ?? DEFAULT_GAME_VERSION),
@@ -89,7 +89,7 @@ export const missileCommandAdapter = {
       id: createEntryId('missile'),
       kind,
       name: sanitizePlayerName(payload?.name, kind === 'ai' ? 'DEMO AI' : 'PILOT'),
-      comment: sanitizeComment(payload?.comment ?? ''),
+      comment: sanitizeRequiredComment(payload?.comment ?? payload?.message ?? ''),
       score: verifiedSummary.score,
       summary: verifiedSummary,
       gameVersion: String(replay.meta?.gameVersion ?? DEFAULT_GAME_VERSION),

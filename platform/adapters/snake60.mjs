@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { createEntryId, parseStoredJson, sanitizeComment, sanitizePlayerName, sha256 } from '../sanitize.mjs';
+import { createEntryId, parseStoredJson, sanitizePlayerName, sanitizeRequiredComment, sha256 } from '../sanitize.mjs';
 
 const ROOT_DIR = fileURLToPath(new URL('../../games/snake60/', import.meta.url));
 const SCORES_PATH = join(ROOT_DIR, 'scores.json');
@@ -270,7 +270,7 @@ export const snake60Adapter = {
             id: String(entry.id ?? entry.replayId ?? createEntryId('snake')),
             kind: determineSeedKind(entry),
             name: sanitizePlayerName(entry.name, 'ANON'),
-            comment: sanitizeComment(entry.message ?? ''),
+            comment: sanitizeRequiredComment(entry.message ?? '', determineSeedKind(entry) === 'ai' ? 'AI DEMO' : 'LEGACY SCORE'),
             score: replay.summary.score,
             summary: replay.summary,
             gameVersion: String(entry.ruleVersion ?? CURRENT_RULE_VERSION),
@@ -297,7 +297,7 @@ export const snake60Adapter = {
       id: createEntryId('snake'),
       kind: 'human',
       name: sanitizePlayerName(payload?.name, 'ANON'),
-      comment: sanitizeComment(payload?.message ?? payload?.comment ?? ''),
+      comment: sanitizeRequiredComment(payload?.message ?? payload?.comment ?? ''),
       score: replay.summary.score,
       summary: replay.summary,
       gameVersion: CURRENT_RULE_VERSION,

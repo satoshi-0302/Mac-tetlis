@@ -91,3 +91,106 @@ body[data-route-mode="mobile"] #game-container {
     align-items: flex-start;
     padding-top: 4px;
 }
+
+/* Standardized Title Screen Styles */
+#title-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 15, 0.9);
+    backdrop-filter: blur(8px);
+    padding: 20px;
+    text-align: center;
+    color: #fff;
+}
+
+#title-screen.active {
+    display: flex;
+}
+
+.game-title-thumbnail {
+    display: block;
+    width: min(80%, 320px);
+    aspect-ratio: 16 / 9;
+    margin: 0 auto 16px;
+    border: 2px solid #7af0ff;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(122, 240, 255, 0.4);
+    object-fit: cover;
+}
+
+.top-score-display {
+    margin-bottom: 24px;
+}
+
+.top-score-display .label {
+    display: block;
+    font-size: 0.7rem;
+    color: #ffd166;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+}
+
+.top-score-display .score-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.top-score-display .score-name {
+    display: block;
+    font-size: 0.85rem;
+    color: #cbd8e3;
+}
+
+.play-button {
+    appearance: none;
+    background: linear-gradient(135deg, #a6fff1, #7ef8ff);
+    border: none;
+    border-radius: 999px;
+    padding: 14px 44px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(126, 248, 255, 0.4);
+    transition: transform 0.1s;
+}
+
+.play-button:active {
+    transform: scale(0.95);
+}
+
+.platform-switcher {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    width: min(100%, 300px);
+}
+
+.switch-link {
+    color: #7af0ff;
+    text-decoration: none;
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.switch-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .game-title-thumbnail {
+        width: 240px;
+    }
+    .top-score-display .score-value {
+        font-size: 1.6rem;
+    }
+}

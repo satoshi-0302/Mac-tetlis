@@ -462,3 +462,119 @@ body[data-route-mode='mobile'] .mobile-quick-help {
 body[data-route-mode='mobile'] #mobileStartButton {
   min-width: 108px;
 }
+
+/* Standardized Title Screen Styles */
+.canvas-wrap {
+  position: relative;
+}
+
+#title-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 5, 13, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  text-align: center;
+  color: var(--text-main);
+}
+
+#title-screen.active {
+  display: flex !important;
+}
+
+.game-title-thumbnail {
+  display: block;
+  width: min(85%, 360px);
+  aspect-ratio: 16 / 9;
+  margin: 0 auto 20px;
+  border: 1px solid var(--accent-cyan);
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(73, 242, 255, 0.3);
+  object-fit: cover;
+}
+
+.top-score-display {
+  margin-bottom: 28px;
+}
+
+.top-score-display .label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--accent-gold);
+  font-family: var(--font-display);
+  letter-spacing: 0.15em;
+  margin-bottom: 8px;
+}
+
+.top-score-display .score-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 900;
+  font-family: var(--font-display);
+  color: #fff;
+  line-height: 1;
+}
+
+.top-score-display .score-name {
+  display: block;
+  font-size: 1rem;
+  color: var(--accent-cyan);
+  margin-top: 6px;
+}
+
+.play-button {
+  appearance: none;
+  background: linear-gradient(135deg, var(--accent-cyan), #00c2ff);
+  border: none;
+  border-radius: 999px;
+  padding: 14px 48px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  font-family: var(--font-display);
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(73, 242, 255, 0.4);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.play-button:hover {
+  box-shadow: 0 0 30px rgba(73, 242, 255, 0.6);
+}
+
+.play-button:active {
+  transform: scale(0.96);
+}
+
+.platform-switcher {
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: min(100%, 340px);
+}
+
+.switch-link {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.switch-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .game-title-thumbnail {
+    width: 280px;
+  }
+  .top-score-display .score-value {
+    font-size: 1.8rem;
+  }
+}

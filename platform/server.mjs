@@ -199,6 +199,12 @@ const selectTopEntryByGameStatement = db.prepare(`
   ORDER BY score DESC, created_at ASC, id ASC
   LIMIT 1
 `);
+const deleteReplaylessEntriesStatement = db.prepare(
+  "DELETE FROM leaderboard_entries WHERE game_id = ? AND (replay_data = '' OR replay_digest = '')"
+);
+const normalizeBlankCommentsStatement = db.prepare(
+  "UPDATE leaderboard_entries SET comment = ? WHERE game_id = ? AND trim(comment) = ''"
+);
 const rateLimitState = new Map();
 
 function seedGames() {
@@ -215,9 +221,8 @@ function seedGames() {
       game.currentGameVersion
     );
 
-    const currentCount = Number(countEntriesByGameStatement.get(game.id)?.total ?? 0);
-    if (currentCount > 0) {
-      continue;
+    if (game.supportsReplay) {
+      deleteReplaylessEntriesStatement.run(game.id);
     }
 
     const adapter = adapters.get(game.id);
@@ -228,6 +233,7 @@ function seedGames() {
     for (const entry of adapter.loadSeedEntries()) {
       insertVerifiedEntry(game.id, entry);
     }
+    normalizeBlankCommentsStatement.run('LEGACY SCORE', game.id);
     pruneEntriesToTopTen(game.id);
   }
 }

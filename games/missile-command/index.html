@@ -78,13 +78,21 @@
 
         <section class="screen is-visible" id="titleScreen">
           <div class="screen-panel">
+            <img src="/static/assets/thumbnails/missile-command.png" class="game-title-thumbnail" alt="Missile Command Thumbnail">
+            
+            <div class="top-score-display">
+              <span class="label">NETWORK HIGH SCORE</span>
+              <strong class="score-value" id="networkHighScoreValue">---</strong>
+              <span class="score-name" id="networkHighScoreName">---</span>
+            </div>
+
             <p class="screen-kicker">60 Second Missile Defense</p>
             <h2>4都市を守り切れ</h2>
             <p class="screen-copy">
               クリックで迎撃弾を発射します。0.25秒で指定地点に到達し、爆風と二次爆発の連鎖で敵をまとめて止めます。最後の10秒を耐えると地球圏バリアが空を覆います。
             </p>
             <p class="mobile-title-summary">タップで迎撃し、60秒生き残ればクリアです。</p>
-            <p class="inline-meta">High Score <strong id="titleHighScore">0</strong></p>
+            <p class="inline-meta">Personal High <strong id="titleHighScore">0</strong></p>
 
             <div class="field-block">
               <label class="field-label" for="playerName">Pilot Name</label>
@@ -109,22 +117,23 @@
               />
             </div>
             <p class="inline-note mobile-optional-block" id="demoStatus">AIデモを準備中です。</p>
-            <div class="mobile-screen-actions">
-              <a class="secondary-button mobile-lobby-button" href="/">Lobby</a>
-            </div>
-
+            
             <div class="button-row">
-              <a class="secondary-button mobile-inline-lobby" href="/">Lobby</a>
+              <a class="secondary-button" href="/">Lobby</a>
               <button class="primary-button" id="startButton" type="button">
-                防衛開始
+                PLAY
               </button>
               <button class="secondary-button demo-button mobile-optional-block" id="demoButton" type="button">
                 Demo Play
               </button>
             </div>
 
+            <div class="platform-switcher">
+              <a href="#" id="platformSwitchLink" class="switch-link">---</a>
+            </div>
+
             <div class="title-side-stack">
-              <details class="side-panel collapsible-panel enemy-panel" id="legendPanel" open>
+              <details class="side-panel collapsible-panel enemy-panel" id="legendPanel">
                 <summary class="collapsible-summary">
                   <span>Enemy Guide</span>
                   <span class="summary-meta">4 types</span>
@@ -151,7 +160,7 @@
                 </div>
               </details>
 
-              <details class="leaderboard-panel collapsible-panel" id="leaderboardPanel" open>
+              <details class="leaderboard-panel collapsible-panel" id="leaderboardPanel">
                 <summary class="collapsible-summary">
                   <span>Human / AI Top 10</span>
                   <span class="summary-meta">Replay</span>

@@ -299,28 +299,17 @@ canvas {
     display: none;
     flex-direction: column;
     align-items: center;
-    gap: 30px;
+    gap: 15px;
+    padding: 20px 10px;
 }
 
 .screen.active {
     display: flex;
 }
 
-/* Title Glitch Effect */
-.glitch {
-    font-size: 5rem;
-    font-weight: bold;
-    color: var(--text-primary);
-    position: relative;
-    text-shadow: 0 0 20px var(--neon-blue), 0 0 40px var(--neon-pink);
-    letter-spacing: -5px;
-}
-
-.subtitle {
-    color: var(--neon-pink);
-    font-size: 1.5rem;
-    letter-spacing: 5px;
-    text-shadow: 0 0 15px var(--neon-pink);
+#title-screen .glitch,
+#title-screen .subtitle {
+    display: none !important;
 }
 
 /* Blinking prompt */
@@ -371,15 +360,15 @@ canvas {
 
 /* Leaderboard */
 .leaderboard-container {
-    width: 80%;
-    margin-top: 10px;
+    width: 90%;
+    margin-top: 5px;
     background: rgba(0, 243, 255, 0.05);
     border: 1px solid rgba(0, 243, 255, 0.3);
     border-radius: 4px;
-    padding: 10px;
-    font-size: 0.7rem;
+    padding: 8px;
+    font-size: 0.65rem;
     text-shadow: none;
-    max-height: 250px;
+    max-height: 180px;
 }
 
 .leaderboard-container h3 {
@@ -704,4 +693,84 @@ body[data-route-mode="mobile"] #hs-message {
     font-size: 0.6rem;
     color: #888;
     margin-top: -5px;
+}
+
+/* Standardized Title Screen Styles */
+.game-title-thumbnail {
+    display: block;
+    width: min(80%, 320px);
+    aspect-ratio: 16 / 9;
+    margin: 0 auto 10px;
+    border: 2px solid var(--neon-blue);
+    border-radius: 4px;
+    box-shadow: 0 0 15px var(--neon-blue);
+    object-fit: cover;
+}
+
+.top-score-display {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.top-score-display .label {
+    display: block;
+    font-size: 0.6rem;
+    color: var(--neon-yellow);
+    margin-bottom: 8px;
+}
+
+.top-score-display .score-value {
+    display: block;
+    font-size: 1.8rem;
+    color: #fff;
+    text-shadow: 0 0 10px var(--neon-blue);
+    margin-bottom: 4px;
+}
+
+.top-score-display .score-name {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--neon-pink);
+}
+
+.platform-switcher {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+    width: 100%;
+}
+
+.switch-link {
+    color: var(--neon-blue);
+    text-decoration: none;
+    font-size: 0.6rem;
+    opacity: 0.8;
+}
+
+.switch-link:hover {
+    opacity: 1;
+    text-shadow: 0 0 8px var(--neon-blue);
+}
+
+
+.play-button {
+    display: block !important;
+    margin: 20px auto;
+    padding: 12px 40px;
+    font-size: 1.2rem;
+    min-width: 160px;
+}
+
+@media (max-width: 900px) {
+    .game-title-thumbnail {
+        width: 200px;
+    }
+    .top-score-display .score-value {
+        font-size: 1.2rem;
+    }
+    .play-button {
+        padding: 8px 24px;
+        font-size: 0.9rem;
+        min-width: 120px;
+    }
 }

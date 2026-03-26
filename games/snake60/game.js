@@ -19,7 +19,7 @@ const restartPrompt = document.getElementById('restart-prompt');
 const replayExitBtn = document.getElementById('replay-exit');
 const modeBanner = document.getElementById('mode-banner');
 const mobileControls = document.getElementById('mobile-controls');
-const touchStartButton = document.getElementById('touch-start-button');
+const playButton = document.getElementById('play-button');
 const touchRestartButton = document.getElementById('touch-restart-button');
 const routeModeParam = new URLSearchParams(window.location.search).get('mode');
 const hasCoarsePointer =
@@ -27,6 +27,22 @@ const hasCoarsePointer =
 const isMobileRoute = routeModeParam === 'mobile' || (routeModeParam !== 'desktop' && hasCoarsePointer);
 
 document.body.dataset.routeMode = isMobileRoute ? 'mobile' : 'desktop';
+
+function setupPlatformSwitcher() {
+    const params = new URLSearchParams(window.location.search);
+    const link = document.getElementById('platform-switch-link');
+    if (!link) return;
+
+    if (isMobileRoute) {
+        link.textContent = 'PC版で遊ぶ';
+        params.set('mode', 'desktop');
+    } else {
+        link.textContent = 'スマホ版で遊ぶ';
+        params.set('mode', 'mobile');
+    }
+    link.href = `?${params.toString()}`;
+}
+setupPlatformSwitcher();
 
 const GRID_SIZE = 20;
 const TILE_COUNT_X = canvas.width / GRID_SIZE;
@@ -179,7 +195,7 @@ function startGame() {
     hideAllOverlays();
     restartPrompt.classList.remove('hidden');
     restartPrompt.innerText = 'PRESS [SPACE] TO REBOOT';
-    touchStartButton?.classList.add('hidden');
+    playButton?.classList.add('hidden');
     touchRestartButton?.classList.add('hidden');
     recordedDirections = [];
     replayPlayback = null;
@@ -281,7 +297,7 @@ function bindMobileControls() {
     if (!mobileControls) return;
 
     mobileControls.classList.toggle('hidden', !isMobileRoute);
-    touchStartButton?.classList.toggle('hidden', !isMobileRoute);
+    // playButton is now always visible on title screen
     touchRestartButton?.classList.toggle('hidden', !isMobileRoute);
 
     const triggerTouchTurn = (turnSide) => {
@@ -310,11 +326,12 @@ function bindMobileControls() {
         });
     });
 
-    touchStartButton?.addEventListener('pointerdown', (event) => {
-        event.preventDefault();
-        handlePrimaryAction();
+    playButton?.addEventListener('pointerdown', (event) => {
+        event.stopPropagation();
+        if (currentGameState === 'TITLE') {
+            startGame();
+        }
     });
-
     touchRestartButton?.addEventListener('pointerdown', (event) => {
         event.preventDefault();
         handlePrimaryAction();
@@ -414,7 +431,7 @@ function returnToTitle() {
     gameoverScreen.classList.add('hidden');
     hsEntryForm.classList.add('hidden');
     touchRestartButton?.classList.add('hidden');
-    touchStartButton?.classList.remove('hidden');
+    playButton?.classList.remove('hidden');
 }
 
 async function fetchScores() {
@@ -424,8 +441,23 @@ async function fetchScores() {
         topScores = await res.json();
         renderLeaderboard();
         if (topScores.length > 0) {
-            highScore = Number(topScores[0].score || 0);
+            const top = topScores[0];
+            highScore = Number(top.score || 0);
             highScoreHUD.innerText = highScore;
+            
+            const netVal = document.getElementById('network-high-score-value');
+            const netName = document.getElementById('network-high-score-name');
+            if (netVal) netVal.innerText = highScore.toLocaleString();
+            if (netName) netName.innerText = sanitizeName(top.name);
+        }
+        const playButton = document.getElementById('play-button');
+        if (playButton) {
+            playButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (currentGameState === 'TITLE' || (currentGameState === 'GAMEOVER' && currentGameState !== 'SUBMITTING')) {
+                    startGame();
+                }
+            });
         }
     } catch (error) {
         console.error('Failed to fetch scores', error);
@@ -457,12 +489,13 @@ function buildReplayPayload() {
 async function submitScore(name, message) {
     const replay = buildReplayPayload();
     if (!replay) return false;
+    const normalizedMessage = sanitizeMessage(message) || 'NO COMMENT';
 
     try {
         const res = await fetch('/api/scores', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, message, replay }),
+            body: JSON.stringify({ name, message: normalizedMessage, replay }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const payload = await res.json();
