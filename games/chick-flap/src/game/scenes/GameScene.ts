@@ -30,6 +30,7 @@ export class GameScene extends Phaser.Scene {
   private skyOffset = 0;
   private groundOffset = 0;
   private clouds: Array<{ x: number; y: number; speed: number }> = [];
+  private splashes: Array<{ x: number; y: number; age: number; particles: Array<{ dx: number; dy: number; size: number; vy: number }> }> = [];
   private domPointerHandler: (() => void) | null = null;
   private domTouchHandler: ((event: TouchEvent) => void) | null = null;
   private domKeyHandler: ((event: KeyboardEvent) => void) | null = null;
@@ -92,6 +93,16 @@ export class GameScene extends Phaser.Scene {
       this.gameOverTimer += delta;
     }
 
+    // Update splashes
+    this.splashes.forEach(s => {
+      s.age += delta;
+      s.particles.forEach(p => {
+        p.vy += 0.8; // Gravity for splash
+        p.dy += p.vy;
+      });
+    });
+    this.splashes = this.splashes.filter(s => s.age < 1000);
+
     this.chick.update(this.state, delta);
   }
 
@@ -111,6 +122,7 @@ export class GameScene extends Phaser.Scene {
 
     if (this.state === 'gameover' && this.gameOverTimer > 420) {
       this.hud.setTimer(GAME_DURATION); // Reset timer UI
+      this.splashes = []; // Clear splashes
       this.restartRound();
     }
   }
@@ -171,7 +183,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   private checkCollisions(): void {
-    if (this.chick.sprite.y + 16 >= PLAY_HEIGHT || this.chick.sprite.y - 16 <= 0) {
+    if (this.chick.sprite.y + 16 >= PLAY_HEIGHT) {
+      this.createSplash(this.chick.sprite.x, PLAY_HEIGHT);
+      this.triggerGameOver();
+      return;
+    }
+    if (this.chick.sprite.y - 16 <= 0) {
       this.triggerGameOver();
       return;
     }
@@ -201,6 +218,19 @@ export class GameScene extends Phaser.Scene {
       score: this.score,
       bestScore: this.bestScore
     });
+  }
+
+  private createSplash(x: number, y: number): void {
+    const particles = [];
+    for (let i = 0; i < 15; i++) {
+      particles.push({
+        dx: (Math.random() - 0.5) * 40,
+        dy: 0,
+        vy: -Math.random() * 15 - 5,
+        size: Math.random() * 4 + 2
+      });
+    }
+    this.splashes.push({ x, y, age: 0, particles });
   }
 
   private emitScore(): void {
@@ -336,25 +366,40 @@ export class GameScene extends Phaser.Scene {
     g.fillStyle(seaHex);
     g.fillRect(0, horizonY, SCREEN_WIDTH, PLAY_HEIGHT - horizonY);
 
-    // Sun Reflection on Water
-    if (sunY < horizonY + 100 && brightness > 0) {
-      const reflectWidth = 60 * brightness;
-      g.fillStyle(0xffde7f, 0.3 * brightness);
-      g.fillRect(sunStartX - reflectWidth / 2, horizonY, reflectWidth, PLAY_HEIGHT - horizonY);
+    // Sun Reflection on Water (Wavy/Broken)
+    if (sunY < horizonY + 150 && brightness > 0) {
+      for (let i = 0; i < 15; i++) {
+        const stripY = horizonY + i * 5;
+        const stripWidth = (60 + Math.sin(this.frameTick * 0.1 + i) * 10) * brightness;
+        const xOffset = Math.sin(this.frameTick * 0.05 + i) * 4;
+        g.fillStyle(0xffde7f, (0.4 - i * 0.02) * brightness);
+        g.fillRect(sunStartX - stripWidth / 2 + xOffset, stripY, stripWidth, 3);
+      }
     }
 
-    // Sea details (Cyberpunk glimmer)
-    const glimmerAlpha = 0.4 * brightness;
+    // Sea details (Vibrant Glimmer)
+    const glimmerAlpha = 0.5 * brightness;
     if (glimmerAlpha > 0) {
-      g.lineStyle(1, 0x57f3ff, glimmerAlpha);
-      for (let i = 0; i < 6; i += 1) {
-        const y = horizonY + 10 + i * 12;
-        const xOffset = (this.frameTick * (1 + i * 0.2)) % 60;
-        for (let x = -60; x < SCREEN_WIDTH; x += 60) {
-          g.lineBetween(x + xOffset, y, x + xOffset + 20, y);
+      for (let layer = 0; layer < 3; layer++) {
+        g.lineStyle(1, 0x57f3ff, glimmerAlpha * (1 - layer * 0.2));
+        for (let i = 0; i < 12; i++) {
+          const y = horizonY + 5 + i * 8 + layer * 2;
+          const xOffset = (this.frameTick * (1.2 + layer * 0.3) + i * 15) % 80;
+          for (let x = -80; x < SCREEN_WIDTH; x += 80) {
+            const lineLen = 15 + Math.sin(this.frameTick * 0.1 + i * 0.5) * 8;
+            g.lineBetween(x + xOffset, y, x + xOffset + lineLen, y);
+          }
         }
       }
     }
+
+    // Render splashes
+    this.splashes.forEach((s) => {
+      g.fillStyle(0x7fe4ff, 0.8 * (1 - s.age / 1000));
+      s.particles.forEach((p) => {
+        g.fillCircle(s.x + p.dx, s.y + p.dy, p.size);
+      });
+    });
 
     // Ground area (Dark Cyber style)
     g.fillStyle(0x0a0a1a);
