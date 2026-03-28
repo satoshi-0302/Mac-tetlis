@@ -3,6 +3,7 @@ import { GAME_VERSION, SCREEN_HEIGHT, SCREEN_WIDTH } from '../constants';
 
 export class Hud {
   private readonly scoreText: Phaser.GameObjects.Text;
+  private readonly timerText: Phaser.GameObjects.Text;
   private readonly titleText: Phaser.GameObjects.Text;
   private readonly versionText: Phaser.GameObjects.Text;
   private readonly centerText: Phaser.GameObjects.Text;
@@ -19,6 +20,16 @@ export class Hud {
     };
 
     this.scoreText = scene.add.text(SCREEN_WIDTH / 2, 24, '0', style).setOrigin(0.5, 0).setDepth(80);
+    this.timerText = scene
+      .add.text(SCREEN_WIDTH - 14, 10, '60.0', {
+        fontFamily: '"Trebuchet MS", "Noto Sans JP", sans-serif',
+        fontSize: '24px',
+        color: '#ffde7f',
+        stroke: '#000000',
+        strokeThickness: 4
+      })
+      .setOrigin(1, 0)
+      .setDepth(80);
     this.titleText = scene
       .add.text(14, 10, 'CHICK FLAP', {
         fontFamily: '"Trebuchet MS", "Noto Sans JP", sans-serif',
@@ -52,6 +63,17 @@ export class Hud {
 
   setScore(score: number): void {
     this.scoreText.setText(String(score));
+  }
+
+  setTimer(remainingMs: number): void {
+    const totalSecs = Math.max(0, remainingMs / 1000);
+    this.timerText.setText(totalSecs.toFixed(1));
+    // Emergency red for last 10s
+    if (totalSecs <= 10) {
+      this.timerText.setColor('#ff4444');
+    } else {
+      this.timerText.setColor('#ffde7f');
+    }
   }
 
   showReady(): void {

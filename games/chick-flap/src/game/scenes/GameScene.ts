@@ -79,6 +79,7 @@ export class GameScene extends Phaser.Scene {
 
     if (this.state === 'playing') {
       this.playingTime += delta;
+      this.hud.setTimer(GAME_DURATION - this.playingTime);
       this.updatePipes(deltaSec);
       this.checkCollisions();
 
@@ -109,6 +110,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.state === 'gameover' && this.gameOverTimer > 420) {
+      this.hud.setTimer(GAME_DURATION); // Reset timer UI
       this.restartRound();
     }
   }
@@ -309,14 +311,17 @@ export class GameScene extends Phaser.Scene {
     const sunY = sunStartY + (sunEndY - sunStartY) * progress;
 
     if (brightness > 0) {
-      g.fillStyle(0xffde7f, brightness);
+      // Modern Sun with Bloom/Glow
+      const sunColor = 0xffde7f;
+      // Outer glow
+      g.fillStyle(sunColor, 0.15 * brightness);
+      g.fillCircle(sunStartX, sunY, 82);
+      // Inner glow
+      g.fillStyle(sunColor, 0.3 * brightness);
+      g.fillCircle(sunStartX, sunY, 68);
+      // Main core
+      g.fillStyle(0xffffff, 0.9 * brightness);
       g.fillCircle(sunStartX, sunY, 54);
-      // Retrowave bars on sun
-      for (let i = 0; i < 12; i += 1) {
-        if (i % 2 !== 0) continue;
-        g.lineStyle(2, botHex, 1);
-        g.lineBetween(sunStartX - 42, sunY - 40 + i * 7, sunStartX + 42, sunY - 40 + i * 7);
-      }
     }
 
     // Sea instead of grid
