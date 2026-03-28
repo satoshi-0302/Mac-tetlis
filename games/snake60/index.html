@@ -10,7 +10,7 @@
   <div class="snake-layout">
     <div class="snake-topbar">
       <div class="top-actions" aria-label="Page actions">
-        <a class="top-action-button" href="/">LOBBY</a>
+        <a class="top-action-button" href="./">LOBBY</a>
       </div>
       <div id="hud">
         <div class="hud-left">
@@ -30,7 +30,12 @@
       <canvas id="gameCanvas" width="800" height="600"></canvas>
       <div id="ui-layer" class="overlay-screen active">
         <div id="title-screen" class="screen active">
-          <img src="/static/assets/thumbnails/snake60.png" class="game-title-thumbnail" alt="Snake60 Thumbnail">
+          <img
+            src=""
+            data-thumbnail-path="static/assets/thumbnails/snake60.png"
+            class="game-title-thumbnail"
+            alt="Snake60 Thumbnail"
+          >
           <div class="top-score-display">
             <span class="label">NETWORK HIGH SCORE</span>
             <strong class="score-value" id="network-high-score-value">---</strong>

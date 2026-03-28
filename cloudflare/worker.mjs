@@ -3,6 +3,7 @@ import { asteroidAdapter } from './lib/asteroid-adapter.mjs';
 import { missileAdapter } from './lib/missile-adapter.mjs';
 import { slotAdapter } from './lib/slot-adapter.mjs';
 import { snakeAdapter } from './lib/snake-adapter.mjs';
+import { chickFlapAdapter } from './lib/chick-flap-adapter.mjs';
 import { parseStoredJson } from './lib/worker-sanitize.mjs';
 import { RateLimiterDO } from './rate-limiter-do.mjs';
 
@@ -15,7 +16,8 @@ const adapters = new Map([
   ['snake60', snakeAdapter],
   ['missile-command', missileAdapter],
   ['asteroid', asteroidAdapter],
-  ['slot60', slotAdapter]
+  ['slot60', slotAdapter],
+  ['chick-flap', chickFlapAdapter]
 ]);
 
 function jsonResponse(status, payload, extraHeaders = {}) {

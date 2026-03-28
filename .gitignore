@@ -11,6 +11,8 @@ games/*/node_modules/
 dist/
 build/
 games/*/dist/
+platform/dist/
+platform/node_modules/
 
 # Python cache
 __pycache__/

@@ -2,6 +2,16 @@
 
 この手順は Ubuntu + systemd + Nginx を想定しています。
 
+## 前提
+
+- 現在の `snake60/` ディレクトリにはフロントエンド実装（Vite + Phaser）が含まれています
+- `/api/health`, `/api/scores`, `/api/replays/:id` を返すバックエンド実装は、このディレクトリには含まれていません
+- そのため本番では次のどちらかの構成を前提にしてください
+  - 親プラットフォーム配下の `/games/snake60/` からフロントを配信し、同一オリジンの `/api/*` を既存基盤へ接続する
+  - 別リポジトリまたは既存資産の Snake60 API サーバーと組み合わせて運用する
+
+以下の systemd / Nginx 例は、後者の「API サーバーも別途存在する」場合の参考例です。
+
 ## 1. 配置
 
 ```bash
@@ -54,6 +64,14 @@ curl -fsS https://your-domain.example/api/health
 sudo journalctl -u snake60 -n 200 --no-pager
 curl -fsS https://your-domain.example/api/scores | head
 ```
+
+フロント単体の配信確認をしたい場合は、`snake60/dist/` を `/games/snake60/` に載せた状態で、
+
+```bash
+curl -I https://your-domain.example/games/snake60/
+```
+
+の応答も確認してください。
 
 ## 7. ロールバック方法
 

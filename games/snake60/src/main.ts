@@ -98,6 +98,23 @@ const hasCoarsePointer = typeof window.matchMedia === 'function' && window.match
 const isMobileRoute = routeModeParam === 'mobile' || (routeModeParam !== 'desktop' && hasCoarsePointer);
 document.body.dataset.routeMode = isMobileRoute ? 'mobile' : 'desktop';
 
+function normalizeBasePath(path: string) {
+  if (!path) return '/';
+  return path.endsWith('/') ? path : `${path}/`;
+}
+
+const APP_BASE_PATH = normalizeBasePath(import.meta.env.BASE_URL);
+const APP_BASE_URL = new URL(APP_BASE_PATH, window.location.origin);
+const PLATFORM_BASE_URL = new URL('../..', APP_BASE_URL);
+
+function resolvePlatformHref(path = '') {
+  return new URL(path.replace(/^\//, ''), PLATFORM_BASE_URL).pathname;
+}
+
+function resolveApiUrl(path: string) {
+  return new URL(path.replace(/^\//, ''), PLATFORM_BASE_URL).toString();
+}
+
 const TILE_COUNT_X = canvas.width / GRID_SIZE;
 const TILE_COUNT_Y = canvas.height / GRID_SIZE;
 
@@ -136,7 +153,9 @@ function setupPlatformSwitcher() {
     link.textContent = 'スマホ版で遊ぶ';
     params.set('mode', 'mobile');
   }
-  link.href = `?${params.toString()}`;
+  const nextUrl = new URL(window.location.href);
+  nextUrl.search = params.toString();
+  link.href = nextUrl.toString();
 }
 
 function seededRandom() {
@@ -404,7 +423,7 @@ function returnToTitle() {
 
 async function fetchScores() {
   try {
-    const res = await fetch('/api/scores');
+    const res = await fetch(resolveApiUrl('api/scores'));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     topScores = await res.json() as ScoreEntry[];
     renderLeaderboard();
@@ -427,7 +446,8 @@ async function fetchScores() {
 }
 
 async function fetchReplay(replayId: string) {
-  const res = await fetch(`/api/replays/${encodeURIComponent(String(replayId || ''))}`);
+  const replayPath = `api/replays/${encodeURIComponent(String(replayId || ''))}`;
+  const res = await fetch(resolveApiUrl(replayPath));
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.json() as ReplayPayload;
 }
@@ -449,7 +469,7 @@ async function submitScore(name: string, message: string) {
   if (!replay) return false;
   const normalizedMessage = sanitizeMessage(message) || 'NO COMMENT';
   try {
-    const res = await fetch('/api/scores', {
+    const res = await fetch(resolveApiUrl('api/scores'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, message: normalizedMessage, replay })
@@ -694,7 +714,7 @@ function advanceRunFrame() {
   moveAccumulator += REPLAY_TICK_MS;
   if (moveAccumulator >= speed) {
     updateLogic();
-    moveAccumulator = 0;
+    moveAccumulator -= speed;
   }
 }
 
@@ -809,6 +829,17 @@ setupPlatformSwitcher();
 bindMobileControls();
 void fetchScores();
 highScoreHUD.innerText = String(highScore);
+
+const lobbyLink = document.querySelector<HTMLAnchorElement>('.top-action-button');
+if (lobbyLink) {
+  lobbyLink.href = resolvePlatformHref();
+}
+
+const titleThumbnail = document.querySelector<HTMLImageElement>('.game-title-thumbnail');
+if (titleThumbnail) {
+  const thumbnailPath = titleThumbnail.dataset.thumbnailPath || 'static/assets/thumbnails/snake60.png';
+  titleThumbnail.src = resolvePlatformHref(thumbnailPath);
+}
 
 window.addEventListener('keydown', (event) => {
   if (synth.ctx.state === 'suspended') {
