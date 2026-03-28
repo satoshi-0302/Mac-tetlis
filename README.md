@@ -1,6 +1,6 @@
 # Web Game Platform
 
-5種類のブラウザゲームを、1つのロビーと共通ランキング基盤でまとめて運用するためのリポジトリです。
+6種類のブラウザゲームを、1つのロビーと共通ランキング基盤でまとめて運用するためのリポジトリです。
 
 公開URL:
 
@@ -22,6 +22,7 @@
 | Asteroid | `games/asteroid/` | Yes | Yes |
 | Slot60 | `games/slot60/` | Yes | Yes |
 | Stackfall | `games/stackfall/` | Yes | Yes |
+| ChickFlap | `games/chick-flap/` | Yes | No |
 
 ## 端末別の入口
 
@@ -38,7 +39,8 @@
 │   ├── missile-command/
 │   ├── asteroid/
 │   ├── slot60/
-│   └── stackfall/
+│   ├── stackfall/
+│   └── chick-flap/
 ├── platform/
 ├── docs/
 ├── AGENTS.md
@@ -72,7 +74,7 @@
 npm run platform:start
 ```
 
-Asteroid / Stackfall のビルド:
+Asteroid / Snake60 / Stackfall / ChickFlap のビルド:
 
 ```bash
 npm run platform:build
@@ -82,7 +84,9 @@ npm run platform:build
 
 ```bash
 npm run platform:build:asteroid
+npm run platform:build:snake60
 npm run platform:build:stackfall
+npm run platform:build:chick-flap
 ```
 
 ポートを変えたい場合:
@@ -153,7 +157,7 @@ npm run ui:capture:iphone14 -- --landscape '/games/missile-command/?mode=mobile'
 ## 公開前の最終チェック
 
 1. ルートURLが開く
-2. 5ゲームすべてへ遷移できる
+2. 6ゲームすべてへ遷移できる
 3. `api/health` が返る
 4. `slot60` のスコア投稿が通る
 5. スマホ表示でレイアウト崩れがない

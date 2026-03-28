@@ -6,6 +6,7 @@ import { extname, join, normalize, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { asteroidAdapter } from './adapters/asteroid.mjs';
+import { chickFlapAdapter } from './adapters/chick-flap.mjs';
 import { missileCommandAdapter } from './adapters/missile-command.mjs';
 import { snake60Adapter } from './adapters/snake60.mjs';
 import { slot60Adapter } from './adapters/slot60.mjs';
@@ -45,7 +46,8 @@ const adapters = new Map([
   ['missile-command', missileCommandAdapter],
   ['asteroid', asteroidAdapter],
   ['slot60', slot60Adapter],
-  ['stackfall', stackfallAdapter]
+  ['stackfall', stackfallAdapter],
+  ['chick-flap', chickFlapAdapter]
 ]);
 
 const staticMounts = [
@@ -85,12 +87,17 @@ const staticMounts = [
   },
   {
     prefix: '/games/slot60/',
-    rootDir: join(ROOT_DIR, 'games', 'slot60'),
+    rootDir: join(ROOT_DIR, 'games', 'slot60', 'dist'),
     allowAll: true
   },
   {
     prefix: '/games/stackfall/',
     rootDir: join(ROOT_DIR, 'games', 'stackfall', 'dist'),
+    allowAll: true
+  },
+  {
+    prefix: '/games/chick-flap/',
+    rootDir: join(ROOT_DIR, 'games', 'chick-flap', 'dist'),
     allowAll: true
   }
 ];

@@ -178,12 +178,3 @@ async function loadGames() {
 void registerPwaSupport();
 void initModeSwitcher();
 void loadGames();
-errorCard.className = 'game-card loading-card';
-errorCard.textContent = 'ゲーム一覧の読み込みに失敗しました。';
-grid.append(errorCard);
-  }
-}
-
-void registerPwaSupport();
-void initModeSwitcher();
-void loadGames();

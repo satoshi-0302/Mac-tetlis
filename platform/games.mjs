@@ -63,6 +63,19 @@ export const GAMES = [
     supportsReplay: true,
     sortOrder: 5,
     currentGameVersion: 'stackfall-events-v1'
+  },
+  {
+    id: 'chick-flap',
+    slug: 'chick-flap',
+    title: 'ChickFlap',
+    description: '可愛いひよこでパイプをくぐる、高難度フラップアクションです。',
+    route: '/games/chick-flap/',
+    desktopRoute: '/games/chick-flap/?mode=desktop',
+    mobileRoute: '/games/chick-flap/?mode=mobile',
+    supportsTouch: true,
+    supportsReplay: false,
+    sortOrder: 6,
+    currentGameVersion: 'chick-flap-phaser-v2-leaderboard-mobile'
   }
 ];
 

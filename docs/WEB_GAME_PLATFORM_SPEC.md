@@ -1,8 +1,8 @@
 # Web Game Platform 実装仕様書
 
 - 文書バージョン: 1.0
-- 最終更新日: 2026-03-08
-- 対象プロジェクト: `Snake60`, `MissileCommand`, `Asteroid`
+- 最終更新日: 2026-03-26
+- 対象プロジェクト: `Snake60`, `MissileCommand`, `Asteroid`, `Slot60`, `Stackfall`, `ChickFlap`
 
 ## 1. 目的
 
@@ -41,6 +41,8 @@
   - MissileCommand 本体
 - `/games/asteroid`
   - Asteroid 本体
+- `/games/chick-flap`
+  - ChickFlap 本体
 - `/api/...`
   - 共通ランキング API
 
