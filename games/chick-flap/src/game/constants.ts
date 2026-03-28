@@ -12,13 +12,13 @@ export const GRAVITY = 1220;
 export const FLAP_VELOCITY = -384;
 export const MAX_FALL_SPEED = 504;
 
-export const PIPE_WIDTH = 92;
+export const PIPE_WIDTH = 62;
 export const PIPE_GAP = 152;
-export const PIPE_SPEED = 242;
+export const PIPE_SPEED = 160;
 export const PIPE_SPACING = 272;
 export const PIPE_SPAWN_OFFSET = 192;
-export const PIPE_MIN_CENTER_Y = 132;
-export const PIPE_MAX_CENTER_Y = 300;
+export const PIPE_MIN_CENTER_Y = 180;
+export const PIPE_MAX_CENTER_Y = 250;
 export const PIPE_CAP_HEIGHT = 28;
 
 export const GAME_VERSION = 'chick-flap-phaser-v2-leaderboard-mobile';

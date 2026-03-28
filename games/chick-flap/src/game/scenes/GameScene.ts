@@ -131,21 +131,29 @@ export class GameScene extends Phaser.Scene {
     this.pipes = [];
     const startX = SCREEN_WIDTH + PIPE_SPAWN_OFFSET;
     for (let i = 0; i < 3; i += 1) {
-      this.pipes.push(new PipePair(this, startX + i * PIPE_SPACING, Phaser.Math.Between(PIPE_MIN_CENTER_Y, PIPE_MAX_CENTER_Y)));
+      this.pipes.push(
+        new PipePair(this, startX + i * PIPE_SPACING, Phaser.Math.Between(180, 250))
+      );
     }
   }
 
   private updatePipes(deltaSec: number): void {
-    this.pipes.forEach((pipe) => pipe.update(deltaSec));
+    const factor = Math.max(0, (this.playingTime - 30000) / 30000);
+    const currentSpeed = 160 + 82 * factor;
+    const minRange = 180 - 48 * factor;
+    const maxRange = 250 + 50 * factor;
+
+    this.pipes.forEach((pipe) => pipe.update(deltaSec, currentSpeed));
     while (this.pipes.length > 0 && this.pipes[0].rightEdge < -20) {
       const first = this.pipes.shift();
       first?.destroy();
     }
 
     while (this.pipes.length < 3) {
-      const baseX = this.pipes.length > 0 ? this.pipes[this.pipes.length - 1].top.x : SCREEN_WIDTH + PIPE_SPAWN_OFFSET;
+      const lastPipe = this.pipes[this.pipes.length - 1];
+      const baseX = lastPipe ? lastPipe.top.x : SCREEN_WIDTH + PIPE_SPAWN_OFFSET;
       this.pipes.push(
-        new PipePair(this, baseX + PIPE_SPACING, Phaser.Math.Between(PIPE_MIN_CENTER_Y, PIPE_MAX_CENTER_Y))
+        new PipePair(this, baseX + PIPE_SPACING, Phaser.Math.Between(minRange, maxRange))
       );
     }
 
@@ -210,7 +218,7 @@ export class GameScene extends Phaser.Scene {
     if (!this.textures.exists('pipe-body')) {
       const g = this.add.graphics();
       // Stainless steel cylinder look
-      const w = 92;
+      const w = 62;
       const h = 200;
       // Main metallic gray
       g.fillStyle(0x777777);
@@ -235,7 +243,7 @@ export class GameScene extends Phaser.Scene {
 
     if (!this.textures.exists('pipe-cap')) {
       const g = this.add.graphics();
-      const w = 104;
+      const w = 74;
       const h = 28;
       // Chrome/Steel Cap
       g.fillStyle(0xaaaaaa);

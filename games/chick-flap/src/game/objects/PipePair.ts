@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PIPE_CAP_HEIGHT, PIPE_GAP, PIPE_SPEED, PIPE_WIDTH, PLAY_HEIGHT } from '../constants';
+import { PIPE_CAP_HEIGHT, PIPE_GAP, PIPE_WIDTH, PLAY_HEIGHT } from '../constants';
 
 export class PipePair {
   readonly top: Phaser.Physics.Arcade.Image;
@@ -38,8 +38,8 @@ export class PipePair {
       .setDepth(21);
   }
 
-  update(deltaSec: number): void {
-    const move = PIPE_SPEED * deltaSec;
+  update(deltaSec: number, speed: number): void {
+    const move = speed * deltaSec;
     this.top.x -= move;
     this.bottom.x -= move;
     this.topCap.x -= move;
