@@ -8,13 +8,13 @@ export const CHICK_START_Y = 208;
 export const CHICK_SIZE = 48;
 export const CHICK_HIT_RADIUS = 16;
 
-export const GRAVITY = 1350;
-export const FLAP_VELOCITY = -426;
+export const GRAVITY = 1220;
+export const FLAP_VELOCITY = -384;
 export const MAX_FALL_SPEED = 504;
 
 export const PIPE_WIDTH = 92;
-export const PIPE_GAP = 142;
-export const PIPE_SPEED = 282;
+export const PIPE_GAP = 152;
+export const PIPE_SPEED = 242;
 export const PIPE_SPACING = 272;
 export const PIPE_SPAWN_OFFSET = 192;
 export const PIPE_MIN_CENTER_Y = 132;
