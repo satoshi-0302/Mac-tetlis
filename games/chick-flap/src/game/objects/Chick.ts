@@ -51,7 +51,7 @@ export class Chick {
     this.sprite.setTexture(this.frameKeys[0]);
   }
 
-  update(playState: 'ready' | 'playing' | 'gameover', deltaMs: number): void {
+  update(playState: 'ready' | 'playing' | 'gameover' | 'replay', deltaMs: number): void {
     const vy = this.sprite.body?.velocity.y ?? 0;
     if (playState === 'ready') {
       this.updateBaseLoop(deltaMs, [1, 0, 1], 300);

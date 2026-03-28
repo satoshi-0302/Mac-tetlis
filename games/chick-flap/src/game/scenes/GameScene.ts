@@ -15,7 +15,11 @@ import {
 } from '../constants';
 import { Hud } from '../ui/Hud';
 
-type State = 'ready' | 'playing' | 'gameover';
+import { computeDigest, fetchReplay, submitScore } from '../net/api';
+import { NameInputOverlay } from '../ui/NameInputOverlay';
+import { LeaderboardOverlay } from '../ui/LeaderboardOverlay';
+
+type State = 'ready' | 'playing' | 'gameover' | 'replay';
 
 export class GameScene extends Phaser.Scene {
   private chick!: Chick;
@@ -31,6 +35,10 @@ export class GameScene extends Phaser.Scene {
   private groundOffset = 0;
   private clouds: Array<{ x: number; y: number; speed: number }> = [];
   private splashes: Array<{ x: number; y: number; age: number; particles: Array<{ dx: number; dy: number; size: number; vy: number }> }> = [];
+  private replayLog: Array<{ t: number; a: string }> = [];
+  private replayIndex = 0;
+  private submissionPending = false;
+  private leaderboardOverlay: LeaderboardOverlay | null = null;
   private domPointerHandler: (() => void) | null = null;
   private domTouchHandler: ((event: TouchEvent) => void) | null = null;
   private domKeyHandler: ((event: KeyboardEvent) => void) | null = null;
@@ -89,6 +97,24 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    if (this.state === 'replay') {
+      this.playingTime += delta;
+      this.hud.setTimer(GAME_DURATION - this.playingTime);
+      this.updatePipes(deltaSec);
+      
+      while (this.replayIndex < this.replayLog.length && this.replayLog[this.replayIndex].t <= this.playingTime) {
+        if (this.replayLog[this.replayIndex].a === 'f') {
+          this.chick.flap();
+        }
+        this.replayIndex++;
+      }
+      this.checkCollisions();
+
+      if (this.playingTime >= GAME_DURATION) {
+        this.triggerGameOver();
+      }
+    }
+
     if (this.state === 'gameover') {
       this.gameOverTimer += delta;
     }
@@ -110,29 +136,38 @@ export class GameScene extends Phaser.Scene {
     if (this.state === 'ready') {
       this.state = 'playing';
       this.hud.clearCenter();
+      this.replayLog = [];
+      this.replayLog.push({ t: 0, a: 's' });
       this.chick.start();
       this.emitState();
       return;
     }
 
     if (this.state === 'playing') {
+      this.replayLog.push({ t: this.playingTime, a: 'f' });
       this.chick.flap();
       return;
     }
 
-    if (this.state === 'gameover' && this.gameOverTimer > 420) {
-      this.hud.setTimer(GAME_DURATION); // Reset timer UI
-      this.splashes = []; // Clear splashes
-      this.restartRound();
+    if (this.state === 'replay' || this.state === 'gameover') {
+      if (this.gameOverTimer > 420 && !this.submissionPending) {
+        this.restartRound();
+      }
+      return;
     }
   }
 
   private restartRound(): void {
+    if (this.leaderboardOverlay) {
+      this.leaderboardOverlay.destroy();
+      this.leaderboardOverlay = null;
+    }
     this.state = 'ready';
     this.score = 0;
     this.playingTime = 0;
     this.gameOverTimer = 0;
     this.hud.setScore(0);
+    this.hud.setTimer(GAME_DURATION);
     this.hud.showReady();
     this.chick.reset(CHICK_START_X, CHICK_START_Y);
     this.resetPipes();
@@ -207,7 +242,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private triggerGameOver(): void {
-    if (this.state !== 'playing') return;
+    if (this.state !== 'playing' && this.state !== 'replay') return;
+    const wasReplay = this.state === 'replay';
     this.state = 'gameover';
     this.gameOverTimer = 0;
     this.chick.sprite.setAccelerationY(0);
@@ -218,6 +254,64 @@ export class GameScene extends Phaser.Scene {
       score: this.score,
       bestScore: this.bestScore
     });
+
+    if (this.score > 0 && !wasReplay) {
+      this.submissionPending = true;
+      new NameInputOverlay(this, 'CHICK', async (name) => {
+        try {
+          const replayStr = JSON.stringify(this.replayLog);
+          const digest = await computeDigest(replayStr);
+          await submitScore({
+            name,
+            score: this.score,
+            replayData: replayStr,
+            replayDigest: digest
+          });
+        } catch (e) {
+          console.error('Score submission failed', e);
+        } finally {
+          this.submissionPending = false;
+          this.showLeaderboard();
+        }
+      });
+    } else {
+      this.showLeaderboard();
+    }
+  }
+
+  private showLeaderboard(): void {
+    if (this.leaderboardOverlay) return;
+    this.leaderboardOverlay = new LeaderboardOverlay(
+      this,
+      () => this.restartRound(),
+      async (id) => {
+        try {
+          const data = await fetchReplay('human', id);
+          if (data.replayData) {
+            this.replayLog = JSON.parse(data.replayData);
+            this.startReplayPlayback();
+          }
+        } catch (e) {
+          console.error('Replay fetch failed', e);
+        }
+      }
+    );
+  }
+
+  private startReplayPlayback(): void {
+    if (this.leaderboardOverlay) {
+      this.leaderboardOverlay.destroy();
+      this.leaderboardOverlay = null;
+    }
+    this.state = 'replay';
+    this.score = 0;
+    this.playingTime = 0;
+    this.replayIndex = 0;
+    this.hud.setScore(0);
+    this.chick.reset(CHICK_START_X, CHICK_START_Y);
+    this.chick.start();
+    this.resetPipes();
+    this.emitState();
   }
 
   private createSplash(x: number, y: number): void {
@@ -359,7 +453,7 @@ export class GameScene extends Phaser.Scene {
     const seaColor = Phaser.Display.Color.Interpolate.ColorWithColor(
       Phaser.Display.Color.ValueToColor(0x18226f),
       Phaser.Display.Color.ValueToColor(0x000000),
-      1,
+      332,
       progress
     );
     const seaHex = Phaser.Display.Color.GetColor(seaColor.r, seaColor.g, seaColor.b);
