@@ -73,7 +73,14 @@ function copyMissile() {
 }
 
 function copySlot() {
-  copyPath(resolve(ROOT, 'games', 'slot60'), resolve(OUT_DIR, 'games', 'slot60'), true);
+  const slotDist = resolve(ROOT, 'games', 'slot60', 'dist', 'index.html');
+  if (!existsSync(slotDist)) {
+    execFileSync('npm', ['run', 'build', '--prefix', './games/slot60'], {
+      cwd: ROOT,
+      stdio: 'inherit'
+    });
+  }
+  copyPath(resolve(ROOT, 'games', 'slot60', 'dist'), resolve(OUT_DIR, 'games', 'slot60'), true);
 }
 
 function copyAsteroid() {
@@ -97,6 +104,22 @@ function copyStackfall() {
   copyPath(resolve(ROOT, 'games', 'stackfall', 'dist'), resolve(OUT_DIR, 'games', 'stackfall'), true);
 }
 
+function ensureChickFlapBuild() {
+  const chickFlapDist = resolve(ROOT, 'games', 'chick-flap', 'dist', 'index.html');
+  if (existsSync(chickFlapDist)) {
+    return;
+  }
+  execFileSync('npm', ['run', 'platform:build:chick-flap'], {
+    cwd: ROOT,
+    stdio: 'inherit'
+  });
+}
+
+function copyChickFlap() {
+  ensureChickFlapBuild();
+  copyPath(resolve(ROOT, 'games', 'chick-flap', 'dist'), resolve(OUT_DIR, 'games', 'chick-flap'), true);
+}
+
 resetOutput();
 copyPlatform();
 copySnake();
@@ -104,5 +127,6 @@ copyMissile();
 copySlot();
 copyAsteroid();
 copyStackfall();
+copyChickFlap();
 
 console.log(`Cloudflare assets built at ${OUT_DIR}`);
