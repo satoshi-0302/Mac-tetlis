@@ -10,7 +10,8 @@ import {
   PIPE_SPAWN_OFFSET,
   PLAY_HEIGHT,
   SCREEN_HEIGHT,
-  SCREEN_WIDTH
+  SCREEN_WIDTH,
+  GAME_DURATION
 } from '../constants';
 import { Hud } from '../ui/Hud';
 
@@ -24,6 +25,7 @@ export class GameScene extends Phaser.Scene {
   private score = 0;
   private bestScore = 0;
   private frameTick = 0;
+  private playingTime = 0;
   private gameOverTimer = 0;
   private skyOffset = 0;
   private groundOffset = 0;
@@ -76,8 +78,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.state === 'playing') {
+      this.playingTime += delta;
       this.updatePipes(deltaSec);
       this.checkCollisions();
+
+      if (this.playingTime >= GAME_DURATION) {
+        this.triggerGameOver();
+      }
     }
 
     if (this.state === 'gameover') {
@@ -109,6 +116,7 @@ export class GameScene extends Phaser.Scene {
   private restartRound(): void {
     this.state = 'ready';
     this.score = 0;
+    this.playingTime = 0;
     this.gameOverTimer = 0;
     this.hud.setScore(0);
     this.hud.showReady();
@@ -201,21 +209,45 @@ export class GameScene extends Phaser.Scene {
   private createTextures(): void {
     if (!this.textures.exists('pipe-body')) {
       const g = this.add.graphics();
-      g.fillStyle(0x49ff8d);
-      g.fillRect(0, 0, 88, 200);
-      g.fillStyle(0x0e7042);
-      g.fillRect(76, 0, 12, 200);
-      g.generateTexture('pipe-body', 88, 200);
+      // Stainless steel cylinder look
+      const w = 92;
+      const h = 200;
+      // Main metallic gray
+      g.fillStyle(0x777777);
+      g.fillRect(0, 0, w, h);
+      // Highlights & Shadows
+      g.fillStyle(0x333333, 0.4);
+      g.fillRect(0, 0, w * 0.2, h); // Left shadow
+      g.fillStyle(0xffffff, 0.5);
+      g.fillRect(w * 0.3, 0, w * 0.05, h); // Specular highlight 1
+      g.fillStyle(0xffffff, 0.3);
+      g.fillRect(w * 0.4, 0, w * 0.1, h); // Broad light
+      g.fillStyle(0x222222, 0.5);
+      g.fillRect(w * 0.8, 0, w * 0.2, h); // Right shadow
+
+      // Cyberpunk detail line
+      g.lineStyle(2, 0x00ffff, 0.3);
+      g.lineBetween(w * 0.5, 0, w * 0.5, h);
+
+      g.generateTexture('pipe-body', w, h);
       g.destroy();
     }
 
     if (!this.textures.exists('pipe-cap')) {
       const g = this.add.graphics();
-      g.fillStyle(0x49ff8d);
-      g.fillRect(0, 0, 100, 24);
-      g.fillStyle(0x0e7042);
-      g.fillRect(88, 0, 12, 24);
-      g.generateTexture('pipe-cap', 100, 24);
+      const w = 104;
+      const h = 28;
+      // Chrome/Steel Cap
+      g.fillStyle(0xaaaaaa);
+      g.fillRoundedRect(0, 0, w, h, 6);
+      // Shine
+      g.fillStyle(0xffffff, 0.6);
+      g.fillRoundedRect(4, 4, w - 8, 6, 3);
+      // Cyber accent
+      g.fillStyle(0x00ffff, 0.8);
+      g.fillRect(w * 0.45, h * 0.7, w * 0.1, h * 0.2);
+
+      g.generateTexture('pipe-cap', w, h);
       g.destroy();
     }
   }
@@ -234,44 +266,93 @@ export class GameScene extends Phaser.Scene {
       .filter((child) => (child as Phaser.GameObjects.GameObject & { name?: string }).name === 'bg')
       .forEach((child) => child.destroy());
 
+    const progress = Math.min(this.playingTime / GAME_DURATION, 1);
+    const darknessStep = Math.floor(this.playingTime / 10000); // 0 to 6
+    const brightness = Math.max(0, 1 - (darknessStep * 1) / 6);
+
     const g = this.add.graphics();
     g.name = 'bg';
     g.setDepth(1);
 
-    g.fillGradientStyle(0x18226f, 0x18226f, 0xff784f, 0xff784f, 1);
+    // Sky colors
+    const skyTop = Phaser.Display.Color.Interpolate.ColorWithColor(
+      Phaser.Display.Color.ValueToColor(0x18226f),
+      Phaser.Display.Color.ValueToColor(0x000000),
+      1,
+      progress
+    );
+    const skyBottom = Phaser.Display.Color.Interpolate.ColorWithColor(
+      Phaser.Display.Color.ValueToColor(0xff784f),
+      Phaser.Display.Color.ValueToColor(0x220000),
+      1,
+      progress
+    );
+
+    const topHex = Phaser.Display.Color.GetColor(skyTop.r, skyTop.g, skyTop.b);
+    const botHex = Phaser.Display.Color.GetColor(skyBottom.r, skyBottom.g, skyBottom.b);
+
+    g.fillGradientStyle(topHex, topHex, botHex, botHex, 1);
     g.fillRect(0, 0, SCREEN_WIDTH, PLAY_HEIGHT);
 
-    g.fillStyle(0xffde7f);
-    g.fillCircle(480, 118, 54);
-    for (let i = 0; i < 12; i += 1) {
-      if (i % 2 !== 0) continue;
-      g.lineStyle(2, 0xff784f, 1);
-      g.lineBetween(438, 78 + i * 7, 522, 78 + i * 7);
+    // Sun sinking (starts at 118, ends at PLAY_HEIGHT + 100)
+    const sunStartX = 480;
+    const sunStartY = 118;
+    const sunEndY = PLAY_HEIGHT + 60;
+    const sunY = sunStartY + (sunEndY - sunStartY) * progress;
+
+    if (brightness > 0) {
+      g.fillStyle(0xffde7f, brightness);
+      g.fillCircle(sunStartX, sunY, 54);
+      // Retrowave bars on sun
+      for (let i = 0; i < 12; i += 1) {
+        if (i % 2 !== 0) continue;
+        g.lineStyle(2, botHex, 1);
+        g.lineBetween(sunStartX - 42, sunY - 40 + i * 7, sunStartX + 42, sunY - 40 + i * 7);
+      }
     }
 
-    const horizonY = PLAY_HEIGHT * 0.8;
-    g.lineStyle(2, 0x57f3ff, 1);
-    g.lineBetween(0, horizonY, SCREEN_WIDTH, horizonY);
-    for (let i = 0; i < 35; i += 1) {
-      const x = (i * 36 - this.skyOffset) % (SCREEN_WIDTH + 40);
-      g.lineStyle(1, 0x5d63ff, 0.7);
-      g.lineBetween(x, horizonY, SCREEN_WIDTH / 2, PLAY_HEIGHT - 2);
+    // Sea instead of grid
+    const horizonY = PLAY_HEIGHT * 0.75;
+    const seaColor = Phaser.Display.Color.Interpolate.ColorWithColor(
+      Phaser.Display.Color.ValueToColor(0x18226f),
+      Phaser.Display.Color.ValueToColor(0x000000),
+      1,
+      progress
+    );
+    const seaHex = Phaser.Display.Color.GetColor(seaColor.r, seaColor.g, seaColor.b);
+    g.fillStyle(seaHex);
+    g.fillRect(0, horizonY, SCREEN_WIDTH, PLAY_HEIGHT - horizonY);
+
+    // Sun Reflection on Water
+    if (sunY < horizonY + 100 && brightness > 0) {
+      const reflectWidth = 60 * brightness;
+      g.fillStyle(0xffde7f, 0.3 * brightness);
+      g.fillRect(sunStartX - reflectWidth / 2, horizonY, reflectWidth, PLAY_HEIGHT - horizonY);
     }
 
-    g.fillStyle(0x38e0ff, 0.75);
-    this.clouds.forEach((cloud) => {
-      g.fillCircle(cloud.x, cloud.y, 16);
-      g.fillCircle(cloud.x + 18, cloud.y - 5, 13);
-      g.fillCircle(cloud.x - 17, cloud.y + 2, 12);
-      g.fillRect(cloud.x - 22, cloud.y, 42, 12);
-    });
+    // Sea details (Cyberpunk glimmer)
+    const glimmerAlpha = 0.4 * brightness;
+    if (glimmerAlpha > 0) {
+      g.lineStyle(1, 0x57f3ff, glimmerAlpha);
+      for (let i = 0; i < 6; i += 1) {
+        const y = horizonY + 10 + i * 12;
+        const xOffset = (this.frameTick * (1 + i * 0.2)) % 60;
+        for (let x = -60; x < SCREEN_WIDTH; x += 60) {
+          g.lineBetween(x + xOffset, y, x + xOffset + 20, y);
+        }
+      }
+    }
 
-    g.fillStyle(0x3f7d3d);
+    // Ground area (Dark Cyber style)
+    g.fillStyle(0x0a0a1a);
     g.fillRect(0, PLAY_HEIGHT, SCREEN_WIDTH, 64);
-    g.fillStyle(0xb4ec74);
-    for (let stripe = 0; stripe < SCREEN_WIDTH + 32; stripe += 32) {
-      const x = (stripe - this.groundOffset) % (SCREEN_WIDTH + 32) - 32;
-      g.fillRect(x, PLAY_HEIGHT + 8, 20, 16);
+    g.lineStyle(2, 0x00ffff, 0.5 * brightness);
+    g.lineBetween(0, PLAY_HEIGHT, SCREEN_WIDTH, PLAY_HEIGHT);
+    // Ground Grid
+    for (let stripe = 0; stripe < SCREEN_WIDTH / 32; stripe += 1) {
+      const x = (stripe * 44 - this.groundOffset) % (SCREEN_WIDTH + 44) - 44;
+      g.lineStyle(1, 0x00ffff, 0.2 * brightness);
+      g.lineBetween(x, PLAY_HEIGHT, (x - 100) * 1.5, SCREEN_HEIGHT);
     }
   }
 
