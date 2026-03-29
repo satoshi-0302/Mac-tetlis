@@ -31,6 +31,7 @@ export interface LeaderboardEntry {
   replayFormat: string;
   replayData: string;
   replayDigest: string;
+  finalStateHash?: string;
 }
 
 /**

@@ -670,6 +670,118 @@ export function summarizeRun(state) {
   };
 }
 
+function sortCanonicalBullets(bullets) {
+  return [...bullets].sort((a, b) => {
+    if (a.lifeTicks !== b.lifeTicks) return a.lifeTicks - b.lifeTicks;
+    if (a.x !== b.x) return a.x - b.x;
+    if (a.y !== b.y) return a.y - b.y;
+    if (a.vx !== b.vx) return a.vx - b.vx;
+    return a.vy - b.vy;
+  });
+}
+
+function sortCanonicalAsteroids(asteroids) {
+  return [...asteroids].sort((a, b) => {
+    if (a.id !== b.id) return a.id - b.id;
+    if (a.type !== b.type) return String(a.type) < String(b.type) ? -1 : 1;
+    if (a.hitPoints !== b.hitPoints) return a.hitPoints - b.hitPoints;
+    if (a.x !== b.x) return a.x - b.x;
+    if (a.y !== b.y) return a.y - b.y;
+    if (a.vx !== b.vx) return a.vx - b.vx;
+    return a.vy - b.vy;
+  });
+}
+
+function canonicalNumber(value) {
+  const numeric = Number(value ?? 0);
+  if (!Number.isFinite(numeric)) {
+    return '0';
+  }
+  return numeric.toFixed(6);
+}
+
+export function createStateHashMaterial(state) {
+  const bullets = sortCanonicalBullets(
+    Array.isArray(state?.bullets)
+      ? state.bullets
+          .filter((bullet) => bullet && !bullet._removed && bullet.lifeTicks > 0)
+          .map((bullet) => ({
+            x: bullet.x,
+            y: bullet.y,
+            vx: bullet.vx,
+            vy: bullet.vy,
+            lifeTicks: bullet.lifeTicks
+          }))
+      : []
+  );
+
+  const asteroids = sortCanonicalAsteroids(
+    Array.isArray(state?.asteroids)
+      ? state.asteroids
+          .filter((asteroid) => asteroid && !asteroid._removed && asteroid.hitPoints > 0)
+          .map((asteroid) => ({
+            id: asteroid.id,
+            type: asteroid.type,
+            x: asteroid.x,
+            y: asteroid.y,
+            vx: asteroid.vx,
+            vy: asteroid.vy,
+            hitPoints: asteroid.hitPoints,
+            sizeClass: asteroid.sizeClass,
+            radius: asteroid.radius
+          }))
+      : []
+  );
+
+  const ship = state?.ship ?? {};
+
+  return [
+    `tick=${Number(state?.tick ?? 0)}`,
+    `finished=${state?.finished ? 1 : 0}`,
+    `score=${Number(state?.score ?? 0)}`,
+    `kills=${Number(state?.kills ?? 0)}`,
+    `hits=${Number(state?.hits ?? 0)}`,
+    `shotsFired=${Number(state?.shotsFired ?? 0)}`,
+    `crashes=${Number(state?.crashes ?? 0)}`,
+    `combo=${Number(state?.combo ?? 0)}`,
+    `comboTimer=${Number(state?.comboTimer ?? 0)}`,
+    `maxCombo=${Number(state?.maxCombo ?? 0)}`,
+    `endReason=${String(state?.endReason ?? '')}`,
+    `prevInputMask=${Number(state?.prevInputMask ?? 0) & 0x1f}`,
+    `spawnCursor=${Number(state?.spawnCursor ?? 0)}`,
+    `nextAsteroidId=${Number(state?.nextAsteroidId ?? 0)}`,
+    [
+      'ship',
+      canonicalNumber(ship.x),
+      canonicalNumber(ship.y),
+      canonicalNumber(ship.vx),
+      canonicalNumber(ship.vy),
+      canonicalNumber(ship.angle),
+      canonicalNumber(ship.radius),
+      Number(ship.cooldownTicks ?? 0),
+      Number(ship.invulnTicks ?? 0),
+      ship.destroyed ? 1 : 0
+    ].join(':'),
+    ...bullets.map((bullet) =>
+      ['bullet', canonicalNumber(bullet.x), canonicalNumber(bullet.y), canonicalNumber(bullet.vx), canonicalNumber(bullet.vy), canonicalNumber(bullet.lifeTicks)].join(':')
+    ),
+    ...asteroids.map((asteroid) =>
+      [
+        'asteroid',
+        Number(asteroid.id ?? 0),
+        String(asteroid.type ?? ''),
+        Number(asteroid.sizeClass ?? 0),
+        canonicalNumber(asteroid.radius),
+        canonicalNumber(asteroid.x),
+        canonicalNumber(asteroid.y),
+        canonicalNumber(asteroid.vx),
+        canonicalNumber(asteroid.vy),
+        Number(asteroid.hitPoints ?? 0)
+      ].join(':')
+    )
+  ].join('|');
+}
+
 export function runReplay(inputFrames, spawnSchedule = createSpawnSchedule()) {
   const state = createInitialState(spawnSchedule);
 
@@ -680,6 +792,7 @@ export function runReplay(inputFrames, spawnSchedule = createSpawnSchedule()) {
 
   return {
     state,
-    summary: summarizeRun(state)
+    summary: summarizeRun(state),
+    finalStateHashMaterial: createStateHashMaterial(state)
   };
 }

@@ -8,19 +8,15 @@ import { createEntryId, parseStoredJson, sanitizePlayerName, sanitizeRequiredCom
 
 // Game engine is plain JS — use createRequire to avoid tsc trying to compile it
 const require = createRequire(import.meta.url);
-const { GAME_VERSION, MAX_TICKS } = require('../../../games/asteroid/src/engine/constants.js') as {
+const { GAMEPLAY_SEED, GAME_VERSION } = require('../../../games/asteroid/src/engine/constants.js') as {
+  GAMEPLAY_SEED: number;
   GAME_VERSION: string;
-  MAX_TICKS: number;
 };
-const { runReplay } = require('../../../games/asteroid/src/game/sim-core.js') as {
-  runReplay: (bytes: unknown, schedule: unknown) => { summary: { score: number } & Record<string, unknown> };
-};
-const { createSpawnSchedule } = require('../../../games/asteroid/src/game/spawn-schedule.js') as {
-  createSpawnSchedule: (seed: number) => unknown;
-};
-const { decodeReplay, validateReplayBytes } = require('../../../games/asteroid/src/replay/replay.js') as {
-  decodeReplay: (data: string) => unknown[];
-  validateReplayBytes: (bytes: unknown) => boolean;
+const { runHeadlessReplayFromBase64 } = require('../../../games/asteroid/src/replay/verify-runner.js') as {
+  runHeadlessReplayFromBase64: (
+    data: string,
+    options: { seed: number }
+  ) => { summary: { score: number } & Record<string, unknown>; finalStateHashMaterial: string };
 };
 
 const ROOT_DIR = fileURLToPath(new URL('../../../games/asteroid/', import.meta.url));
@@ -33,6 +29,7 @@ function createSubmissionError(message: string, statusCode = 400): Error & { sta
 interface VerifyResult {
   replayDigest: string;
   summary: Record<string, unknown>;
+  finalStateHash: string;
 }
 
 function verifyReplayData(
@@ -40,7 +37,7 @@ function verifyReplayData(
   claimedScore: number,
   replayDigest: unknown,
   seed = 0,
-  { requireClaimedScoreMatch = true } = {}
+  { requireClaimedScoreMatch = true, expectedFinalStateHash = '' } = {}
 ): VerifyResult {
   if (typeof replayData !== 'string' || replayData.length === 0) {
     throw createSubmissionError('replayData is required');
@@ -49,27 +46,31 @@ function verifyReplayData(
     throw createSubmissionError('replayDigest must be a SHA-256 hex string');
   }
 
-  let replayBytes: unknown[];
-  try {
-    replayBytes = decodeReplay(replayData);
-  } catch {
-    throw createSubmissionError('replayData is not valid base64');
-  }
-
-  if (!validateReplayBytes(replayBytes) || replayBytes.length !== MAX_TICKS) {
-    throw createSubmissionError(`replayData must decode to exactly ${MAX_TICKS} frames`);
-  }
-
   const digest = sha256(replayData);
   if (digest !== String(replayDigest).toLowerCase()) {
     throw createSubmissionError('replayDigest mismatch');
   }
 
-  const spawnSchedule = createSpawnSchedule(seed);
-  const replayResult = runReplay(replayBytes, spawnSchedule);
+  const resolvedSeed = Number.isFinite(Number(seed)) ? Number(seed) : GAMEPLAY_SEED;
+  let replayResult;
+  try {
+    replayResult = runHeadlessReplayFromBase64(replayData, { seed: resolvedSeed });
+  } catch (error) {
+    throw createSubmissionError((error as Error)?.message ?? 'Invalid replayData');
+  }
+
+  const finalStateHash = sha256(replayResult.finalStateHashMaterial);
+  if (expectedFinalStateHash) {
+    if (!/^[a-f0-9]{64}$/i.test(String(expectedFinalStateHash))) {
+      throw createSubmissionError('finalStateHash must be a SHA-256 hex string');
+    }
+    if (finalStateHash !== String(expectedFinalStateHash).toLowerCase()) {
+      throw createSubmissionError('finalStateHash mismatch');
+    }
+  }
   if (requireClaimedScoreMatch && replayResult.summary.score !== claimedScore) {
     throw createSubmissionError(
-      `score mismatch after verification (submitted ${claimedScore}, verified ${replayResult.summary.score}, seed ${seed})`
+      `score mismatch after verification (submitted ${claimedScore}, verified ${replayResult.summary.score}, seed ${resolvedSeed})`
     );
   }
 
@@ -77,8 +78,10 @@ function verifyReplayData(
     replayDigest: digest,
     summary: {
       ...replayResult.summary,
-      seed
-    }
+      seed: resolvedSeed,
+      finalStateHash
+    },
+    finalStateHash
   };
 }
 
@@ -115,7 +118,8 @@ export const asteroidAdapter = {
               createdAt: generatedAt,
               replayFormat: 'asteroid-input-base64-v1',
               replayData: String(entry.replayData),
-              replayDigest: verified.replayDigest
+              replayDigest: verified.replayDigest,
+              finalStateHash: verified.finalStateHash
             });
           } catch (e) {
             console.warn(`[AsteroidAdapter] Seed entry #${index + 1} failed verification: ${(e as Error).message}`);
@@ -135,7 +139,8 @@ export const asteroidAdapter = {
       p.replayData,
       claimedScore,
       p.replayDigest,
-      Number(p.seed ?? 0)
+      Number(p.seed ?? 0),
+      { expectedFinalStateHash: String(p.finalStateHash ?? '') }
     );
 
     return {
@@ -149,7 +154,8 @@ export const asteroidAdapter = {
       createdAt: new Date().toISOString(),
       replayFormat: 'asteroid-input-base64-v1',
       replayData: String(p.replayData),
-      replayDigest: verified.replayDigest
+      replayDigest: verified.replayDigest,
+      finalStateHash: verified.finalStateHash
     };
   },
 
@@ -163,6 +169,7 @@ export const asteroidAdapter = {
       score: row.score,
       replayDigest: row.replayDigest,
       replayData: row.replayData,
+      finalStateHash: typeof summary.finalStateHash === 'string' ? summary.finalStateHash : '',
       seed: Number(summary.seed ?? 0),
       summary
     };

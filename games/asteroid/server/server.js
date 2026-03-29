@@ -5,10 +5,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 
-import { GAME_VERSION, MAX_TICKS } from '../src/engine/constants.js';
-import { runReplay } from '../src/game/sim-core.js';
-import { createSpawnSchedule } from '../src/game/spawn-schedule.js';
-import { decodeReplay, validateReplayBytes } from '../src/replay/replay.js';
+import { GAME_VERSION } from '../src/engine/constants.js';
+import { runHeadlessReplayFromBase64 } from '../src/replay/verify-runner.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,7 +17,6 @@ const DB_DIR = join(__dirname, 'data');
 const DB_PATH = join(DB_DIR, 'leaderboard.db');
 const LEGACY_GAME_VERSION = 'legacy';
 const AI_LEADERBOARD_PATH = join(__dirname, '..', 'public', 'rl', 'ai-top10.json');
-const serverSpawnSchedule = createSpawnSchedule();
 const ALLOWED_ORIGINS = buildAllowedOrigins(process.env.ASTEROIDS60_ALLOWED_ORIGINS);
 const SUBMIT_RATE_LIMIT_WINDOW_MS = parsePositiveInteger(
   process.env.ASTEROIDS60_SUBMIT_WINDOW_MS,
@@ -298,6 +295,7 @@ function mapAiReplayEntry(entry, index) {
     name: String(entry.name ?? `AI ${index + 1}`),
     message: String(entry.message ?? ''),
     score: Number(entry.score ?? 0),
+    seed: Number(entry.seed ?? entry.summary?.seed ?? 0),
     replayDigest: String(entry.replayDigest ?? ''),
     replayData: typeof entry.replayData === 'string' ? entry.replayData : '',
     summary: entry.summary ?? null,
@@ -441,6 +439,7 @@ function validateSubmissionPayload(payload) {
   const score = Number(payload.score);
   const replayDigest = typeof payload.replayDigest === 'string' ? payload.replayDigest.toLowerCase() : '';
   const replayData = typeof payload.replayData === 'string' ? payload.replayData : '';
+  const finalStateHash = typeof payload.finalStateHash === 'string' ? payload.finalStateHash.toLowerCase() : '';
 
   if (!name || name.length > 5) {
     return { error: 'name must be 1-5 printable ASCII characters' };
@@ -458,23 +457,29 @@ function validateSubmissionPayload(payload) {
     return { error: 'replayData is required for anti-cheat verification' };
   }
 
-  let replayBytes;
-  try {
-    replayBytes = decodeReplay(replayData);
-  } catch {
-    return { error: 'replayData is not valid base64' };
-  }
-
-  if (!validateReplayBytes(replayBytes) || replayBytes.length !== MAX_TICKS) {
-    return { error: `replayData must decode to exactly ${MAX_TICKS} input frames` };
-  }
-
   const calculatedDigest = createHash('sha256').update(replayData).digest('hex');
   if (calculatedDigest !== replayDigest) {
     return { error: 'replayDigest mismatch' };
   }
 
-  const replayResult = runReplay(replayBytes, serverSpawnSchedule);
+  let replayResult;
+  try {
+    replayResult = runHeadlessReplayFromBase64(replayData, { seed: 0 });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'replayData is invalid' };
+  }
+
+  const calculatedFinalStateHash = createHash('sha256')
+    .update(replayResult.finalStateHashMaterial)
+    .digest('hex');
+  if (finalStateHash) {
+    if (!/^[a-f0-9]{64}$/.test(finalStateHash)) {
+      return { error: 'finalStateHash must be a 64-char SHA-256 hex string' };
+    }
+    if (calculatedFinalStateHash !== finalStateHash) {
+      return { error: 'finalStateHash mismatch' };
+    }
+  }
   if (replayResult.summary.score !== score) {
     return {
       error: `score mismatch after deterministic replay (submitted ${score}, verified ${replayResult.summary.score})`
@@ -486,7 +491,8 @@ function validateSubmissionPayload(payload) {
     message,
     score,
     replayDigest,
-    replayData
+    replayData,
+    finalStateHash: calculatedFinalStateHash
   };
 }
 

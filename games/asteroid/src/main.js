@@ -15,7 +15,6 @@ import { InputController } from './engine/input.js';
 import { createRng } from './engine/rng.js';
 import {
   createInitialState,
-  runReplay,
   stepSimulation,
   summarizeRun
 } from './game/sim-core.js';
@@ -24,10 +23,14 @@ import { fetchLeaderboard, fetchReplay, submitScore } from './net/api.js';
 import { loadDemoAgent } from './rl/demo-agent.js';
 import {
   createReplayBuffer,
-  decodeReplay,
   digestReplayBase64,
+  digestString,
   encodeReplay
 } from './replay/replay.js';
+import {
+  decodeReplayFrames,
+  runHeadlessReplayFromFrames
+} from './replay/verify-runner.js';
 import { Renderer } from './render/renderer.js';
 
 const app = document.querySelector('#app');
@@ -413,7 +416,8 @@ function verifyReplayViaWorker(replayData) {
     replayVerifyPending.set(requestId, { resolve, reject });
     replayVerifyWorker.postMessage({
       requestId,
-      replayData
+      replayData,
+      seed: 0
     });
   });
 }
@@ -723,17 +727,23 @@ async function buildReplayPayload() {
     return {
       replayData,
       replayDigest: verified.replayDigest,
+      finalStateHash: verified.finalStateHash,
       score: verified.score,
       summary: verified.summary
     };
   } catch {
-    const replayResult = runReplay(authoritativeReplay, spawnSchedule);
+    const replayResult = runHeadlessReplayFromFrames(authoritativeReplay, { seed: 0, spawnSchedule });
     const replayDigest = await digestReplayBase64(replayData);
+    const finalStateHash = await digestString(replayResult.finalStateHashMaterial);
     return {
       replayData,
       replayDigest,
+      finalStateHash,
       score: replayResult.summary.score,
-      summary: replayResult.summary
+      summary: {
+        ...replayResult.summary,
+        finalStateHash
+      }
     };
   }
 }
@@ -761,7 +771,12 @@ function startReplayPlayback(payload) {
     return;
   }
 
-  const replayBytes = decodeReplay(payload.replayData);
+  const titleOverlay = document.getElementById('title-screen');
+  if (titleOverlay) {
+    titleOverlay.classList.remove('active');
+  }
+
+  const replayBytes = decodeReplayFrames(payload.replayData);
   const seed = Number(payload.seed ?? payload.summary?.seed ?? 0);
   spawnSchedule = createSpawnSchedule(seed);
 
@@ -991,7 +1006,29 @@ function createLeaderboardCell(entry, rank) {
 }
 
 function buildUnifiedLeaderboardEntries(snapshot) {
-  const liveEntries = Array.isArray(snapshot?.combinedEntries) ? snapshot.combinedEntries.slice(0, 10) : [];
+  const combinedEntries = Array.isArray(snapshot?.combinedEntries) ? snapshot.combinedEntries : null;
+  const aiEntries = Array.isArray(snapshot?.aiEntries) ? snapshot.aiEntries : [];
+  const humanEntries = Array.isArray(snapshot?.humanEntries) ? snapshot.humanEntries : [];
+
+  const liveEntries = combinedEntries
+    ? combinedEntries.slice(0, 10)
+    : [...aiEntries, ...humanEntries]
+        .sort((a, b) => {
+          const scoreDelta = Number(b?.score ?? 0) - Number(a?.score ?? 0);
+          if (scoreDelta !== 0) {
+            return scoreDelta;
+          }
+
+          const aRank = Number(a?.rank ?? Number.POSITIVE_INFINITY);
+          const bRank = Number(b?.rank ?? Number.POSITIVE_INFINITY);
+          if (aRank !== bRank) {
+            return aRank - bRank;
+          }
+
+          return String(a?.id ?? '').localeCompare(String(b?.id ?? ''));
+        })
+        .slice(0, 10);
+
   const entries = liveEntries.map((entry, index) => ({
     ...entry,
     rank: index + 1,
@@ -1241,7 +1278,8 @@ submitForm.addEventListener('submit', async (event) => {
       message,
       score: replayPayload.score,
       replayDigest: replayPayload.replayDigest,
-      replayData: replayPayload.replayData
+      replayData: replayPayload.replayData,
+      finalStateHash: replayPayload.finalStateHash
     });
     submitStatus.textContent = 'Score accepted and verified by server.';
     if (response?.leaderboard) {

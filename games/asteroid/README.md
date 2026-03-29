@@ -1,7 +1,8 @@
 # Asteroids 60
 
 60 秒固定、60tick 固定のブラウザゲームです。  
-replay 検証つき leaderboard と、AI demo / WATCH replay が入っています。
+replay 検証つき leaderboard と、AI demo / WATCH replay が入っています。  
+replay 検証は入力 digest に加えて final state hash を計算し、browser worker と headless runner の両方で同じ判定系を使います。
 
 ## いま残してあるもの
 
@@ -74,3 +75,5 @@ src/         ゲーム本体
 server/      leaderboard / replay 検証サーバー
 public/rl/   最新 AI モデルと replay
 ```
+
+`src/replay/verify-runner.js` は browser / Node 共通のヘッドレス replay runner です。

@@ -1,18 +1,11 @@
-import { MAX_TICKS } from '../engine/constants.js';
-import { runReplay } from '../game/sim-core.js';
-import { createSpawnSchedule } from '../game/spawn-schedule.js';
-import {
-  decodeReplay,
-  digestReplayBase64,
-  validateReplayBytes
-} from './replay.js';
-
-const spawnSchedule = createSpawnSchedule();
+import { digestReplayBase64, digestString } from './replay.js';
+import { runHeadlessReplayFromBase64 } from './verify-runner.js';
 
 self.addEventListener('message', async (event) => {
   const payload = event.data ?? {};
   const requestId = payload.requestId;
   const replayData = typeof payload.replayData === 'string' ? payload.replayData : '';
+  const seed = Number(payload.seed ?? 0);
 
   if (!replayData) {
     self.postMessage({
@@ -24,20 +17,20 @@ self.addEventListener('message', async (event) => {
   }
 
   try {
-    const replayBytes = decodeReplay(replayData);
-    if (!validateReplayBytes(replayBytes) || replayBytes.length !== MAX_TICKS) {
-      throw new Error(`Invalid replay frame count (expected ${MAX_TICKS})`);
-    }
-
-    const replayResult = runReplay(replayBytes, spawnSchedule);
+    const replayResult = runHeadlessReplayFromBase64(replayData, { seed });
     const replayDigest = await digestReplayBase64(replayData);
+    const finalStateHash = await digestString(replayResult.finalStateHashMaterial);
 
     self.postMessage({
       requestId,
       ok: true,
       replayDigest,
+      finalStateHash,
       score: replayResult.summary.score,
-      summary: replayResult.summary
+      summary: {
+        ...replayResult.summary,
+        finalStateHash
+      }
     });
   } catch (error) {
     self.postMessage({
