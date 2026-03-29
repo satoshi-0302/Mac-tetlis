@@ -897,3 +897,30 @@
 4. 現在ブランチを GitHub へ push する
 5. `npm run cf:deploy` で Cloudflare へ反映する
 6. デプロイ結果を確認して共有する
+
+## Cloudflare asteroid seed 更新漏れ修正（2026-03-29 追加）
+
+### 目的
+
+- Cloudflare 本番の `asteroid` leaderboard / replay API が古い AI seed を返し続ける問題を解消する
+- human スコアは保持しつつ、AI seed だけは新しい `ai-top10.json` に追随するようにする
+
+### 変更対象ファイル
+
+- `cloudflare/worker.mjs`
+  - seed 初期化条件を見直し、AI seed 更新が止まらないようにする
+- `cloudflare/lib/asteroid-adapter.mjs`
+  - Cloudflare 側でも `ai-top10.json` から seed entry を読み込めるようにする
+- 必要なら `games/asteroid/public/rl/ai-top10.json`
+  - 反映対象 seed 内容の再確認のみ行う
+- `games/implementation_plan.md`
+  - 今回の修正計画を追記する
+
+### 実施内容
+
+1. Cloudflare worker の seed 挿入条件を確認する
+2. `asteroid` adapter に `loadSeedEntries()` を追加し、`ai-top10.json` を読めるようにする
+3. ゲーム全体件数ではなく、AI seed を更新すべき条件で upsert するように修正する
+4. human entry を消さないことを確認する
+5. build / security check 後に GitHub と Cloudflare へ再反映する
+6. 本番 API で `ai-01` が `257734` / `seed=3` を返すことを確認する

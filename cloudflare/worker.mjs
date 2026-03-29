@@ -98,21 +98,17 @@ async function ensureGames(db) {
       )
       .run();
 
-    const countRow = await db
-      .prepare('SELECT count(*) AS total FROM leaderboard_entries WHERE game_id = ?')
-      .bind(game.id)
-      .first();
-
-    if (Number(countRow?.total ?? 0) > 0) {
-      continue;
-    }
-
     const adapter = adapters.get(game.id);
     if (!adapter || typeof adapter.loadSeedEntries !== 'function') {
       continue;
     }
 
-    for (const entry of adapter.loadSeedEntries()) {
+    const seedEntries = adapter.loadSeedEntries();
+    if (!Array.isArray(seedEntries) || seedEntries.length === 0) {
+      continue;
+    }
+
+    for (const entry of seedEntries) {
       await insertVerifiedEntry(db, game.id, entry);
     }
 

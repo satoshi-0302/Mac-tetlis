@@ -1,7 +1,10 @@
+import aiLeaderboardSeed from '../../games/asteroid/public/rl/ai-top10.json' with { type: 'json' };
 import { GAMEPLAY_SEED, GAME_VERSION } from '../../games/asteroid/src/engine/constants.js';
 import { digestReplayBase64, digestString } from '../../games/asteroid/src/replay/replay.js';
 import { runHeadlessReplayFromBase64 } from '../../games/asteroid/src/replay/verify-runner.js';
 import { createEntryId, parseStoredJson, sanitizeComment, sanitizePlayerName } from './worker-sanitize.mjs';
+
+let seedEntriesCache = null;
 
 function createSubmissionError(message, statusCode = 400) {
   const error = new Error(message);
@@ -64,6 +67,53 @@ async function verifyReplayData(
 
 export const asteroidAdapter = {
   gameId: 'asteroid',
+  currentGameVersion: GAME_VERSION,
+
+  loadSeedEntries() {
+    if (Array.isArray(seedEntriesCache)) {
+      return seedEntriesCache;
+    }
+
+    const generatedAt = String(aiLeaderboardSeed?.generatedAt ?? new Date().toISOString());
+    const gameVersion = String(aiLeaderboardSeed?.gameVersion ?? GAME_VERSION);
+    const entries = Array.isArray(aiLeaderboardSeed?.entries) ? aiLeaderboardSeed.entries : [];
+
+    seedEntriesCache = entries
+      .filter((entry) => typeof entry?.replayData === 'string' && entry.replayData.length > 0)
+      .map((entry, index) => {
+        const seed = Number.isFinite(Number(entry.seed)) ? Number(entry.seed) : GAMEPLAY_SEED;
+        return {
+          id: String(entry.id ?? `asteroid-ai-${index + 1}`),
+          kind: 'ai',
+          name: sanitizePlayerName(entry.name, `AI-${index + 1}`),
+          comment: sanitizeComment(entry.message ?? ''),
+          score: Math.max(0, Math.round(Number(entry.score) || 0)),
+          summary: {
+            ...(entry.summary && typeof entry.summary === 'object' ? entry.summary : {}),
+            seed,
+            finalStateHash:
+              typeof entry.finalStateHash === 'string'
+                ? entry.finalStateHash
+                : typeof entry.summary?.finalStateHash === 'string'
+                  ? entry.summary.finalStateHash
+                  : ''
+          },
+          gameVersion,
+          createdAt: generatedAt,
+          replayFormat: 'asteroid-input-base64-v1',
+          replayData: entry.replayData,
+          replayDigest: String(entry.replayDigest ?? ''),
+          finalStateHash:
+            typeof entry.finalStateHash === 'string'
+              ? entry.finalStateHash
+              : typeof entry.summary?.finalStateHash === 'string'
+                ? entry.summary.finalStateHash
+                : ''
+        };
+      });
+
+    return seedEntriesCache;
+  },
 
   async validateSubmission(payload) {
     const claimedScore = Math.max(0, Math.round(Number(payload?.score ?? payload?.claimedScore) || 0));
