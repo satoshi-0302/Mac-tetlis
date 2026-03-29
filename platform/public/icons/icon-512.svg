@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#07131A"/>
+  <rect x="28" y="28" width="456" height="456" rx="96" fill="url(#bgGlow)" stroke="#83F8FF" stroke-width="8"/>
+  <circle cx="256" cy="256" r="156" fill="#0E2330" stroke="#FFD46F" stroke-width="16"/>
+  <circle cx="256" cy="256" r="124" stroke="#83F8FF" stroke-width="6" stroke-dasharray="10 14" opacity="0.55"/>
+  <path d="M256 136V264L338 316" stroke="#FFD46F" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M148 376C170 404 208 422 256 422C326 422 384 382 404 324" stroke="#FF8F67" stroke-width="18" stroke-linecap="round"/>
+  <text x="256" y="270" text-anchor="middle" fill="#F2FBFF" font-size="138" font-family="Arial, sans-serif" font-weight="800">60</text>
+  <rect x="70" y="72" width="120" height="120" rx="28" fill="#102632" stroke="#83F8FF" stroke-width="6"/>
+  <path d="M130 98V166" stroke="#83F8FF" stroke-width="16" stroke-linecap="round"/>
+  <path d="M96 132H164" stroke="#83F8FF" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="384" cy="128" r="22" fill="#FF8F67"/>
+  <circle cx="432" cy="176" r="16" fill="#FFD46F"/>
+  <defs>
+    <linearGradient id="bgGlow" x1="64" y1="56" x2="452" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#143040"/>
+      <stop offset="1" stop-color="#09161E"/>
+    </linearGradient>
+  </defs>
+</svg>

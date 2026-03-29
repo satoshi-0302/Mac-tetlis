@@ -1,0 +1,265 @@
+{
+  "meta": {
+    "name": "Orbital Shield Heuristic Policy",
+    "createdAt": "2026-03-07T17:23:08.854Z",
+    "trainer": "heuristic-cem"
+  },
+  "config": {
+    "type": "heuristic-weights",
+    "decisionTicks": 1,
+    "seeds": [
+      1033108010,
+      668265261,
+      2447445419,
+      286331153,
+      572662306,
+      858993459
+    ]
+  },
+  "best": {
+    "objective": 346628.7732267011,
+    "score": 67609,
+    "meanScore": 53096.833333333336,
+    "clearRate": 1,
+    "meanAliveCities": 3.3333333333333335,
+    "meanSurvivalSeconds": 60
+  },
+  "heuristic": {
+    "params": {
+      "fireThreshold": 0.02,
+      "interceptLead": 0.30858693788183045,
+      "urgencyWindow": 4.796315641664771,
+      "baseBlastReach": 116.79143158129588,
+      "urgencyBlastBonus": 9.900482507994203,
+      "baseUrgencyWeight": 0.2,
+      "cityBonus": 0.06248490522090849,
+      "fastWeight": 1.447902159542719,
+      "splitWeight": 1.9989440022094305,
+      "armoredWeight": 1.3504258879440552
+    },
+    "parameterKeys": [
+      "fireThreshold",
+      "interceptLead",
+      "urgencyWindow",
+      "baseBlastReach",
+      "urgencyBlastBonus",
+      "baseUrgencyWeight",
+      "cityBonus",
+      "fastWeight",
+      "splitWeight",
+      "armoredWeight"
+    ],
+    "history": [
+      {
+        "iteration": 1,
+        "objectiveBest": 305062.9875411668,
+        "objectiveMean": 251174.46899405014,
+        "scoreBest": 66150,
+        "scoreMean": 31651.229166666668,
+        "clearRate": 1,
+        "meanAliveCities": 2.8333333333333335
+      },
+      {
+        "iteration": 2,
+        "objectiveBest": 313942.48903210217,
+        "objectiveMean": 269872.97269795416,
+        "scoreBest": 67413,
+        "scoreMean": 36388.958333333336,
+        "clearRate": 1,
+        "meanAliveCities": 2.8333333333333335
+      },
+      {
+        "iteration": 3,
+        "objectiveBest": 346350.2635254106,
+        "objectiveMean": 279324.5611855558,
+        "scoreBest": 67681,
+        "scoreMean": 36922.11805555555,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 4,
+        "objectiveBest": 330167.76066272106,
+        "objectiveMean": 284863.7877657446,
+        "scoreBest": 67631,
+        "scoreMean": 38724.01388888889,
+        "clearRate": 1,
+        "meanAliveCities": 3.1666666666666665
+      },
+      {
+        "iteration": 5,
+        "objectiveBest": 337294.031123022,
+        "objectiveMean": 295040.5677797556,
+        "scoreBest": 67663,
+        "scoreMean": 41089.88888888888,
+        "clearRate": 1,
+        "meanAliveCities": 3.1666666666666665
+      },
+      {
+        "iteration": 6,
+        "objectiveBest": 346201.349407362,
+        "objectiveMean": 299955.88263191114,
+        "scoreBest": 67413,
+        "scoreMean": 41736.34722222222,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 7,
+        "objectiveBest": 346434.9224811111,
+        "objectiveMean": 315108.4688048312,
+        "scoreBest": 67663,
+        "scoreMean": 45310.43055555556,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 8,
+        "objectiveBest": 346435.917080539,
+        "objectiveMean": 331719.1221014411,
+        "scoreBest": 67663,
+        "scoreMean": 49420.73611111112,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 9,
+        "objectiveBest": 346427.4348116539,
+        "objectiveMean": 334401.65052611975,
+        "scoreBest": 67663,
+        "scoreMean": 50154.31944444444,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 10,
+        "objectiveBest": 346500.09378301253,
+        "objectiveMean": 331166.6517819436,
+        "scoreBest": 67663,
+        "scoreMean": 49231.270833333336,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 11,
+        "objectiveBest": 346539.62947208073,
+        "objectiveMean": 326528.50613103976,
+        "scoreBest": 67663,
+        "scoreMean": 50293.18055555556,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 12,
+        "objectiveBest": 346501.0939488321,
+        "objectiveMean": 329507.2472471286,
+        "scoreBest": 67663,
+        "scoreMean": 50007.45833333334,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 13,
+        "objectiveBest": 346552.4605482737,
+        "objectiveMean": 330685.0859684428,
+        "scoreBest": 67663,
+        "scoreMean": 50480.7361111111,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 14,
+        "objectiveBest": 346554.34509269014,
+        "objectiveMean": 327433.0435536814,
+        "scoreBest": 67663,
+        "scoreMean": 49094.680555555555,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 15,
+        "objectiveBest": 346535.34551576636,
+        "objectiveMean": 326418.91828151164,
+        "scoreBest": 67663,
+        "scoreMean": 49523.597222222226,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 16,
+        "objectiveBest": 346534.94678799255,
+        "objectiveMean": 331811.4633516826,
+        "scoreBest": 67663,
+        "scoreMean": 49916.84722222222,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 17,
+        "objectiveBest": 346565.24928216956,
+        "objectiveMean": 319993.9438161347,
+        "scoreBest": 67663,
+        "scoreMean": 48606.444444444445,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 18,
+        "objectiveBest": 346534.18844423845,
+        "objectiveMean": 321497.57536865893,
+        "scoreBest": 67663,
+        "scoreMean": 49063.923611111124,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 19,
+        "objectiveBest": 346550.1443313984,
+        "objectiveMean": 315164.6823694709,
+        "scoreBest": 67663,
+        "scoreMean": 46798.29861111112,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 20,
+        "objectiveBest": 346628.7732267011,
+        "objectiveMean": 321102.90804538084,
+        "scoreBest": 67609,
+        "scoreMean": 47440.368055555555,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 21,
+        "objectiveBest": 346530.6856345874,
+        "objectiveMean": 327375.05606549344,
+        "scoreBest": 67663,
+        "scoreMean": 49806.48611111112,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      },
+      {
+        "iteration": 22,
+        "objectiveBest": 346566.66552480735,
+        "objectiveMean": 321032.13813342457,
+        "scoreBest": 67663,
+        "scoreMean": 48173.194444444445,
+        "clearRate": 1,
+        "meanAliveCities": 3.3333333333333335
+      }
+    ]
+  },
+  "parameters": [
+    0.02,
+    0.30858693788183045,
+    4.796315641664771,
+    116.79143158129588,
+    9.900482507994203,
+    0.2,
+    0.06248490522090849,
+    1.447902159542719,
+    1.9989440022094305,
+    1.3504258879440552
+  ]
+}

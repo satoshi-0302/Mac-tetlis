@@ -1,0 +1,220 @@
+:root {
+  --bg: #07090f;
+  --panel: #0d111d;
+  --line: #00d9ff;
+  --text: #f2fbff;
+  --muted: #96bed1;
+  --snake: #00f3ff;
+  --apple: #39ff14;
+  --action: #101a2f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(0, 243, 255, 0.18), transparent 45%),
+    linear-gradient(180deg, #090c14 0%, #050608 100%);
+  color: var(--text);
+  font-family: "Press Start 2P", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+#app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 250px minmax(320px, 1fr) 300px;
+  gap: 14px;
+  padding: 14px;
+}
+
+.panel {
+  border: 1px solid color-mix(in srgb, var(--line) 55%, #00121a);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.14);
+  padding: 14px;
+}
+
+.panel h1,
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.45);
+}
+
+.stage-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+#game-root {
+  position: relative;
+}
+
+#game-root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0,
+      rgba(0, 0, 0, 0) 3px,
+      rgba(0, 0, 0, 0.22) 4px
+    );
+}
+
+#game-root canvas {
+  display: block;
+  border-radius: 8px;
+  border: 2px solid var(--line);
+  box-shadow:
+    0 0 20px rgba(0, 243, 255, 0.24),
+    inset 0 0 12px rgba(0, 243, 255, 0.15);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.status {
+  min-height: 2.8em;
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+  font-size: 0.66rem;
+}
+
+.stat-row strong {
+  text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+}
+
+.board ol {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  font-size: 0.63rem;
+  line-height: 1.45;
+}
+
+.play-btn,
+.action-btn {
+  margin-top: 8px;
+  border: 1px solid color-mix(in srgb, var(--line) 65%, #002135);
+  background: color-mix(in srgb, var(--action) 78%, #000);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.62rem;
+  padding: 8px 10px;
+  text-shadow: 0 0 8px rgba(0, 243, 255, 0.35);
+}
+
+.action-btn {
+  width: 100%;
+}
+
+.play-btn:hover,
+.action-btn:hover {
+  box-shadow: 0 0 16px rgba(0, 243, 255, 0.24);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.touch-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(66px, 1fr));
+  gap: 8px;
+  width: min(700px, 100%);
+}
+
+.touch-controls button {
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 60%, #001a2a);
+  background: #10192d;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.62rem;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.58);
+  z-index: 20;
+}
+
+.modal-card {
+  width: min(420px, 92vw);
+  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--line) 55%, #00121a);
+  border-radius: 14px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.modal-card label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.66rem;
+}
+
+.modal-card input,
+.modal-card button {
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--line) 45%, #001726);
+  background: #0a1120;
+  color: var(--text);
+  padding: 0 10px;
+  font-family: inherit;
+}
+
+.modal-card button {
+  background: #11253e;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .panel.board {
+    order: 3;
+  }
+}
+
+@media (pointer: fine) {
+  .touch-controls {
+    display: none;
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "gameVersion": "orbital-shield-rl-poc-v3",
+  "humanEntries": [
+    {
+      "id": "1772960629202-5-b0jt0e",
+      "kind": "human",
+      "name": "ACE",
+      "score": 10775,
+      "maxChain": 3,
+      "survivingCities": 1,
+      "clear": true,
+      "createdAt": "2026-03-08T09:03:49.202Z",
+      "policyName": "",
+      "comment": "",
+      "note": "",
+      "replayId": "1772960629202-5-b0jt0e",
+      "replayAvailable": true
+    },
+    {
+      "id": "1772957115855-3-xqga2k",
+      "kind": "human",
+      "name": "ACE",
+      "score": 5457,
+      "maxChain": 3,
+      "survivingCities": 0,
+      "clear": false,
+      "createdAt": "2026-03-08T08:05:15.855Z",
+      "policyName": "",
+      "comment": "",
+      "note": "",
+      "replayId": "1772957115855-3-xqga2k",
+      "replayAvailable": true
+    },
+    {
+      "id": "1772957033933-2-95nwgy",
+      "kind": "human",
+      "name": "ACE",
+      "score": 4411,
+      "maxChain": 4,
+      "survivingCities": 0,
+      "clear": false,
+      "createdAt": "2026-03-08T08:03:53.933Z",
+      "policyName": "",
+      "comment": "",
+      "note": "",
+      "replayId": "1772957033933-2-95nwgy",
+      "replayAvailable": true
+    },
+    {
+      "id": "1774061798716-6-2mf1jr",
+      "kind": "human",
+      "name": "ACE",
+      "score": 4176,
+      "maxChain": 3,
+      "survivingCities": 0,
+      "clear": false,
+      "createdAt": "2026-03-21T02:56:38.716Z",
+      "policyName": "",
+      "comment": "",
+      "note": "",
+      "replayId": "1774061798716-6-2mf1jr",
+      "replayAvailable": true
+    },
+    {
+      "id": "1772957170012-4-h7smj8",
+      "kind": "human",
+      "name": "ACE",
+      "score": 748,
+      "maxChain": 2,
+      "survivingCities": 0,
+      "clear": false,
+      "createdAt": "2026-03-08T08:06:10.012Z",
+      "policyName": "",
+      "comment": "",
+      "note": "",
+      "replayId": "1772957170012-4-h7smj8",
+      "replayAvailable": true
+    }
+  ],
+  "aiEntries": [
+    {
+      "id": "ai-benchmark-01",
+      "kind": "ai",
+      "name": "AI",
+      "score": 39624,
+      "maxChain": 5,
+      "survivingCities": 4,
+      "clear": true,
+      "createdAt": "2026-03-08T05:01:00.000Z",
+      "policyName": "Edge Predict",
+      "comment": "Best of 1,000 seeded",
+      "note": "bootstrap-ai",
+      "replayId": "ai-benchmark-01",
+      "replayAvailable": true
+    },
+    {
+      "id": "ai-500ms-surgical-chain-35781",
+      "kind": "ai",
+      "name": "AI",
+      "score": 35781,
+      "maxChain": 6,
+      "survivingCities": 4,
+      "clear": true,
+      "createdAt": "2026-03-21T02:40:58.677Z",
+      "policyName": "Surgical Edge Chain",
+      "comment": "500ms cooldown / best of 2048 seeded runs",
+      "note": "ai-lab-500ms",
+      "replayId": "surgical-edge-chain-2026-03-21T02-37-26",
+      "replayAvailable": true
+    }
+  ]
+}
