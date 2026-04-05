@@ -1,0 +1,270 @@
+:root {
+  color-scheme: dark;
+  --bg: #050a1d;
+  --panel: #0d1535;
+  --panel-border: #2b3e7a;
+  --text: #e8f0ff;
+  --muted: #8aa1d6;
+  --accent: #6be4ff;
+  --accent-2: #ffd26f;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  background: radial-gradient(circle at 20% 0%, #1f2d67 0%, #050a1d 58%);
+  overflow-x: hidden;
+  font-family: "Trebuchet MS", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  color: var(--text);
+}
+
+canvas {
+  display: block;
+  margin: 0;
+}
+
+#app {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.route-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.route-pill {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.layout {
+  display: flex;
+  gap: 12px;
+}
+
+.game-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.phaser-root {
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.runtime-status {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.mobile-quick-help {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.side-column {
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(18, 30, 74, 0.95), rgba(10, 16, 42, 0.95));
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 6px;
+}
+
+.leaderboard-slot {
+  border: 1px solid rgba(135, 164, 255, 0.35);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(6, 13, 36, 0.7);
+}
+
+.leaderboard-slot.empty {
+  opacity: 0.7;
+}
+
+.leaderboard-slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.rank {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.score {
+  font-weight: 700;
+}
+
+.leaderboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.name {
+  font-weight: 700;
+}
+
+.message {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.leaderboard-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.result-stats div {
+  background: rgba(7, 14, 38, 0.7);
+  border: 1px solid rgba(135, 164, 255, 0.35);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.result-stats strong {
+  font-size: 16px;
+}
+
+.submit-form {
+  display: grid;
+  gap: 8px;
+}
+
+.submit-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.submit-form input {
+  border: 1px solid rgba(135, 164, 255, 0.5);
+  border-radius: 8px;
+  background: rgba(4, 11, 33, 0.9);
+  color: var(--text);
+  padding: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.submit-form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(107, 228, 255, 0.2);
+}
+
+.btn {
+  border: 1px solid rgba(135, 164, 255, 0.5);
+  border-radius: 8px;
+  background: rgba(17, 36, 86, 0.95);
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn.tiny {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 12px;
+}
+
+body[data-route-mode='mobile'] #app {
+  padding: 10px;
+}
+
+body[data-route-mode='mobile'] .layout {
+  flex-direction: column;
+}
+
+body[data-route-mode='mobile'] .side-column {
+  width: 100%;
+}
+
+body[data-route-mode='mobile'] .runtime-status {
+  font-size: 13px;
+}
+
+body[data-route-mode='mobile'] .panel {
+  padding: 10px;
+}
+
+body[data-route-mode='mobile'] .submit-form input {
+  font-size: 16px;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .side-column {
+    width: 100%;
+  }
+}

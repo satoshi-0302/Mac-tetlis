@@ -1,0 +1,26 @@
+[Unit]
+Description=Snake60 game server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/snake60
+Environment=HOST=127.0.0.1
+Environment=PORT=8080
+Environment=MAX_BODY_BYTES=16384
+Environment=RATE_LIMIT_WINDOW_SECONDS=60
+Environment=RATE_LIMIT_MAX_SUBMISSIONS=20
+ExecStart=/usr/bin/python3 /opt/snake60/server.py
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/opt/snake60
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
