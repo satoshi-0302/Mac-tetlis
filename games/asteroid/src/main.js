@@ -5,6 +5,9 @@ import {
   ARENA_HEIGHT,
   ARENA_WIDTH,
   ASTEROID_TYPES,
+  INPUT_LEFT,
+  INPUT_RIGHT,
+  INPUT_SHOOT,
   INPUT_THRUST,
   MAX_TICKS,
   RUN_SECONDS,
@@ -39,10 +42,12 @@ if (!app) {
 }
 
 const routeModeParam = new URLSearchParams(window.location.search).get('mode');
+const routeAutoWatchParam = new URLSearchParams(window.location.search).get('autowatch');
 const routeMode = routeModeParam === 'mobile' ? 'mobile' : routeModeParam === 'desktop' ? 'desktop' : 'auto';
 const prefersTouch =
   typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
 const compactRoute = routeMode === 'mobile' || (routeMode !== 'desktop' && prefersTouch);
+const autoWatchEnabled = routeAutoWatchParam === '1';
 document.body.dataset.routeMode = compactRoute ? 'mobile' : 'desktop';
 
 app.innerHTML = `
@@ -55,6 +60,13 @@ app.innerHTML = `
     <section class="game-column">
       <div class="canvas-wrap">
         <canvas id="gameCanvas" width="960" height="640" aria-label="Asteroids 60 game canvas"></canvas>
+        <div id="gameOverOverlay" class="game-over-overlay" aria-hidden="true">
+          <div class="game-over-panel">
+            <span class="game-over-kicker">SIGNAL LOST</span>
+            <strong>GAME OVER</strong>
+            <span class="game-over-subtitle">Debris drifting. Auto systems still scanning the field.</span>
+          </div>
+        </div>
         <div id="title-screen" class="active">
           <img src="/static/assets/thumbnails/asteroid.png" class="game-title-thumbnail" alt="Asteroid Thumbnail">
           <div class="top-score-display">
@@ -73,7 +85,7 @@ app.innerHTML = `
         <button id="stopReplayButton" class="btn tiny hidden" type="button">Stop Replay</button>
       </div>
       <p class="mobile-quick-help ${compactRoute ? '' : 'hidden'}">
-        左ドラッグで向きと加速、右側タッチでショット、右側2本指でボムです。未開始時は画面タップで開始できます。
+        左ドラッグで向きと加速、右側タッチ長押しでショットです。未開始時は画面タップで開始できます。
       </p>
     </section>
 
@@ -85,9 +97,8 @@ app.innerHTML = `
           <li>Rotate: <kbd>A</kbd>/<kbd>D</kbd> or <kbd>&larr;</kbd>/<kbd>&rarr;</kbd></li>
           <li>Thrust: <kbd>W</kbd> or <kbd>&uarr;</kbd></li>
           <li>Start / Shoot / Restart: <kbd>Space</kbd></li>
-          <li>Bomb: <kbd>Shift</kbd> (destroys all current asteroids, no score).</li>
           <li>AI Demo: toggle <kbd>DEMO</kbd> button for auto-play.</li>
-          <li>Touch: left drag aim+thrust, right hold shoot, two-finger touch on right triggers bomb.</li>
+          <li>Touch: left drag aim+thrust, right hold shoot.</li>
           <li>Close kill bonus + combo multiplier reward precision.</li>
           <li>Tier3 unlocks at 15s, tier4 at 30s, and the 45s tier5 spike is currently paused.</li>
         </ul>
@@ -129,6 +140,7 @@ app.innerHTML = `
 `;
 
 const canvas = document.querySelector('#gameCanvas');
+const gameOverOverlay = document.querySelector('#gameOverOverlay');
 const runtimeStatus = document.querySelector('#runtimeStatus');
 const stopReplayButton = document.querySelector('#stopReplayButton');
 const leaderboardList = document.querySelector('#leaderboardList');
@@ -147,6 +159,7 @@ const mobileStartButton = document.querySelector('#mobileStartButton');
 
 if (
   !(canvas instanceof HTMLCanvasElement) ||
+  !(gameOverOverlay instanceof HTMLElement) ||
   !(runtimeStatus instanceof HTMLElement) ||
   !(stopReplayButton instanceof HTMLButtonElement) ||
   !(leaderboardList instanceof HTMLElement) ||
@@ -172,7 +185,7 @@ const renderer = new Renderer(canvas, vfxRandom);
 const audio = new AudioEngine();
 const RUN_DURATION_MS = RUN_SECONDS * 1000;
 const TICK_MS = 1000 / TICK_RATE;
-const INPUT_MASK = 0x1f;
+const INPUT_MASK = INPUT_LEFT | INPUT_RIGHT | INPUT_THRUST | INPUT_SHOOT;
 const POST_FINISH_SETTLE_MS = 1150;
 const POST_FINISH_TRIM_MS = 400;
 const POST_FINISH_ASTEROID_LIMIT = 5;
@@ -181,6 +194,9 @@ const IDLE_RENDER_INTERVAL_MS = 1000 / 30;
 const IDLE_ASTEROID_LIMIT = 5;
 const DEMO_RESTART_DELAY_MS = 1200;
 const REPLAY_FINISH_HOLD_MS = 1400;
+const DEMO_DEATH_LOG_FRAMES = 180;
+const EDGE_STAY_MARGIN = 84;
+const SPIN_STREAK_THRESHOLD = 18;
 
 let state = createInitialState(spawnSchedule);
 state.lowPowerIdle = false;
@@ -206,9 +222,14 @@ let demoAgent = null;
 let demoRestartAtMs = 0;
 let demoRunCount = 0;
 let demoBestScore = 0;
+let demoDebugOverlay = null;
 let leaderboardSnapshot = null;
 let replaySession = null;
 let replayLoadRequestId = 0;
+let autoWatchTriggered = false;
+let demoTelemetry = null;
+let demoAnalytics = createDemoAnalytics();
+let gameOverOverlayTimeoutId = 0;
 
 function setDemoStatus(text) {
   demoStatus.textContent = text;
@@ -225,6 +246,171 @@ function setStopReplayButtonVisible(visible) {
 
 function isLiveRunActive() {
   return runStarted && !didFinish && !replaySession;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function createRingBuffer(limit) {
+  return {
+    limit,
+    values: [],
+    cursor: 0,
+    size: 0
+  };
+}
+
+function pushRingBuffer(buffer, value) {
+  if (buffer.size < buffer.limit) {
+    buffer.values.push(value);
+    buffer.size += 1;
+    buffer.cursor = buffer.size % buffer.limit;
+    return;
+  }
+  buffer.values[buffer.cursor] = value;
+  buffer.cursor = (buffer.cursor + 1) % buffer.limit;
+}
+
+function readRingBuffer(buffer) {
+  if (buffer.size < buffer.limit) {
+    return buffer.values.slice();
+  }
+  const start = buffer.cursor;
+  return [...buffer.values.slice(start), ...buffer.values.slice(0, start)];
+}
+
+function createDemoAnalytics() {
+  return {
+    runCount: 0,
+    survivalTicks: [],
+    scores: [],
+    totalFrames: 0,
+    edgeFrames: 0,
+    spinFrames: 0,
+    spinShootFrames: 0,
+    predictionDangerFrames: 0,
+    highEdgeTrapRiskFrames: 0,
+    shieldActiveFrames: 0,
+    shieldAppliedFrames: 0,
+    shieldBlockedCandidateCount: 0,
+    deathCauseCounts: {},
+    worstEpisodes: []
+  };
+}
+
+function percentile(values, ratio) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return null;
+  }
+  const sorted = values.slice().sort((a, b) => a - b);
+  const index = clamp(Math.floor((sorted.length - 1) * ratio), 0, sorted.length - 1);
+  return sorted[index];
+}
+
+function median(values) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return null;
+  }
+  const sorted = values.slice().sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) * 0.5;
+  }
+  return sorted[mid];
+}
+
+function createDemoTelemetry() {
+  return {
+    frameRing: createRingBuffer(DEMO_DEATH_LOG_FRAMES),
+    rotateDir: 0,
+    rotateStreak: 0,
+    edgeFrames: 0,
+    spinFrames: 0,
+    spinShootFrames: 0,
+    predictionDangerFrames: 0,
+    highEdgeTrapRiskFrames: 0,
+    shieldActiveFrames: 0,
+    shieldAppliedFrames: 0,
+    shieldBlockedCandidateCount: 0,
+    totalFrames: 0
+  };
+}
+
+function estimateDeathCauseFromTelemetry(summary, telemetry, stateSnapshot) {
+  if (summary.endReason === 'time-up') {
+    return 'time-up';
+  }
+  const lastFrame = readRingBuffer(telemetry.frameRing).slice(-1)[0] ?? null;
+  const global = lastFrame?.global ?? null;
+  const prediction120 = lastFrame?.prediction120 ?? null;
+  if (
+    prediction120 &&
+    prediction120.edgeTrapRisk >= 0.72 &&
+    (prediction120.centerReturnScore ?? 1) < 0.42
+  ) {
+    return 'edge-trap-collision';
+  }
+  if (global?.edgeTrapRisk >= 0.72) {
+    return 'edge-trap-collision';
+  }
+  if (global?.minTimeToCollision !== null && Number.isFinite(global?.minTimeToCollision) && global.minTimeToCollision < 0.42) {
+    return 'sudden-close-collision';
+  }
+  if (stateSnapshot.asteroids.length >= 8) {
+    return 'overwhelmed-collision';
+  }
+  return 'collision';
+}
+
+function buildDemoMetricsSummary() {
+  if (demoAnalytics.runCount === 0) {
+    return null;
+  }
+  const worstSurvivalTicks = percentile(demoAnalytics.survivalTicks, 0.1);
+  const medianSurvivalTicks = median(demoAnalytics.survivalTicks);
+  const worstScore = percentile(demoAnalytics.scores, 0.1);
+  const edgeStayRatio =
+    demoAnalytics.totalFrames > 0 ? demoAnalytics.edgeFrames / demoAnalytics.totalFrames : 0;
+  const continuousSpinRatio =
+    demoAnalytics.totalFrames > 0 ? demoAnalytics.spinFrames / demoAnalytics.totalFrames : 0;
+  const continuousSpinShootRatio =
+    demoAnalytics.totalFrames > 0 ? demoAnalytics.spinShootFrames / demoAnalytics.totalFrames : 0;
+  const predictionDangerRatio =
+    demoAnalytics.totalFrames > 0 ? demoAnalytics.predictionDangerFrames / demoAnalytics.totalFrames : 0;
+  const highEdgeTrapRiskRatio =
+    demoAnalytics.totalFrames > 0 ? demoAnalytics.highEdgeTrapRiskFrames / demoAnalytics.totalFrames : 0;
+  const shieldActiveRatio =
+    demoAnalytics.totalFrames > 0 ? demoAnalytics.shieldActiveFrames / demoAnalytics.totalFrames : 0;
+  const shieldAppliedRatio =
+    demoAnalytics.totalFrames > 0 ? demoAnalytics.shieldAppliedFrames / demoAnalytics.totalFrames : 0;
+
+  return {
+    runs: demoAnalytics.runCount,
+    primary: {
+      worst10SurvivalTicks: worstSurvivalTicks,
+      medianSurvivalTicks
+    },
+    secondary: {
+      worst10Score: worstScore,
+      edgeStayRatio,
+      continuousSpinRatio,
+      continuousSpinShootRatio,
+      predictionDangerRatio,
+      highEdgeTrapRiskRatio,
+      shieldActiveRatio,
+      shieldAppliedRatio,
+      shieldBlockedCandidateCount: demoAnalytics.shieldBlockedCandidateCount,
+      deathCauseEstimate: { ...demoAnalytics.deathCauseCounts }
+    },
+    worstEpisodes: demoAnalytics.worstEpisodes.map((episode) => ({
+      runIndex: episode.runIndex,
+      survivalTicks: episode.survivalTicks,
+      score: episode.score,
+      deathCause: episode.deathCause,
+      frames: episode.frames
+    }))
+  };
 }
 
 function clearSubmissionState({
@@ -267,17 +453,22 @@ async function ensureDemoAgentLoaded() {
     return demoLoadPromise;
   }
 
-  setDemoStatus('Loading demo policy...');
-  // The policy path should be relative to the game's public dir or use a better locator
+  setDemoStatus('Loading demo controller...');
   const policyPath = './rl/demo-policy.json';
-  demoLoadPromise = loadDemoAgent(policyPath)
+  demoLoadPromise = loadDemoAgent(policyPath, {
+    mode: 'predictive'
+  })
     .then((loaded) => {
       demoAgent = loaded.agent;
-      const trainedScore = Number(loaded.policy?.best?.score);
-      if (Number.isFinite(trainedScore)) {
-        setDemoStatus(`AI ready. Trained score: ${trainedScore}.`);
+      if (loaded.mode === 'predictive') {
+        setDemoStatus('Predictive controller ready (120-tick survival lookahead).');
       } else {
-        setDemoStatus('AI ready.');
+        const trainedScore = Number(loaded.policy?.best?.score);
+        if (Number.isFinite(trainedScore)) {
+          setDemoStatus(`AI ready. Trained score: ${trainedScore}.`);
+        } else {
+          setDemoStatus('AI ready.');
+        }
       }
       return demoAgent;
     })
@@ -294,8 +485,12 @@ async function ensureDemoAgentLoaded() {
 
 function getRunInputMask({ consumeTransient = true } = {}) {
   if (demoEnabled && demoAgent) {
-    return demoAgent.nextMask(state) & INPUT_MASK;
+    const mask = demoAgent.nextMask(state) & INPUT_MASK;
+    demoDebugOverlay =
+      typeof demoAgent.getDebugOverlay === 'function' ? demoAgent.getDebugOverlay() : null;
+    return mask;
   }
+  demoDebugOverlay = null;
   return (
     input.getMask({
       shipAngle: state.ship.angle,
@@ -331,6 +526,9 @@ async function setDemoModeEnabled(enabled) {
     demoEnabled = true;
     demoRunCount = 0;
     demoBestScore = 0;
+    demoTelemetry = null;
+    demoAnalytics = createDemoAnalytics();
+    demoDebugOverlay = null;
     demoRestartAtMs = 0;
     if (typeof input.clearInputState === 'function') {
       input.clearInputState();
@@ -349,6 +547,8 @@ async function setDemoModeEnabled(enabled) {
   const demoWasRunning = demoEnabled && runStarted && !didFinish;
   demoEnabled = false;
   demoRestartAtMs = 0;
+  demoTelemetry = null;
+  demoDebugOverlay = null;
   refreshDemoButton();
   if (typeof input.clearInputState === 'function') {
     input.clearInputState();
@@ -424,6 +624,26 @@ function verifyReplayViaWorker(replayData) {
 
 function setRuntimeStatus(text) {
   runtimeStatus.textContent = text;
+}
+
+function setGameOverOverlayVisible(visible) {
+  gameOverOverlay.classList.toggle('active', visible);
+  gameOverOverlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+}
+
+function clearGameOverOverlaySchedule() {
+  if (gameOverOverlayTimeoutId > 0) {
+    window.clearTimeout(gameOverOverlayTimeoutId);
+    gameOverOverlayTimeoutId = 0;
+  }
+}
+
+function scheduleGameOverOverlay() {
+  clearGameOverOverlaySchedule();
+  gameOverOverlayTimeoutId = window.setTimeout(() => {
+    gameOverOverlayTimeoutId = 0;
+    setGameOverOverlayVisible(true);
+  }, 500);
 }
 
 function syncMobileStartButton() {
@@ -591,6 +811,7 @@ function prepareIdleScene() {
   state.asteroids = buildIdleAsteroidSet(state.asteroids);
   state.bullets = [];
   state.events = [];
+  state.debugOverlay = null;
   state.ship.destroyed = true;
   state.lowPowerIdle = true;
   state.visualTick = typeof state.visualTick === 'number' ? state.visualTick : state.tick;
@@ -604,6 +825,7 @@ function prepareStartPreview() {
   state.asteroids = buildIdleAsteroidSet(state.asteroids, IDLE_ASTEROID_LIMIT, true);
   state.ship.destroyed = true;
   state.lowPowerIdle = true;
+  state.debugOverlay = null;
   state.visualTick = 0;
   idlePowerSaveActive = true;
   idleLastUpdateMs = performance.now();
@@ -634,6 +856,7 @@ function stepIdleScene(nowMs) {
 function resetSimulationState() {
   state = createInitialState(spawnSchedule);
   state.lowPowerIdle = false;
+  state.debugOverlay = null;
   finishAtMs = 0;
   finishLastMotionMs = 0;
   finishReducedAsteroids = false;
@@ -647,6 +870,8 @@ function resetSimulationState() {
 function resetRun() {
   replaySession = null;
   setStopReplayButtonVisible(false);
+  clearGameOverOverlaySchedule();
+  setGameOverOverlayVisible(false);
   spawnSchedule = createSpawnSchedule();
   resetSimulationState();
   runStarted = false;
@@ -668,9 +893,15 @@ function startRun() {
 
   activeRunId += 1;
   runStarted = true;
+  clearGameOverOverlaySchedule();
+  setGameOverOverlayVisible(false);
   state.lowPowerIdle = false;
+  state.debugOverlay = null;
   if (demoEnabled && demoAgent) {
     demoAgent.reset();
+    demoTelemetry = createDemoTelemetry();
+  } else {
+    demoTelemetry = null;
   }
   beginRunClock(
     getRunInputMask({
@@ -775,16 +1006,20 @@ function startReplayPlayback(payload) {
   if (titleOverlay) {
     titleOverlay.classList.remove('active');
   }
+  clearGameOverOverlaySchedule();
+  setGameOverOverlayVisible(false);
 
   const replayBytes = decodeReplayFrames(payload.replayData);
   const seed = Number(payload.seed ?? payload.summary?.seed ?? 0);
+  const replayId = String(payload.id ?? '');
   spawnSchedule = createSpawnSchedule(seed);
 
   replaySession = {
     kind: payload.kind === 'ai' ? 'ai' : 'human',
-    id: String(payload.id ?? ''),
+    id: replayId,
     name: String(payload.name ?? 'Replay'),
     score: Number(payload.score ?? 0),
+    seed,
     replayBytes,
     tickCursor: 0,
     startMs: 0,
@@ -803,7 +1038,10 @@ function startReplayPlayback(payload) {
   setStopReplayButtonVisible(true);
 
   const sourceLabel = replaySession.kind === 'ai' ? 'AI' : 'Human';
-  setRuntimeStatus(`Watching ${sourceLabel} replay: ${replaySession.name} (${replaySession.score}).`);
+  const replayRef = replaySession.id ? ` id=${replaySession.id}` : '';
+  setRuntimeStatus(
+    `Watching ${sourceLabel} replay${replayRef} seed=${replaySession.seed}: ${replaySession.name} (${replaySession.score}).`
+  );
   syncMobileStartButton();
 }
 
@@ -824,6 +1062,7 @@ function stepReplayTick(nowMs = performance.now()) {
   if (!replaySession) {
     return;
   }
+  state.debugOverlay = null;
 
   if (!state.finished) {
     const inputMask = replaySession.replayBytes[replaySession.tickCursor] & INPUT_MASK;
@@ -838,14 +1077,155 @@ function stepReplayTick(nowMs = performance.now()) {
     audio.setThruster(false);
     if (replaySession.finishedAtMs === 0) {
       replaySession.finishedAtMs = nowMs;
+      const replayRef = replaySession.id ? ` id=${replaySession.id}` : '';
       setRuntimeStatus(
-        `Replay finished: ${replaySession.name} scored ${replaySession.score}. Press Space for a live run.`
+        `Replay finished${replayRef} seed=${replaySession.seed}: ${replaySession.name} scored ${replaySession.score}. Press Space for a live run.`
       );
     } else if (nowMs - replaySession.finishedAtMs >= REPLAY_FINISH_HOLD_MS) {
       stopReplayPlayback({
         statusText: 'Replay finished. Press Space to start the 60-second run.'
       });
     }
+  }
+}
+
+function updateDemoTelemetry(inputMask) {
+  if (!demoEnabled || !demoTelemetry) {
+    return;
+  }
+
+  const decision =
+    typeof demoAgent?.getLastDecision === 'function' ? demoAgent.getLastDecision() : null;
+  const rotateDir = (inputMask & INPUT_LEFT) !== 0 ? -1 : (inputMask & INPUT_RIGHT) !== 0 ? 1 : 0;
+  if (rotateDir !== 0 && rotateDir === demoTelemetry.rotateDir) {
+    demoTelemetry.rotateStreak += 1;
+  } else if (rotateDir !== 0) {
+    demoTelemetry.rotateStreak = 1;
+  } else {
+    demoTelemetry.rotateStreak = 0;
+  }
+  demoTelemetry.rotateDir = rotateDir;
+
+  const inEdge =
+    state.ship.x < EDGE_STAY_MARGIN ||
+    state.ship.x > ARENA_WIDTH - EDGE_STAY_MARGIN ||
+    state.ship.y < EDGE_STAY_MARGIN ||
+    state.ship.y > ARENA_HEIGHT - EDGE_STAY_MARGIN;
+  const spinning = demoTelemetry.rotateStreak >= SPIN_STREAK_THRESHOLD;
+  const spinShoot = spinning && (inputMask & INPUT_SHOOT) !== 0;
+  const shield = decision?.safetyShield ?? null;
+  const escapeMode = decision?.escapeMode ?? null;
+  const dangerAnalysis = decision?.dangerAnalysis ?? null;
+  const dangerHud = decision?.debugOverlay?.dangerHud ?? null;
+  const shieldActive = Boolean(shield?.active);
+  const shieldApplied = Boolean(shield?.applied);
+  const blockedCandidateCount = Array.isArray(shield?.blockedCandidates) ? shield.blockedCandidates.length : 0;
+  const prediction120 = decision?.debugOverlay?.chosenAction?.prediction120 ?? null;
+  const futureDanger =
+    prediction120 !== null &&
+    ((Number.isFinite(prediction120.minPredictedTtc) && prediction120.minPredictedTtc < 0.75) ||
+      prediction120.minMargin < 18 ||
+      prediction120.collisionRisk > 1.4);
+  const highEdgeTrapRisk =
+    prediction120 !== null &&
+    prediction120.edgeTrapRisk >= 0.7 &&
+    (prediction120.centerReturnScore ?? 1) < 0.5;
+
+  demoTelemetry.totalFrames += 1;
+  if (inEdge) {
+    demoTelemetry.edgeFrames += 1;
+  }
+  if (spinning) {
+    demoTelemetry.spinFrames += 1;
+  }
+  if (spinShoot) {
+    demoTelemetry.spinShootFrames += 1;
+  }
+  if (futureDanger) {
+    demoTelemetry.predictionDangerFrames += 1;
+  }
+  if (highEdgeTrapRisk) {
+    demoTelemetry.highEdgeTrapRiskFrames += 1;
+  }
+  if (shieldActive) {
+    demoTelemetry.shieldActiveFrames += 1;
+  }
+  if (shieldApplied) {
+    demoTelemetry.shieldAppliedFrames += 1;
+  }
+  if (blockedCandidateCount > 0) {
+    demoTelemetry.shieldBlockedCandidateCount += blockedCandidateCount;
+  }
+
+  pushRingBuffer(demoTelemetry.frameRing, {
+    tick: state.tick,
+    inputMask,
+    actionId: decision?.actionId ?? 'unknown',
+    actionScore: decision?.score ?? null,
+    global: decision?.features?.global ?? null,
+    topCandidates: decision?.topCandidates ?? [],
+    prediction120,
+    dangerHud: dangerHud
+      ? {
+          score: Number(dangerHud.score ?? 0),
+          level: String(dangerHud.level ?? 'low'),
+          recoverable: Boolean(dangerHud.recoverable),
+          reasons: Array.isArray(dangerHud.reasons) ? dangerHud.reasons.slice(0, 3) : [],
+          components: dangerHud.components ? { ...dangerHud.components } : null
+        }
+      : null,
+    dangerAnalysis: dangerAnalysis
+      ? {
+          active: Boolean(dangerAnalysis.active),
+          bestCandidateDanger: Boolean(dangerAnalysis.bestCandidateDanger),
+          consensusDanger: Boolean(dangerAnalysis.consensusDanger),
+          meaningfulGap: Boolean(dangerAnalysis.meaningfulGap),
+          dangerousCount: Number(dangerAnalysis.dangerousCount ?? 0),
+          inspectedCount: Number(dangerAnalysis.inspectedCount ?? 0)
+        }
+      : null,
+    safetyShield: shield
+      ? {
+          active: shieldActive,
+          applied: shieldApplied,
+          level: String(shield.level ?? ''),
+          reason: String(shield.reason ?? ''),
+          blockedCandidates: Array.isArray(shield.blockedCandidates) ? shield.blockedCandidates.slice(0, 5) : []
+        }
+      : null,
+    escapeMode: escapeMode
+      ? {
+          active: Boolean(escapeMode.active),
+          engaged: Boolean(escapeMode.engaged),
+          ticksRemaining: Number(escapeMode.ticksRemaining ?? 0),
+          preferredRotateDir: Number(escapeMode.preferredRotateDir ?? 0),
+          reason: String(escapeMode.reason ?? '')
+        }
+      : null,
+    ship: {
+      x: state.ship.x,
+      y: state.ship.y,
+      vx: state.ship.vx,
+      vy: state.ship.vy,
+      angle: state.ship.angle,
+      cooldownTicks: state.ship.cooldownTicks
+    },
+    asteroidCount: state.asteroids.length,
+    edge: inEdge,
+    spinning,
+    spinShoot,
+    futureDanger,
+    highEdgeTrapRisk,
+    shieldActive,
+    shieldApplied
+  });
+}
+
+function appendWorstEpisode(episode) {
+  demoAnalytics.worstEpisodes.push(episode);
+  demoAnalytics.worstEpisodes.sort((a, b) => a.survivalTicks - b.survivalTicks);
+  if (demoAnalytics.worstEpisodes.length > 5) {
+    demoAnalytics.worstEpisodes.length = 5;
   }
 }
 
@@ -864,18 +1244,63 @@ function onRunFinished(nowMs = performance.now()) {
   state.ship.destroyed = true;
   state.lowPowerIdle = false;
   state.visualTick = state.tick;
+  clearGameOverOverlaySchedule();
+  if (state.endReason === 'ship-destroyed') {
+    scheduleGameOverOverlay();
+  } else {
+    setGameOverOverlayVisible(false);
+  }
 
   if (demoEnabled) {
     const summary = summarizeRun(state);
     demoRunCount += 1;
     demoBestScore = Math.max(demoBestScore, summary.score);
-    setRuntimeStatus(`AI demo #${demoRunCount} score ${summary.score}. Restarting...`);
-    setDemoStatus(`Demo runs: ${demoRunCount}, last: ${summary.score}, best: ${demoBestScore}`);
+    const telemetry = demoTelemetry ?? createDemoTelemetry();
+    const deathCause = estimateDeathCauseFromTelemetry(summary, telemetry, state);
+    demoAnalytics.runCount += 1;
+    demoAnalytics.survivalTicks.push(summary.survivalTicks);
+    demoAnalytics.scores.push(summary.score);
+    demoAnalytics.totalFrames += telemetry.totalFrames;
+    demoAnalytics.edgeFrames += telemetry.edgeFrames;
+    demoAnalytics.spinFrames += telemetry.spinFrames;
+    demoAnalytics.spinShootFrames += telemetry.spinShootFrames;
+    demoAnalytics.predictionDangerFrames += telemetry.predictionDangerFrames;
+    demoAnalytics.highEdgeTrapRiskFrames += telemetry.highEdgeTrapRiskFrames;
+    demoAnalytics.shieldActiveFrames += telemetry.shieldActiveFrames;
+    demoAnalytics.shieldAppliedFrames += telemetry.shieldAppliedFrames;
+    demoAnalytics.shieldBlockedCandidateCount += telemetry.shieldBlockedCandidateCount;
+    demoAnalytics.deathCauseCounts[deathCause] = (demoAnalytics.deathCauseCounts[deathCause] ?? 0) + 1;
+    if (summary.endReason === 'ship-destroyed') {
+      appendWorstEpisode({
+        runIndex: demoRunCount,
+        survivalTicks: summary.survivalTicks,
+        score: summary.score,
+        deathCause,
+        frames: readRingBuffer(telemetry.frameRing)
+      });
+    }
+
+    const metrics = buildDemoMetricsSummary();
+    if (metrics) {
+      console.log('[predictive-demo-metrics]', metrics);
+      window.__asteroidPredictiveDemoMetrics = metrics;
+      window.__asteroidPredictiveEpisodeSamples = metrics.worstEpisodes;
+    }
+
+    const worst10 = metrics?.primary?.worst10SurvivalTicks ?? summary.survivalTicks;
+    const medianTicks = metrics?.primary?.medianSurvivalTicks ?? summary.survivalTicks;
+    setRuntimeStatus(
+      `AI demo #${demoRunCount} score ${summary.score}. p10=${Math.round(worst10)} ticks, median=${Math.round(medianTicks)} ticks. Restarting...`
+    );
+    setDemoStatus(
+      `Predictive demo runs=${demoRunCount}, last=${summary.score}, best=${demoBestScore}, edgeRiskFrames=${demoAnalytics.highEdgeTrapRiskFrames}`
+    );
     submitButton.disabled = true;
     submitStatus.textContent = 'Demo mode: score submission disabled.';
     resultPanel.classList.add('hidden');
     replayPayload = null;
     replayDigestPromise = null;
+    demoTelemetry = null;
     demoRestartAtMs = nowMs + DEMO_RESTART_DELAY_MS;
     return;
   }
@@ -1058,6 +1483,14 @@ function renderLeaderboard(snapshot) {
   const entries = buildUnifiedLeaderboardEntries(snapshot);
   for (const entry of entries) {
     leaderboardList.append(createLeaderboardCell(entry, entry.rank));
+  }
+
+  if (autoWatchEnabled && !autoWatchTriggered) {
+    const target = entries.find((entry) => entry?.replayAvailable && entry?.kind && entry?.id);
+    if (target) {
+      autoWatchTriggered = true;
+      void playLeaderboardReplay(target.kind, target.id);
+    }
   }
 
   refreshLeaderboardStatus();
@@ -1305,6 +1738,7 @@ const loop = createFixedLoop({
     }
 
     if (!runStarted) {
+      state.debugOverlay = null;
       stepIdleScene(nowMs);
       audio.setThruster(false);
       return;
@@ -1318,10 +1752,13 @@ const loop = createFixedLoop({
         state.finished = true;
         state.endReason = 'time-up';
         state.events = [];
+        state.debugOverlay = null;
         renderer.update(state, 0);
         audio.setThruster(false);
       } else {
         const inputMask = getRunInputMask();
+        state.debugOverlay = demoEnabled ? demoDebugOverlay : null;
+        updateDemoTelemetry(inputMask);
         recordInputChange(inputMask, nowMs);
         const events = stepSimulation(state, inputMask);
         handleSimulationEvents(events, inputMask);
@@ -1335,6 +1772,7 @@ const loop = createFixedLoop({
       }
     } else {
       const sinceFinishMs = Math.max(0, nowMs - finishAtMs);
+      state.debugOverlay = null;
       if (sinceFinishMs < POST_FINISH_SETTLE_MS) {
         stepPostFinishMotion(nowMs, 1);
         renderer.update(state, 0);

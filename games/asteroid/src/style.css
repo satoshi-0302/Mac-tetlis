@@ -90,6 +90,69 @@ body {
   background: #060910;
 }
 
+.game-over-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 133, 102, 0.26), transparent 26%),
+    radial-gradient(circle at 50% 50%, rgba(255, 76, 123, 0.18), transparent 42%),
+    rgba(6, 7, 14, 0.18);
+}
+
+.game-over-overlay.active {
+  opacity: 1;
+}
+
+.game-over-panel {
+  min-width: min(84vw, 420px);
+  padding: 22px 26px;
+  border: 1px solid rgba(255, 168, 145, 0.45);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(20, 10, 18, 0.82), rgba(9, 10, 18, 0.64));
+  box-shadow:
+    0 0 42px rgba(255, 90, 132, 0.24),
+    inset 0 0 24px rgba(255, 214, 188, 0.08);
+  text-align: center;
+  backdrop-filter: blur(7px);
+}
+
+.game-over-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffd6ae;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.28em;
+}
+
+.game-over-panel strong {
+  display: block;
+  color: #fff5ef;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 7vw, 4.8rem);
+  line-height: 0.92;
+  letter-spacing: 0.08em;
+  text-shadow:
+    0 0 18px rgba(255, 255, 255, 0.32),
+    0 0 28px rgba(255, 84, 127, 0.42);
+}
+
+.game-over-subtitle {
+  display: block;
+  margin-top: 12px;
+  color: #ffd2dc;
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+
 #gameCanvas {
   display: block;
   width: 100%;
@@ -461,6 +524,21 @@ body[data-route-mode='mobile'] .mobile-quick-help {
 
 body[data-route-mode='mobile'] #mobileStartButton {
   min-width: 108px;
+}
+
+body[data-route-mode='mobile'] .game-over-panel {
+  min-width: 0;
+  width: min(100%, 320px);
+  padding: 18px 18px 16px;
+}
+
+body[data-route-mode='mobile'] .game-over-kicker {
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+}
+
+body[data-route-mode='mobile'] .game-over-subtitle {
+  font-size: 0.8rem;
 }
 
 /* Standardized Title Screen Styles */

@@ -18,6 +18,15 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+function normalizeAngleForDraw(angle) {
+  const full = Math.PI * 2;
+  let value = angle % full;
+  if (value < 0) {
+    value += full;
+  }
+  return value;
+}
+
 const TYPE_RENDER_STYLE = {
   tier1: { points: 11, jitter: 0.24, hueMin: 188, hueMax: 228, stroke: 2.1, fillAlpha: 0.16 },
   tier2: { points: 13, jitter: 0.22, hueMin: 168, hueMax: 210, stroke: 2.3, fillAlpha: 0.18 },
@@ -50,7 +59,9 @@ export class Renderer {
     this.asteroidVisuals = new Map();
     this.hitFlash = 0;
     this.bombFlash = 0;
+    this.shipDeathFlash = 0;
     this.bombWaves = [];
+    this.shipDeathWaves = [];
     this.stars = createStars(random, 180);
   }
 
@@ -58,7 +69,9 @@ export class Renderer {
     this.particles.clear();
     this.hitFlash = 0;
     this.bombFlash = 0;
+    this.shipDeathFlash = 0;
     this.bombWaves.length = 0;
+    this.shipDeathWaves.length = 0;
     this.asteroidVisuals.clear();
   }
 
@@ -124,7 +137,28 @@ export class Renderer {
 
     if (event.type === 'ship-destroyed') {
       this.particles.emitShipAnnihilation(event.x, event.y);
+      this.shipDeathWaves.push(
+        {
+          x: event.x,
+          y: event.y,
+          age: 0,
+          life: 0.52,
+          maxRadius: 180,
+          innerColor: '#ffb17a',
+          outerColor: '#ff537c'
+        },
+        {
+          x: event.x,
+          y: event.y,
+          age: 0.06,
+          life: 0.72,
+          maxRadius: 260,
+          innerColor: '#8af4ff',
+          outerColor: '#ffffff'
+        }
+      );
       this.hitFlash = 1;
+      this.shipDeathFlash = 1;
     }
   }
 
@@ -148,11 +182,24 @@ export class Renderer {
       this.bombFlash = 0;
     }
 
+    this.shipDeathFlash *= 0.9;
+    if (this.shipDeathFlash < 0.01) {
+      this.shipDeathFlash = 0;
+    }
+
     for (let i = this.bombWaves.length - 1; i >= 0; i -= 1) {
       const wave = this.bombWaves[i];
       wave.age += FIXED_STEP_SECONDS;
       if (wave.age >= wave.life) {
         this.bombWaves.splice(i, 1);
+      }
+    }
+
+    for (let i = this.shipDeathWaves.length - 1; i >= 0; i -= 1) {
+      const wave = this.shipDeathWaves[i];
+      wave.age += FIXED_STEP_SECONDS;
+      if (wave.age >= wave.life) {
+        this.shipDeathWaves.splice(i, 1);
       }
     }
   }
@@ -318,6 +365,180 @@ export class Renderer {
     ctx.fillRect(14, ARENA_HEIGHT - 22, (ARENA_WIDTH - 28) * progress, 8);
   }
 
+  drawPredictiveOverlay(state) {
+    const overlay = state.debugOverlay;
+    if (!overlay || state.lowPowerIdle) {
+      return;
+    }
+
+    const ctx = this.ctx;
+    const ship = state.ship;
+
+    if (Array.isArray(overlay.safeSectors)) {
+      const radius = 98;
+      for (let i = 0; i < overlay.safeSectors.length; i += 1) {
+        const sector = overlay.safeSectors[i];
+        const start = normalizeAngleForDraw(sector.start);
+        const end = normalizeAngleForDraw(sector.end);
+        ctx.globalAlpha = 0.22;
+        ctx.fillStyle = '#33ff99';
+        ctx.beginPath();
+        ctx.moveTo(ship.x, ship.y);
+        if (end >= start) {
+          ctx.arc(ship.x, ship.y, radius, start, end);
+        } else {
+          ctx.arc(ship.x, ship.y, radius, start, Math.PI * 2);
+          ctx.arc(ship.x, ship.y, radius, 0, end);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    if (typeof overlay.escapeTargetAngle === 'number') {
+      const radius = 112;
+      ctx.strokeStyle = 'rgba(255, 207, 102, 0.95)';
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.moveTo(ship.x, ship.y);
+      ctx.lineTo(
+        ship.x + Math.cos(overlay.escapeTargetAngle) * radius,
+        ship.y + Math.sin(overlay.escapeTargetAngle) * radius
+      );
+      ctx.stroke();
+    }
+
+    if (Array.isArray(overlay.highThreatAsteroids)) {
+      const top = overlay.highThreatAsteroids.slice(0, 3);
+      const highlightedThreatIds = new Set(overlay.dangerHud?.highlightedThreatIds ?? []);
+      for (let i = 0; i < top.length; i += 1) {
+        const threat = top[i];
+        const px = ship.x + threat.relX;
+        const py = ship.y + threat.relY;
+        const highlighted = highlightedThreatIds.has(threat.id);
+        ctx.strokeStyle = highlighted ? '#ff4d6d' : i === 0 ? '#ff8f5c' : '#ffc857';
+        ctx.lineWidth = highlighted ? 3.6 : i === 0 ? 3.2 : 2.2;
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.arc(px, py, 14 + i * 3, 0, Math.PI * 2);
+        ctx.stroke();
+        if (highlighted) {
+          ctx.fillStyle = 'rgba(255, 77, 109, 0.18)';
+          ctx.beginPath();
+          ctx.arc(px, py, 14 + i * 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    if (Array.isArray(overlay.predictedShipPositions)) {
+      for (let i = 0; i < overlay.predictedShipPositions.length; i += 1) {
+        const marker = overlay.predictedShipPositions[i];
+        const alpha = marker.horizon === 30 ? 0.8 : marker.horizon === 60 ? 0.62 : 0.45;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#5de7ff';
+        ctx.beginPath();
+        ctx.arc(marker.x, marker.y, 4.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    const panelX = ARENA_WIDTH - 292;
+    const panelY = 16;
+    const panelHeight = 332;
+    ctx.fillStyle = 'rgba(5, 10, 20, 0.58)';
+    ctx.fillRect(panelX, panelY, 276, panelHeight);
+    ctx.strokeStyle = 'rgba(110, 230, 255, 0.5)';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(panelX, panelY, 276, panelHeight);
+
+    ctx.fillStyle = '#d9fbff';
+    ctx.font = `600 14px ${HUD_DISPLAY_FONT}`;
+    const chosen = overlay.chosenAction;
+    const actionLine = chosen ? `ACT ${chosen.label}` : 'ACT -';
+    ctx.fillText(actionLine, panelX + 10, panelY + 22);
+    const dangerHud = overlay.dangerHud ?? null;
+    if (dangerHud) {
+      const dangerColor =
+        dangerHud.level === 'critical'
+          ? '#ff4d6d'
+          : dangerHud.level === 'high'
+            ? '#ffb347'
+            : dangerHud.level === 'medium'
+              ? '#ffe680'
+              : '#78f0a4';
+      ctx.fillStyle = 'rgba(30, 42, 68, 0.9)';
+      ctx.fillRect(panelX + 10, panelY + 28, 256, 12);
+      ctx.fillStyle = dangerColor;
+      ctx.fillRect(panelX + 10, panelY + 28, 256 * clamp(dangerHud.score ?? 0, 0, 1), 12);
+      ctx.strokeStyle = 'rgba(190, 236, 255, 0.35)';
+      ctx.strokeRect(panelX + 10, panelY + 28, 256, 12);
+      ctx.fillStyle = dangerColor;
+      ctx.fillText(
+        `DANGER ${(Number(dangerHud.score ?? 0) * 100).toFixed(0)}% ${String(dangerHud.level ?? 'low').toUpperCase()} ${dangerHud.recoverable ? 'RECOVERABLE' : 'HARD'}`,
+        panelX + 10,
+        panelY + 56
+      );
+      ctx.fillStyle = 'rgba(210, 244, 255, 0.9)';
+      const components = dangerHud.components ?? {};
+      ctx.fillText(
+        `COL ${Number(components.collision ?? 0).toFixed(2)}  EDGE ${Number(components.edgeTrap ?? 0).toFixed(2)}`,
+        panelX + 10,
+        panelY + 76
+      );
+      ctx.fillText(
+        `SPD ${Number(components.overAcceleration ?? 0).toFixed(2)}  ESC ${Number(components.lowEscapeRoom ?? 0).toFixed(2)}`,
+        panelX + 10,
+        panelY + 96
+      );
+      const reasons = Array.isArray(dangerHud.reasons) ? dangerHud.reasons : [];
+      for (let i = 0; i < Math.min(3, reasons.length); i += 1) {
+        ctx.fillStyle = 'rgba(255, 236, 196, 0.95)';
+        ctx.fillText(`WHY ${reasons[i]}`, panelX + 10, panelY + 116 + i * 16);
+      }
+    }
+    const prediction120 = chosen?.prediction120 ?? null;
+    if (prediction120) {
+      ctx.fillStyle = '#7fe9ff';
+      ctx.fillText(`120T TTC ${Number.isFinite(prediction120.minPredictedTtc) ? prediction120.minPredictedTtc.toFixed(2) : 'INF'}`, panelX + 10, panelY + 172);
+      ctx.fillText(`120T MGN ${prediction120.minMargin.toFixed(1)}  EDGE ${prediction120.edgeTrapRisk.toFixed(2)}`, panelX + 10, panelY + 192);
+      ctx.fillText(`OPEN ${prediction120.openAngle.toFixed(2)}  CTR ${prediction120.centerReturnScore.toFixed(2)}`, panelX + 10, panelY + 212);
+    }
+    const escapeMode = overlay.escapeMode;
+    if (escapeMode?.active) {
+      ctx.fillStyle = '#ffcf66';
+      ctx.fillText(`ESC ${escapeMode.reason} (${escapeMode.ticksRemaining})`, panelX + 10, panelY + 230);
+    }
+    const dangerAnalysis = overlay.dangerAnalysis;
+    if (dangerAnalysis) {
+      ctx.fillStyle = 'rgba(255, 222, 168, 0.92)';
+      ctx.fillText(
+        `DNG ${dangerAnalysis.dangerousCount}/${dangerAnalysis.inspectedCount} best=${dangerAnalysis.bestCandidateDanger ? 'Y' : 'N'} gap=${dangerAnalysis.meaningfulGap ? 'Y' : 'N'}`,
+        panelX + 10,
+        panelY + 246
+      );
+    }
+
+    if (Array.isArray(overlay.topCandidateScores)) {
+      const topScores = overlay.topCandidateScores.slice(0, 3);
+      for (let i = 0; i < topScores.length; i += 1) {
+        const candidate = topScores[i];
+        const prediction = candidate.prediction120;
+        const scoreText = `${i + 1}. ${candidate.id} ${candidate.score.toFixed(2)}`;
+        const detailText = prediction
+          ? `ttc=${Number.isFinite(prediction.minPredictedTtc) ? prediction.minPredictedTtc.toFixed(2) : 'INF'} mgn=${prediction.minMargin.toFixed(0)} edge=${prediction.edgeTrapRisk.toFixed(2)}`
+          : 'prediction unavailable';
+        ctx.fillStyle = i === 0 ? '#8dffb3' : '#b8e9ff';
+        ctx.fillText(scoreText, panelX + 10, panelY + 262 + i * 16);
+        ctx.fillStyle = 'rgba(210, 244, 255, 0.82)';
+        ctx.fillText(detailText, panelX + 18, panelY + 275 + i * 16);
+      }
+    }
+  }
+
   drawFinalCountdown(state) {
     const timeLeft = Math.max(0, RUN_SECONDS - state.tick / TICK_RATE);
     if (timeLeft <= 0 || timeLeft > 10 || state.finished) {
@@ -366,8 +587,13 @@ export class Renderer {
     }
 
     const ctx = this.ctx;
-    ctx.fillStyle = 'rgba(5, 5, 12, 0.45)';
+    ctx.fillStyle =
+      state.endReason === 'ship-destroyed' ? 'rgba(5, 5, 12, 0.26)' : 'rgba(5, 5, 12, 0.45)';
     ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+
+    if (state.endReason === 'ship-destroyed') {
+      return;
+    }
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffdd9a';
@@ -412,6 +638,34 @@ export class Renderer {
     }
   }
 
+  drawShipDeathWaves() {
+    if (this.shipDeathWaves.length === 0) {
+      return;
+    }
+
+    const ctx = this.ctx;
+    for (const wave of this.shipDeathWaves) {
+      const ratio = clamp(wave.age / wave.life, 0, 1);
+      const radius = wave.maxRadius * ratio;
+      const alpha = (1 - ratio) * 0.85;
+
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = wave.outerColor;
+      ctx.lineWidth = 24 * (1 - ratio) + 3;
+      ctx.beginPath();
+      ctx.arc(wave.x, wave.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.globalAlpha = alpha * 0.55;
+      ctx.strokeStyle = wave.innerColor;
+      ctx.lineWidth = 46 * (1 - ratio) + 6;
+      ctx.beginPath();
+      ctx.arc(wave.x, wave.y, Math.max(0, radius - 12), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
   render(state) {
     const ctx = this.ctx;
     const lowPowerIdle = state.lowPowerIdle === true;
@@ -425,17 +679,35 @@ export class Renderer {
       this.drawBullets(state.bullets);
       this.drawShip(state.ship, state.tick);
       this.particles.render(ctx);
+      this.drawShipDeathWaves();
       this.drawBombWaves();
     }
 
     ctx.restore();
 
     this.drawHud(state);
+    this.drawPredictiveOverlay(state);
     this.drawFinalCountdown(state);
     this.drawEndOverlay(state);
 
     if (this.hitFlash > 0) {
       ctx.fillStyle = `rgba(255, 220, 230, ${this.hitFlash * 0.35})`;
+      ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+    }
+
+    if (this.shipDeathFlash > 0) {
+      const gradient = ctx.createRadialGradient(
+        ARENA_WIDTH * 0.5,
+        ARENA_HEIGHT * 0.5,
+        40,
+        ARENA_WIDTH * 0.5,
+        ARENA_HEIGHT * 0.5,
+        ARENA_WIDTH * 0.7
+      );
+      gradient.addColorStop(0, `rgba(255, 246, 232, ${this.shipDeathFlash * 0.26})`);
+      gradient.addColorStop(0.38, `rgba(255, 143, 168, ${this.shipDeathFlash * 0.18})`);
+      gradient.addColorStop(1, 'rgba(255, 143, 168, 0)');
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
     }
 
