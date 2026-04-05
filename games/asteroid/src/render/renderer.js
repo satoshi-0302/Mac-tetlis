@@ -62,6 +62,8 @@ export class Renderer {
     this.shipDeathFlash = 0;
     this.bombWaves = [];
     this.shipDeathWaves = [];
+    this.clearWaves = [];
+    this.barrierRipples = [];
     this.stars = createStars(random, 180);
   }
 
@@ -72,6 +74,8 @@ export class Renderer {
     this.shipDeathFlash = 0;
     this.bombWaves.length = 0;
     this.shipDeathWaves.length = 0;
+    this.clearWaves.length = 0;
+    this.barrierRipples.length = 0;
     this.asteroidVisuals.clear();
   }
 
@@ -125,6 +129,36 @@ export class Renderer {
       return;
     }
 
+    if (event.type === 'clear-wave') {
+      this.clearWaves.push(
+        {
+          x: event.x,
+          y: event.y,
+          age: 0,
+          life: 0.9,
+          maxRadius: Math.hypot(ARENA_WIDTH, ARENA_HEIGHT) * 0.72,
+          coreColor: '#8df9ff',
+          edgeColor: '#fff1ad'
+        },
+        {
+          x: event.x,
+          y: event.y,
+          age: 0.08,
+          life: 1.15,
+          maxRadius: Math.hypot(ARENA_WIDTH, ARENA_HEIGHT),
+          coreColor: '#8dbeff',
+          edgeColor: '#ffffff'
+        }
+      );
+      this.bombFlash = 1;
+      return;
+    }
+
+    if (event.type === 'clear-destroy') {
+      this.particles.emitExplosion(event.x, event.y, event.size);
+      return;
+    }
+
     if (event.type === 'bomb-destroy') {
       this.particles.emitExplosion(event.x, event.y, event.size);
       return;
@@ -132,6 +166,32 @@ export class Renderer {
 
     if (event.type === 'armor-hit') {
       this.particles.emitArmorHit(event.x, event.y);
+      return;
+    }
+
+    if (event.type === 'barrier-hit') {
+      this.particles.emitArmorHit(event.x, event.y);
+      this.particles.emitExplosion(event.x, event.y, event.size ?? 2);
+      if ((event.size ?? 0) >= 4) {
+        this.particles.emitExplosion(event.x, event.y, Math.max(2, (event.size ?? 4) - 1));
+      }
+      this.clearWaves.push({
+        x: event.x,
+        y: event.y,
+        age: 0,
+        life: 0.22 + (event.size ?? 1) * 0.06,
+        maxRadius: 44 + (event.radius ?? 18) * 1.8,
+        coreColor: '#ffe28a',
+        edgeColor: '#fffdf3'
+      });
+      this.barrierRipples.push({
+        x: event.x,
+        y: event.y,
+        angle: event.angle ?? 0,
+        age: 0,
+        life: 0.32 + (event.size ?? 1) * 0.04,
+        size: event.size ?? 1
+      });
       return;
     }
 
@@ -200,6 +260,22 @@ export class Renderer {
       wave.age += FIXED_STEP_SECONDS;
       if (wave.age >= wave.life) {
         this.shipDeathWaves.splice(i, 1);
+      }
+    }
+
+    for (let i = this.clearWaves.length - 1; i >= 0; i -= 1) {
+      const wave = this.clearWaves[i];
+      wave.age += FIXED_STEP_SECONDS;
+      if (wave.age >= wave.life) {
+        this.clearWaves.splice(i, 1);
+      }
+    }
+
+    for (let i = this.barrierRipples.length - 1; i >= 0; i -= 1) {
+      const ripple = this.barrierRipples[i];
+      ripple.age += FIXED_STEP_SECONDS;
+      if (ripple.age >= ripple.life) {
+        this.barrierRipples.splice(i, 1);
       }
     }
   }
@@ -587,8 +663,13 @@ export class Renderer {
     }
 
     const ctx = this.ctx;
+    const clearSequence = state.clearSequence ?? null;
     ctx.fillStyle =
-      state.endReason === 'ship-destroyed' ? 'rgba(5, 5, 12, 0.26)' : 'rgba(5, 5, 12, 0.45)';
+      state.endReason === 'ship-destroyed'
+        ? 'rgba(5, 5, 12, 0.26)'
+        : clearSequence
+          ? 'rgba(3, 7, 16, 0.24)'
+          : 'rgba(5, 5, 12, 0.45)';
     ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
 
     if (state.endReason === 'ship-destroyed') {
@@ -596,17 +677,34 @@ export class Renderer {
     }
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffdd9a';
-    ctx.font = `700 56px ${HUD_DISPLAY_FONT}`;
-    if (state.endReason === 'ship-destroyed') {
-      ctx.fillText('SHIP DESTROYED', ARENA_WIDTH * 0.5, ARENA_HEIGHT * 0.5 - 8);
-    } else {
-      ctx.fillText('TIME UP', ARENA_WIDTH * 0.5, ARENA_HEIGHT * 0.5 - 8);
-    }
+    if (clearSequence) {
+      if (performance.now() < clearSequence.displayAtMs) {
+        ctx.textAlign = 'left';
+        return;
+      }
+      const pulse = 0.7 + Math.sin((state.visualTick ?? state.tick) * 0.08) * 0.18;
+      ctx.fillStyle = '#bffcff';
+      ctx.font = `800 62px ${HUD_DISPLAY_FONT}`;
+      ctx.fillText('GAME CLEAR', ARENA_WIDTH * 0.5, 108);
+      ctx.globalAlpha = 0.32 + pulse * 0.18;
+      ctx.strokeStyle = '#fff4ae';
+      ctx.lineWidth = 4;
+      ctx.strokeText('GAME CLEAR', ARENA_WIDTH * 0.5, 108);
+      ctx.globalAlpha = 1;
 
-    ctx.fillStyle = '#ddf5ff';
-    ctx.font = `600 24px ${HUD_DISPLAY_FONT}`;
-    ctx.fillText('Submit your run on the right panel', ARENA_WIDTH * 0.5, ARENA_HEIGHT * 0.5 + 32);
+      const promptPulse = 0.58 + Math.sin((state.visualTick ?? state.tick) * 0.12) * 0.22;
+      ctx.fillStyle = `rgba(255, 241, 173, ${promptPulse})`;
+      ctx.font = `700 20px ${HUD_DISPLAY_FONT}`;
+      ctx.fillText('HIT ANY KEY', ARENA_WIDTH * 0.5, 146);
+    } else {
+      ctx.fillStyle = '#ffdd9a';
+      ctx.font = `700 56px ${HUD_DISPLAY_FONT}`;
+      ctx.fillText('TIME UP', ARENA_WIDTH * 0.5, ARENA_HEIGHT * 0.5 - 8);
+
+      ctx.fillStyle = '#ddf5ff';
+      ctx.font = `600 24px ${HUD_DISPLAY_FONT}`;
+      ctx.fillText('Submit your run on the right panel', ARENA_WIDTH * 0.5, ARENA_HEIGHT * 0.5 + 32);
+    }
     ctx.textAlign = 'left';
   }
 
@@ -666,6 +764,146 @@ export class Renderer {
     }
   }
 
+  drawClearWaves() {
+    if (this.clearWaves.length === 0) {
+      return;
+    }
+
+    const ctx = this.ctx;
+    for (const wave of this.clearWaves) {
+      const ratio = clamp(wave.age / wave.life, 0, 1);
+      const radius = wave.maxRadius * ratio;
+      const alpha = (1 - ratio) * 0.82;
+
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = wave.edgeColor;
+      ctx.lineWidth = 28 * (1 - ratio) + 3;
+      ctx.beginPath();
+      ctx.arc(wave.x, wave.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.globalAlpha = alpha * 0.46;
+      ctx.strokeStyle = wave.coreColor;
+      ctx.lineWidth = 56 * (1 - ratio) + 6;
+      ctx.beginPath();
+      ctx.arc(wave.x, wave.y, Math.max(0, radius - 16), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  drawClearBarrier(state) {
+    const sequence = state.clearSequence ?? null;
+    if (!sequence || state.ship.destroyed) {
+      return;
+    }
+
+    const ctx = this.ctx;
+    const { ship } = state;
+    const pulse = Math.sin((state.visualTick ?? state.tick) * 0.1);
+    const barrierProgress = clamp(sequence.barrierProgress ?? 1, 0, 1);
+    if (barrierProgress <= 0.02) {
+      return;
+    }
+    const radius = sequence.barrierRadius * barrierProgress * (1 + pulse * 0.015);
+
+    ctx.save();
+    ctx.translate(ship.x, ship.y);
+
+    const glow = ctx.createRadialGradient(0, 0, radius * 0.25, 0, 0, radius * 1.3);
+    glow.addColorStop(0, `rgba(160, 248, 255, ${0.1 + barrierProgress * 0.12})`);
+    glow.addColorStop(0.55, `rgba(126, 180, 255, ${0.05 + barrierProgress * 0.08})`);
+    glow.addColorStop(1, 'rgba(126, 180, 255, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 1.28, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = `rgba(184, 248, 255, ${0.28 + barrierProgress * 0.56})`;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    for (let i = -2; i <= 2; i += 1) {
+      const ratio = i / 2.6;
+      const lineY = ratio * radius * 0.72;
+      const lineRadius = Math.max(radius * 0.22, radius * Math.cos(ratio * Math.PI * 0.5));
+      ctx.globalAlpha = (0.12 + (1 - Math.abs(ratio)) * 0.14) * barrierProgress;
+      ctx.strokeStyle = i === 0 ? '#fff4ae' : '#7ff2ff';
+      ctx.lineWidth = i === 0 ? 1.7 : 1.2;
+      ctx.beginPath();
+      ctx.ellipse(0, lineY, lineRadius, radius * 0.16, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    for (let i = 0; i < 6; i += 1) {
+      const rotation = ((state.visualTick ?? state.tick) * 0.012 + (i / 6) * Math.PI) % (Math.PI * 2);
+      ctx.globalAlpha = (0.18 + (i % 2) * 0.08) * barrierProgress;
+      ctx.strokeStyle = i % 2 === 0 ? '#9dd9ff' : '#d5fdff';
+      ctx.lineWidth = 1.25;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, radius * (0.28 + (i % 3) * 0.11), radius, rotation, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  drawBarrierRipples(state) {
+    const sequence = state.clearSequence ?? null;
+    if (!sequence || this.barrierRipples.length === 0) {
+      return;
+    }
+
+    const ctx = this.ctx;
+    for (const ripple of this.barrierRipples) {
+      const ratio = clamp(ripple.age / ripple.life, 0, 1);
+      const size = ripple.size ?? 1;
+      const radius = 10 + ratio * (20 + size * 6);
+      const alpha = (1 - ratio) * 0.88;
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = '#fff0ac';
+      ctx.lineWidth = (4 + size * 0.7) * (1 - ratio) + 1;
+      ctx.beginPath();
+      ctx.arc(ripple.x, ripple.y, radius, ripple.angle - 0.9, ripple.angle + 0.9);
+      ctx.stroke();
+      ctx.globalAlpha = alpha * 0.4;
+      ctx.strokeStyle = '#86f3ff';
+      ctx.beginPath();
+      ctx.arc(ripple.x, ripple.y, radius + 8, ripple.angle - 0.75, ripple.angle + 0.75);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  drawClearWarp(state) {
+    const sequence = state.clearSequence ?? null;
+    if (!sequence || sequence.phase !== 'warp') {
+      return;
+    }
+
+    const ctx = this.ctx;
+    const progress = clamp(sequence.warpProgress ?? 0, 0, 1);
+    const shipX = state.ship.x;
+    const shipY = state.ship.y;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 8; i += 1) {
+      const spread = (i - 3.5) * 14;
+      const width = 8 + progress * 18 - Math.abs(i - 3.5);
+      const gradient = ctx.createLinearGradient(shipX + spread, shipY - 180, shipX + spread, shipY + 24);
+      gradient.addColorStop(0, 'rgba(120, 225, 255, 0)');
+      gradient.addColorStop(0.45, `rgba(120, 225, 255, ${0.12 + progress * 0.24})`);
+      gradient.addColorStop(1, 'rgba(255, 245, 186, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(shipX + spread - width * 0.5, shipY - 220 - progress * 120, width, 260 + progress * 130);
+    }
+    ctx.restore();
+  }
+
   render(state) {
     const ctx = this.ctx;
     const lowPowerIdle = state.lowPowerIdle === true;
@@ -677,8 +915,12 @@ export class Renderer {
     this.drawAsteroids(state.asteroids);
     if (!lowPowerIdle) {
       this.drawBullets(state.bullets);
+      this.drawClearWarp(state);
       this.drawShip(state.ship, state.tick);
+      this.drawClearBarrier(state);
       this.particles.render(ctx);
+      this.drawBarrierRipples(state);
+      this.drawClearWaves();
       this.drawShipDeathWaves();
       this.drawBombWaves();
     }

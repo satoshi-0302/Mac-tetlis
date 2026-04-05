@@ -62,9 +62,7 @@ app.innerHTML = `
         <canvas id="gameCanvas" width="960" height="640" aria-label="Asteroids 60 game canvas"></canvas>
         <div id="gameOverOverlay" class="game-over-overlay" aria-hidden="true">
           <div class="game-over-panel">
-            <span class="game-over-kicker">SIGNAL LOST</span>
             <strong>GAME OVER</strong>
-            <span class="game-over-subtitle">Debris drifting. Auto systems still scanning the field.</span>
           </div>
         </div>
         <div id="title-screen" class="active">
@@ -197,6 +195,15 @@ const REPLAY_FINISH_HOLD_MS = 1400;
 const DEMO_DEATH_LOG_FRAMES = 180;
 const EDGE_STAY_MARGIN = 84;
 const SPIN_STREAK_THRESHOLD = 18;
+const CLEAR_SEQUENCE_SETTLE_MS = 900;
+const CLEAR_BARRIER_RADIUS = 92;
+const CLEAR_DEMO_ASTEROID_LIMIT = 8;
+const CLEAR_DEMO_SPAWN_INTERVAL_MS = 260;
+const CLEAR_BANNER_DELAY_MS = 1000;
+const CLEAR_TARGET_X = ARENA_WIDTH * 0.5;
+const CLEAR_TARGET_Y = ARENA_HEIGHT * 0.5 + 8;
+const CLEAR_WARP_DURATION_MS = 900;
+const CLEAR_WARP_SPEED = 420;
 
 let state = createInitialState(spawnSchedule);
 state.lowPowerIdle = false;
@@ -711,6 +718,21 @@ function wrapCoord(value, span) {
   return wrapped >= 0 ? wrapped : wrapped + span;
 }
 
+function lerp(current, target, factor) {
+  return current + (target - current) * factor;
+}
+
+function normalizeAngleDelta(angle) {
+  const full = Math.PI * 2;
+  let value = angle % full;
+  if (value > Math.PI) {
+    value -= full;
+  } else if (value < -Math.PI) {
+    value += full;
+  }
+  return value;
+}
+
 function buildIdleAsteroidSet(sourceAsteroids, limit = IDLE_ASTEROID_LIMIT, withFallback = true) {
   const selected = sourceAsteroids
     .filter((asteroid) => asteroid.hitPoints > 0)
@@ -857,6 +879,7 @@ function resetSimulationState() {
   state = createInitialState(spawnSchedule);
   state.lowPowerIdle = false;
   state.debugOverlay = null;
+  state.clearSequence = null;
   finishAtMs = 0;
   finishLastMotionMs = 0;
   finishReducedAsteroids = false;
@@ -988,6 +1011,17 @@ function handleSimulationEvents(events, inputMask) {
       audio.playBomb();
     } else if (event.type === 'kill') {
       audio.playExplosion(event.size);
+    } else if (event.type === 'clear-destroy') {
+      audio.playExplosion(event.size);
+    } else if (event.type === 'clear-wave') {
+      audio.playBomb();
+      audio.playGameClearFanfare();
+    } else if (event.type === 'barrier-hit') {
+      const blastSize = Math.max(2, Math.min(4, event.size ?? 1));
+      audio.playExplosion(blastSize);
+      if (blastSize >= 4) {
+        audio.playExplosion(blastSize - 1);
+      }
     } else if (event.type === 'ship-destroyed') {
       audio.playShipDestroyed();
     }
@@ -1075,13 +1109,23 @@ function stepReplayTick(nowMs = performance.now()) {
 
   if (state.finished) {
     audio.setThruster(false);
+    if (state.endReason === 'time-up' && !state.clearSequence) {
+      activateClearSequence(nowMs);
+    }
+    if (state.clearSequence) {
+      stepClearSequence(nowMs);
+    }
     if (replaySession.finishedAtMs === 0) {
       replaySession.finishedAtMs = nowMs;
       const replayRef = replaySession.id ? ` id=${replaySession.id}` : '';
-      setRuntimeStatus(
-        `Replay finished${replayRef} seed=${replaySession.seed}: ${replaySession.name} scored ${replaySession.score}. Press Space for a live run.`
-      );
-    } else if (nowMs - replaySession.finishedAtMs >= REPLAY_FINISH_HOLD_MS) {
+      if (state.clearSequence) {
+        setRuntimeStatus('');
+      } else {
+        setRuntimeStatus(
+          `Replay finished${replayRef} seed=${replaySession.seed}: ${replaySession.name} scored ${replaySession.score}. Press Space for a live run.`
+        );
+      }
+    } else if (!state.clearSequence && nowMs - replaySession.finishedAtMs >= REPLAY_FINISH_HOLD_MS) {
       stopReplayPlayback({
         statusText: 'Replay finished. Press Space to start the 60-second run.'
       });
@@ -1229,6 +1273,223 @@ function appendWorstEpisode(episode) {
   }
 }
 
+function createAsteroidForClearDemo(type, x, y, vx, vy) {
+  const stats = ASTEROID_TYPES[type] ?? ASTEROID_TYPES.tier1;
+  return {
+    id: state.nextAsteroidId++,
+    type,
+    sizeClass: stats.sizeClass,
+    radius: stats.radius,
+    hitPoints: stats.hitPoints,
+    maxHitPoints: stats.hitPoints,
+    x,
+    y,
+    vx,
+    vy
+  };
+}
+
+function createClearDemoAsteroid(sequence) {
+  const spawnIndex = sequence.spawnCount++;
+  const lane = (Math.floor(spawnIndex / 4) % 5) / 4;
+  const side = spawnIndex % 4;
+  const margin = 44;
+  let x = 0;
+  let y = 0;
+
+  if (side === 0) {
+    x = -margin;
+    y = 80 + lane * (ARENA_HEIGHT - 160);
+  } else if (side === 1) {
+    x = ARENA_WIDTH + margin;
+    y = 80 + lane * (ARENA_HEIGHT - 160);
+  } else if (side === 2) {
+    x = 120 + lane * (ARENA_WIDTH - 240);
+    y = -margin;
+  } else {
+    x = 120 + lane * (ARENA_WIDTH - 240);
+    y = ARENA_HEIGHT + margin;
+  }
+
+  const typeCycle = ['tier2', 'tier3', 'tier1', 'tier4', 'tier2', 'tier3'];
+  const type = typeCycle[spawnIndex % typeCycle.length];
+  const aimAngle =
+    Math.atan2(sequence.targetY - y, sequence.targetX - x) + Math.sin(spawnIndex * 0.91) * 0.22;
+  const speed = 150 + (spawnIndex % 5) * 18;
+  return createAsteroidForClearDemo(type, x, y, Math.cos(aimAngle) * speed, Math.sin(aimAngle) * speed);
+}
+
+function activateClearSequence(nowMs = performance.now()) {
+  if (state.clearSequence) {
+    return;
+  }
+
+  const ship = state.ship;
+  const sequence = {
+    startedAtMs: nowMs,
+    phase: 'deploy',
+    displayAtMs: nowMs + CLEAR_BANNER_DELAY_MS,
+    targetX: CLEAR_TARGET_X,
+    targetY: CLEAR_TARGET_Y,
+    barrierRadius: CLEAR_BARRIER_RADIUS,
+    nextSpawnAtMs: nowMs + CLEAR_SEQUENCE_SETTLE_MS * 0.45,
+    spawnCount: 0,
+    demoActive: true,
+    warpStartedAtMs: 0,
+    warpProgress: 0,
+    barrierProgress: 0,
+    startX: ship.x,
+    startY: ship.y
+  };
+
+  state.clearSequence = sequence;
+  state.lowPowerIdle = false;
+  state.visualTick = typeof state.visualTick === 'number' ? state.visualTick : state.tick;
+  state.debugOverlay = null;
+  state.bullets = [];
+  ship.destroyed = false;
+  ship.invulnTicks = 0;
+  ship.angle = -Math.PI * 0.5;
+
+  const clearedAsteroids = state.asteroids.slice();
+  state.asteroids = [];
+  const clearEvents = [{ type: 'clear-wave', x: ship.x, y: ship.y }];
+  for (const asteroid of clearedAsteroids) {
+    clearEvents.push({
+      type: 'clear-destroy',
+      x: asteroid.x,
+      y: asteroid.y,
+      size: asteroid.sizeClass,
+      asteroidType: asteroid.type
+    });
+  }
+  handleSimulationEvents(clearEvents, 0);
+  renderer.update(state, 0);
+  setRuntimeStatus('');
+}
+
+function beginClearWarp(nowMs = performance.now()) {
+  const sequence = state.clearSequence;
+  if (!sequence || sequence.phase === 'warp') {
+    return;
+  }
+
+  sequence.phase = 'warp';
+  sequence.demoActive = false;
+  sequence.warpStartedAtMs = nowMs;
+  sequence.warpProgress = 0;
+  audio.playWarpAscend();
+  setRuntimeStatus('');
+}
+
+function stepClearSequence(nowMs) {
+  const sequence = state.clearSequence;
+  if (!sequence) {
+    return;
+  }
+
+  if (finishLastMotionMs === 0) {
+    finishLastMotionMs = nowMs;
+    return;
+  }
+
+  const elapsedMs = Math.min(Math.max(0, nowMs - finishLastMotionMs), 250);
+  finishLastMotionMs = nowMs;
+  const deltaSeconds = elapsedMs / 1000;
+  state.visualTick = (typeof state.visualTick === 'number' ? state.visualTick : state.tick) + deltaSeconds * TICK_RATE * 1.2;
+
+  if (deltaSeconds <= 0) {
+    return;
+  }
+
+  const ship = state.ship;
+  ship.destroyed = false;
+  ship.angle += normalizeAngleDelta(-Math.PI * 0.5 - ship.angle) * (1 - Math.exp(-deltaSeconds * 7.5));
+
+  if (sequence.phase === 'warp') {
+    const warpElapsed = Math.max(0, nowMs - sequence.warpStartedAtMs);
+    const warpProgress = clamp(warpElapsed / CLEAR_WARP_DURATION_MS, 0, 1);
+    const eased = 1 - Math.pow(1 - warpProgress, 3);
+    sequence.warpProgress = warpProgress;
+    sequence.barrierProgress = Math.max(0, 1 - eased * 1.35);
+    ship.vx = 0;
+    ship.vy = -CLEAR_WARP_SPEED * (0.55 + eased * 1.35);
+    ship.x = lerp(ship.x, sequence.targetX, 1 - Math.exp(-deltaSeconds * 10));
+    ship.y += ship.vy * deltaSeconds;
+
+    state.asteroids.length = 0;
+    if (warpProgress >= 1 || ship.y < -120) {
+      resetRun();
+      if (titleScreen) {
+        titleScreen.classList.add('active');
+      }
+      prepareStartPreview();
+      setRuntimeStatus('Press Space to start the 60-second run.');
+    }
+    renderer.update(state, 0);
+    return;
+  }
+
+  const settleProgress = clamp((nowMs - sequence.startedAtMs) / CLEAR_SEQUENCE_SETTLE_MS, 0, 1);
+  const settleEase = 1 - Math.pow(1 - settleProgress, 3);
+  sequence.barrierProgress = settleEase;
+  ship.vx = 0;
+  ship.vy = 0;
+  ship.x = lerp(sequence.startX, sequence.targetX, settleEase);
+  ship.y = lerp(sequence.startY, sequence.targetY, settleEase);
+
+  if (settleProgress >= 1) {
+    sequence.phase = 'demo';
+  }
+
+  const activeBarrierRadius = sequence.barrierRadius * Math.max(0.08, sequence.barrierProgress);
+
+  while (
+    sequence.barrierProgress >= 0.72 &&
+    nowMs >= sequence.nextSpawnAtMs &&
+    state.asteroids.length < CLEAR_DEMO_ASTEROID_LIMIT
+  ) {
+    state.asteroids.push(createClearDemoAsteroid(sequence));
+    sequence.nextSpawnAtMs += CLEAR_DEMO_SPAWN_INTERVAL_MS;
+  }
+
+  const barrierEvents = [];
+  let writeIndex = 0;
+  for (let i = 0; i < state.asteroids.length; i += 1) {
+    const asteroid = state.asteroids[i];
+    asteroid.x = wrapCoord(asteroid.x + asteroid.vx * deltaSeconds, ARENA_WIDTH);
+    asteroid.y = wrapCoord(asteroid.y + asteroid.vy * deltaSeconds, ARENA_HEIGHT);
+
+    const dx = asteroid.x - ship.x;
+    const dy = asteroid.y - ship.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance <= activeBarrierRadius + asteroid.radius) {
+      const hitAngle = Math.atan2(dy, dx);
+      barrierEvents.push({
+        type: 'barrier-hit',
+        x: ship.x + Math.cos(hitAngle) * activeBarrierRadius,
+        y: ship.y + Math.sin(hitAngle) * activeBarrierRadius,
+        angle: hitAngle,
+        size: asteroid.sizeClass,
+        radius: asteroid.radius
+      });
+      continue;
+    }
+
+    if (writeIndex !== i) {
+      state.asteroids[writeIndex] = asteroid;
+    }
+    writeIndex += 1;
+  }
+  state.asteroids.length = writeIndex;
+
+    if (barrierEvents.length > 0) {
+      handleSimulationEvents(barrierEvents, 0);
+  }
+
+  renderer.update(state, 0);
+}
+
 function onRunFinished(nowMs = performance.now()) {
   if (didFinish) {
     return;
@@ -1241,13 +1502,14 @@ function onRunFinished(nowMs = performance.now()) {
   finishLastMotionMs = finishAtMs;
   finishReducedAsteroids = false;
   idlePowerSaveActive = false;
-  state.ship.destroyed = true;
   state.lowPowerIdle = false;
   state.visualTick = state.tick;
   clearGameOverOverlaySchedule();
   if (state.endReason === 'ship-destroyed') {
+    state.ship.destroyed = true;
     scheduleGameOverOverlay();
   } else {
+    activateClearSequence(nowMs);
     setGameOverOverlayVisible(false);
   }
 
@@ -1597,6 +1859,19 @@ window.addEventListener('keydown', (event) => {
     return;
   }
 
+  if (
+    !event.repeat &&
+    didFinish &&
+    state.clearSequence?.demoActive &&
+    !replaySession &&
+    !demoEnabled &&
+    !['ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight', 'MetaLeft', 'MetaRight', 'Tab'].includes(event.code)
+  ) {
+    event.preventDefault();
+    beginClearWarp();
+    return;
+  }
+
   if (event.code !== 'Space' || event.repeat) {
     return;
   }
@@ -1766,29 +2041,33 @@ const loop = createFixedLoop({
       }
 
       if (state.finished && state.endReason === 'time-up') {
-        setRuntimeStatus('Run finished at exactly 60.00 seconds. Press Space to restart.');
+        setRuntimeStatus('');
       } else if (state.finished && state.endReason === 'ship-destroyed') {
-        setRuntimeStatus('Ship destroyed. Press Space to restart immediately.');
+        setRuntimeStatus('');
       }
     } else {
-      const sinceFinishMs = Math.max(0, nowMs - finishAtMs);
       state.debugOverlay = null;
-      if (sinceFinishMs < POST_FINISH_SETTLE_MS) {
-        stepPostFinishMotion(nowMs, 1);
-        renderer.update(state, 0);
-      } else if (sinceFinishMs < POST_FINISH_SETTLE_MS + POST_FINISH_TRIM_MS) {
-        if (!finishReducedAsteroids) {
-          state.asteroids = buildIdleAsteroidSet(state.asteroids, POST_FINISH_ASTEROID_LIMIT, false);
-          finishReducedAsteroids = true;
-        }
-        stepPostFinishMotion(nowMs, 0.72);
-        renderer.update(state, 0);
+      if (state.clearSequence) {
+        stepClearSequence(nowMs);
       } else {
-        if (!idlePowerSaveActive) {
-          prepareIdleScene();
-          idlePowerSaveActive = true;
+        const sinceFinishMs = Math.max(0, nowMs - finishAtMs);
+        if (sinceFinishMs < POST_FINISH_SETTLE_MS) {
+          stepPostFinishMotion(nowMs, 1);
+          renderer.update(state, 0);
+        } else if (sinceFinishMs < POST_FINISH_SETTLE_MS + POST_FINISH_TRIM_MS) {
+          if (!finishReducedAsteroids) {
+            state.asteroids = buildIdleAsteroidSet(state.asteroids, POST_FINISH_ASTEROID_LIMIT, false);
+            finishReducedAsteroids = true;
+          }
+          stepPostFinishMotion(nowMs, 0.72);
+          renderer.update(state, 0);
+        } else {
+          if (!idlePowerSaveActive) {
+            prepareIdleScene();
+            idlePowerSaveActive = true;
+          }
+          stepIdleScene(nowMs);
         }
-        stepIdleScene(nowMs);
       }
       audio.setThruster(false);
     }

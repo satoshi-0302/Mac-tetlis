@@ -272,4 +272,91 @@ export class AudioEngine {
     noise.start(now);
     noise.stop(now + 0.52);
   }
+
+  playGameClearFanfare() {
+    if (!this.context || this.context.state !== 'running') {
+      return;
+    }
+
+    const now = this.context.currentTime;
+    const notes = [
+      { offset: 0, semitone: 0, duration: 0.2, gain: 0.16 },
+      { offset: 0.12, semitone: 4, duration: 0.22, gain: 0.18 },
+      { offset: 0.26, semitone: 7, duration: 0.24, gain: 0.2 },
+      { offset: 0.44, semitone: 12, duration: 0.58, gain: 0.24 }
+    ];
+
+    for (const note of notes) {
+      const startAt = now + note.offset;
+      const osc = this.context.createOscillator();
+      osc.type = note.semitone >= 7 ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(392 * Math.pow(2, note.semitone / 12), startAt);
+
+      const gain = this.context.createGain();
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(note.gain, startAt + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + note.duration);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(startAt);
+      osc.stop(startAt + note.duration + 0.02);
+    }
+
+    const shimmer = this.context.createOscillator();
+    shimmer.type = 'sawtooth';
+    shimmer.frequency.setValueAtTime(784, now + 0.44);
+    shimmer.frequency.exponentialRampToValueAtTime(1176, now + 0.92);
+
+    const shimmerGain = this.context.createGain();
+    shimmerGain.gain.setValueAtTime(0.0001, now + 0.44);
+    shimmerGain.gain.exponentialRampToValueAtTime(0.08, now + 0.52);
+    shimmerGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.02);
+
+    shimmer.connect(shimmerGain);
+    shimmerGain.connect(this.masterGain);
+    shimmer.start(now + 0.44);
+    shimmer.stop(now + 1.05);
+  }
+
+  playWarpAscend() {
+    if (!this.context || this.context.state !== 'running' || !this.noiseBuffer) {
+      return;
+    }
+
+    const now = this.context.currentTime;
+    const lift = this.context.createOscillator();
+    lift.type = 'sawtooth';
+    lift.frequency.setValueAtTime(180, now);
+    lift.frequency.exponentialRampToValueAtTime(1240, now + 0.72);
+
+    const liftGain = this.context.createGain();
+    liftGain.gain.setValueAtTime(0.0001, now);
+    liftGain.gain.exponentialRampToValueAtTime(0.1, now + 0.05);
+    liftGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.76);
+
+    lift.connect(liftGain);
+    liftGain.connect(this.masterGain);
+    lift.start(now);
+    lift.stop(now + 0.8);
+
+    const noise = this.context.createBufferSource();
+    noise.buffer = this.noiseBuffer;
+    const filter = this.context.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(420, now);
+    filter.frequency.exponentialRampToValueAtTime(2800, now + 0.78);
+    filter.Q.value = 0.8;
+
+    const noiseGain = this.context.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.06, now + 0.04);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.84);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.masterGain);
+    noise.start(now);
+    noise.stop(now + 0.86);
+  }
 }
