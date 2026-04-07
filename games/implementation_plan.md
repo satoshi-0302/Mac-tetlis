@@ -657,3 +657,114 @@
 ### 想定作業時間
 
 - 15〜25分（JSON 追加 + 検証 + セキュリティ確認 + 反映）
+
+## 追加方針（rev.27）
+
+### 目的
+
+- `missile-command` の AI leaderboard に外部 replay `oracle-rank-01.json` を追加する
+- 名前を `ClaudeAI`、コメントを `クータイム333msでこのスコア！！` として Top 10 に反映する
+
+### 変更対象ファイル
+
+1. `games/missile-command/data/leaderboard.json`
+- `aiEntries` に `ClaudeAI` のエントリを 1 件追加する
+- score `43527`、clear `true`、survivingCities `4`、comment `クータイム333msでこのスコア！！` を設定する
+- score 順で並ぶよう `aiEntries` を整え、combined Top 10 に入る状態にする
+
+2. `games/missile-command/data/replays/oracle-rank-01.json` または同等の replay 配置先
+- leaderboard の `replayId` と一致する replay ファイルを配置する
+- 既存の `oracle-rank-01.json` をそのまま使うか、必要なら leaderboard 用 ID に合わせて複製する
+
+### 実施内容
+
+1. `oracle-rank-01.json` の summary を確認し、leaderboard 用メタ情報を確定する
+2. `leaderboard.json` の `aiEntries` に `ClaudeAI` エントリを追加する
+3. `replayId` と replay ファイル名の整合を取る
+4. `missile-command` の leaderboard 読み込みロジックで entry が有効化されることを確認する
+5. `security-baseline` の必須スキャンを実行する
+
+### 検証
+
+1. `leaderboard.json` 再読込後に `ClaudeAI` が `43527` 点で AI 上位に入ることを確認する
+2. replay 検証で `oracle-rank-01.json` が読めて `replayAvailable: true` になることを確認する
+3. JSON パースが通ることを確認する
+4. secret scan / risk scan / dependency guard / leak scan に致命的な指摘がないことを確認する
+
+### 想定作業時間
+
+- 10〜20分（leaderboard 追加 + replay 配置確認 + セキュリティ確認）
+
+## 追加方針（rev.28）
+
+### 目的
+
+- `missile-command` の終盤 10 秒演出を、余計な文章なしの大きな数字カウントダウンに変更する
+- 0 秒到達で `GAME CLEAR` 表示へ切り替え、そのままバリア展開演出に入るようにする
+
+### 変更対象ファイル
+
+1. `games/missile-command/game.js`
+- 終盤オーバーレイ用の状態取得を整理する
+- `playing` の残り 10 秒では `10` から `1` の数字だけを返し、バリア展開開始後は `GAME CLEAR` を返せるようにする
+
+2. `games/missile-command/renderer.js`
+- 現在の `SECONDS TO BARRIER` 文言つきオーバーレイを置き換える
+- 数字だけを大きく描画し、`deploying` 中は `GAME CLEAR` のみを表示する
+
+### 実施内容
+
+1. 終盤オーバーレイの表示条件を `game.js` で整理する
+2. 残り 10 秒の表示を大きな数字だけに置き換える
+3. 0 秒到達後のバリア展開中は `GAME CLEAR` 表示へ切り替える
+4. 既存のクリア進行や replay に影響がないことを確認する
+5. `security-baseline` の必須スキャンを実行する
+
+### 検証
+
+1. 残り 10 秒で `10, 9, 8...` と数字だけが表示されること
+2. 0 秒到達で `GAME CLEAR` 表示になり、同時にバリア展開が始まること
+3. クリア完了までの進行と結果画面表示が壊れていないこと
+4. secret scan / risk scan / dependency guard / leak scan に致命的な指摘がないことを確認する
+
+### 想定作業時間
+
+- 10〜15分（演出変更 + 動作確認 + セキュリティ確認）
+
+## 追加方針（rev.29）
+
+### 目的
+
+- `missile-command` の今回の変更を GitHub の作業ブランチへ反映する
+- 反映後に Cloudflare Workers へデプロイして公開環境へ反映する
+
+### 変更対象ファイル
+
+1. `games/implementation_plan.md`
+- 反映手順と確認内容を追記する
+
+2. Git 管理情報
+- `missile-command` と計画書の今回差分だけを stage / commit / push する
+- 既存の無関係な差分は含めない
+
+3. Cloudflare デプロイ
+- ルート `package.json` の `cf:deploy` を使って Workers へ反映する
+
+### 実施内容
+
+1. 今回変更した `missile-command` 関連ファイルと `implementation_plan.md` だけを再確認する
+2. `security-baseline` の実行結果を保持したまま対象ファイルのみを stage する
+3. 日本語コミットメッセージで commit し、`codex/restructure-web-games` へ push する
+4. ルートで `npm run cf:deploy` を実行して Cloudflare へ反映する
+5. deploy 結果の URL と成否を確認する
+
+### 検証
+
+1. `git status` で今回対象のみが stage / commit 対象になっていること
+2. push が成功すること
+3. `npm run cf:deploy` が成功すること
+4. secret scan に致命的な指摘がないこと
+
+### 想定作業時間
+
+- 10〜20分（commit + push + Cloudflare deploy + 反映確認）

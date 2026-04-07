@@ -552,24 +552,31 @@ export class Renderer {
 
   drawScenarioOverlay(game) {
     const ctx = this.ctx;
-    const countdownValue = typeof game.getBarrierCountdownValue === "function" ? game.getBarrierCountdownValue() : null;
-    if (!countdownValue) {
+    const overlayState =
+      typeof game.getScenarioOverlayState === "function" ? game.getScenarioOverlayState() : null;
+    if (!overlayState) {
       return;
     }
 
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
-    const unit = countdownValue === 1 ? "SECOND" : "SECONDS";
-    ctx.fillStyle = "rgba(4, 10, 18, 0.2)";
+    ctx.fillStyle = overlayState.type === "clear" ? "rgba(4, 10, 18, 0.28)" : "rgba(4, 10, 18, 0.2)";
     ctx.fillRect(0, 0, WORLD.width, WORLD.height);
 
-    ctx.shadowBlur = 28;
-    ctx.shadowColor = "rgba(255, 164, 120, 0.55)";
-    ctx.fillStyle = "#fff5d8";
-    ctx.font = '700 84px "Avenir Next Condensed", "Arial Narrow Bold", sans-serif';
-    ctx.fillText(`${countdownValue} ${unit} TO BARRIER`, WORLD.width * 0.5, 240);
+    ctx.shadowBlur = overlayState.type === "clear" ? 34 : 28;
+    ctx.shadowColor =
+      overlayState.type === "clear" ? "rgba(126, 248, 255, 0.55)" : "rgba(255, 164, 120, 0.55)";
+    ctx.fillStyle = overlayState.type === "clear" ? "#7ef8ff" : "#fff5d8";
+    ctx.font =
+      overlayState.type === "clear"
+        ? '700 86px "Avenir Next Condensed", "Arial Narrow Bold", sans-serif'
+        : '700 180px "Avenir Next Condensed", "Arial Narrow Bold", sans-serif';
+    ctx.fillText(
+      overlayState.type === "clear" ? overlayState.label : String(overlayState.value),
+      WORLD.width * 0.5,
+      240,
+    );
     ctx.shadowBlur = 0;
     ctx.restore();
   }

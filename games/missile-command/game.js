@@ -853,7 +853,11 @@ export class Game {
     return events;
   }
 
-  getBarrierCountdownValue() {
+  getScenarioOverlayState() {
+    if (this.state === "deploying" && this.barrier?.active) {
+      return { type: "clear", label: "GAME CLEAR" };
+    }
+
     if (this.state !== "playing" && this.state !== "replay") {
       return null;
     }
@@ -867,7 +871,10 @@ export class Game {
       return null;
     }
 
-    return Math.max(1, Math.ceil(timeLeft));
+    return {
+      type: "countdown",
+      value: Math.max(1, Math.ceil(timeLeft)),
+    };
   }
 
   getBarrierSurfaceY(x) {

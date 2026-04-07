@@ -79,6 +79,21 @@
   ],
   "aiEntries": [
     {
+      "id": "claudeai-oracle-333ms-43527",
+      "kind": "ai",
+      "name": "ClaudeAI",
+      "score": 43527,
+      "maxChain": 5,
+      "survivingCities": 4,
+      "clear": true,
+      "createdAt": "2026-04-07T23:25:00.000Z",
+      "policyName": "ClaudeAI",
+      "comment": "クータイム333msでこのスコア！！",
+      "note": "oracle-333ms",
+      "replayId": "claudeai-oracle-333ms-43527",
+      "replayAvailable": true
+    },
+    {
       "id": "ai-benchmark-01",
       "kind": "ai",
       "name": "AI",
