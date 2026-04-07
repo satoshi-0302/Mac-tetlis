@@ -50,6 +50,7 @@ export class GameUI {
     this.refreshLeaderboard = document.getElementById("refreshLeaderboard");
     this.submitStatus = document.getElementById("submitStatus");
     this.top10Button = document.getElementById("top10Button");
+    this.titleTop10Button = document.getElementById("titleTop10Button");
     this.mobileTop10Button = document.getElementById("mobileTop10Button");
     this.resultTop10Button = document.getElementById("resultTop10Button");
     this.mobilePanelsMode = null;
@@ -73,6 +74,7 @@ export class GameUI {
     };
 
     if (this.top10Button) this.top10Button.addEventListener("click", handleShowLeaderboard);
+    if (this.titleTop10Button) this.titleTop10Button.addEventListener("click", handleShowLeaderboard);
     if (this.mobileTop10Button) this.mobileTop10Button.addEventListener("click", handleShowLeaderboard);
     if (this.resultTop10Button) this.resultTop10Button.addEventListener("click", handleShowLeaderboard);
 

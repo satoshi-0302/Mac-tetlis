@@ -1121,6 +1121,7 @@ body[data-route-mode="mobile"] #titleScreen .screen-copy {
 
 body[data-route-mode="mobile"] .button-row {
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
 }
