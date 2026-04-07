@@ -619,3 +619,41 @@
 ### 想定作業時間
 
 - 25〜40分（表示整理 + build + セキュリティ確認 + 反映）
+
+## 追加方針（rev.26）
+
+### 目的
+
+- 外部で生成された 60 秒完走 replay を `asteroid` の WATCH 用 AI リストへ別枠で追加する
+- 既存 `AI-01` は残したまま、新規エントリを `ClaudeAI` 名義で leaderboard / WATCH 対象にする
+
+### 変更対象ファイル
+
+1. `games/asteroid/public/rl/ai-top10.json`
+- `entries` に新しい replay エントリを 1 件追加する
+- 表示名を `ClaudeAI`、コメントを `ルールベースの勝利！！` に設定する
+- スコア `367412`、seed `1511508463`、replayData と summary を指定ファイル
+  `/Users/saitosatoshi/Desktop/Claude/Mac-tetlis/Asteroid/replay-gen/trainer/checkpoints-rule/replays/mcts_2026-04-07T05-42-39_GAMEPLAY_t3600.json`
+  から転記する
+- `id` は既存 AI エントリと衝突しない値にし、score 順で並ぶよう rank を再採番する
+
+### 実施内容
+
+1. 指定 replay JSON の entry を読み取り、必要フィールドを確認する
+2. `ai-top10.json` の `entries` に `ClaudeAI` エントリを追加する
+3. 既存 entry を score 降順に並べ、rank を整える
+4. JSON の構造が壊れていないことを確認する
+5. 変更後に `security-baseline` の必須スキャンを実行する
+6. 変更を GitHub へ push し、Cloudflare Workers へ deploy する
+
+### 検証
+
+1. `ai-top10.json` を再読込して `ClaudeAI` が `367412` 点で先頭に入っていることを確認する
+2. 既存 `AI-01` の replay 情報が壊れていないことを確認する
+3. JSON パースが通ることを確認する
+4. secret scan / risk scan / dependency guard / leak scan に致命的な指摘がないことを確認する
+5. GitHub push と Cloudflare deploy が成功することを確認する
+
+### 想定作業時間
+
+- 15〜25分（JSON 追加 + 検証 + セキュリティ確認 + 反映）
