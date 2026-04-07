@@ -297,6 +297,7 @@ export class GameUI {
     this.titleScreen.classList.remove("is-visible");
     this.resultScreen.hidden = true;
     this.resultScreen.classList.remove("is-visible");
+    this.leaderboardPanel.open = false;
     this.setReplayState({ active: replay });
     this.setStatusLine(replay ? replayLabel || "Leaderboardの replay を再生中です。" : "");
   }
@@ -318,6 +319,7 @@ export class GameUI {
     this.resultChain.textContent = maxChain.toLocaleString("ja-JP");
     this.resultCities.textContent = aliveCities.toLocaleString("ja-JP");
     this.resultHighScore.textContent = highScore.toLocaleString("ja-JP");
+    this.leaderboardPanel.open = false;
     this.setReplayState({ active: false });
     this.setStatusLine(
       isClear

@@ -53,6 +53,7 @@
         <div class="mobile-hud-overlay" aria-hidden="true">
           <div class="mobile-hud-line"><span>Score</span><strong id="mobileScoreValue">0</strong></div>
           <div class="mobile-hud-actions" style="pointer-events: auto;">
+            <a class="secondary-button compact-button mobile-hud-link" href="/">Lobby</a>
             <button class="secondary-button compact-button" id="mobileTop10Button" type="button">TOP10</button>
           </div>
           <div class="mobile-hud-line"><span>High</span><strong id="mobileHighScoreValue">0</strong></div>
@@ -159,39 +160,6 @@
                   </div>
                 </div>
               </details>
-
-              <details class="leaderboard-panel collapsible-panel" id="leaderboardPanel">
-                <summary class="collapsible-summary">
-                  <span>Human / AI Top 10</span>
-                  <span class="summary-meta">Replay</span>
-                </summary>
-                <div class="collapsible-body">
-                  <div class="leaderboard-head">
-                    <div>
-                      <p class="screen-kicker">Network Leaderboard</p>
-                      <h3 id="leaderboardHeading">Human / AI Top 10</h3>
-                    </div>
-                    <button
-                      class="secondary-button compact-button"
-                      id="refreshLeaderboard"
-                      type="button"
-                    >
-                      Refresh
-                    </button>
-                  </div>
-
-                  <div class="leaderboard-grid">
-                    <section class="leaderboard-column" aria-labelledby="leaderboardListTitle">
-                      <h4 id="leaderboardListTitle">Leaderboard</h4>
-                      <ol class="leaderboard-list" id="leaderboardList"></ol>
-                    </section>
-                  </div>
-
-                  <p class="leaderboard-status" id="leaderboardStatus">
-                    Leaderboardを読み込み中です。
-                  </p>
-                </div>
-              </details>
             </div>
           </div>
         </section>
@@ -239,6 +207,39 @@
             <p class="submit-status" id="submitStatus" hidden></p>
           </div>
         </section>
+
+        <details class="leaderboard-panel collapsible-panel stage-overlay-panel" id="leaderboardPanel">
+          <summary class="collapsible-summary">
+            <span>Human / AI Top 10</span>
+            <span class="summary-meta">Replay</span>
+          </summary>
+          <div class="collapsible-body">
+            <div class="leaderboard-head">
+              <div>
+                <p class="screen-kicker">Network Leaderboard</p>
+                <h3 id="leaderboardHeading">Human / AI Top 10</h3>
+              </div>
+              <button
+                class="secondary-button compact-button"
+                id="refreshLeaderboard"
+                type="button"
+              >
+                Refresh
+              </button>
+            </div>
+
+            <div class="leaderboard-grid">
+              <section class="leaderboard-column" aria-labelledby="leaderboardListTitle">
+                <h4 id="leaderboardListTitle">Leaderboard</h4>
+                <ol class="leaderboard-list" id="leaderboardList"></ol>
+              </section>
+            </div>
+
+            <p class="leaderboard-status" id="leaderboardStatus">
+              Leaderboardを読み込み中です。
+            </p>
+          </div>
+        </details>
       </main>
 
       <p class="status-line" id="statusLine">

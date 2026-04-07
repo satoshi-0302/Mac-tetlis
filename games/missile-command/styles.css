@@ -633,6 +633,21 @@ button:focus-visible {
   padding: 18px;
 }
 
+.stage-overlay-panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 7;
+  width: min(460px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  overflow: auto;
+  box-shadow: var(--shadow-soft);
+}
+
+.stage-overlay-panel:not([open]) {
+  display: none;
+}
+
 .leaderboard-head {
   display: flex;
   align-items: start;
@@ -1032,10 +1047,12 @@ body[data-route-mode="mobile"] {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   z-index: 10;
 }
 
-.mobile-hud-actions button {
+.mobile-hud-actions button,
+.mobile-hud-link {
   min-height: 36px;
   padding: 8px 16px;
   font-size: 0.85rem;
@@ -1043,6 +1060,13 @@ body[data-route-mode="mobile"] {
   border: 1px solid rgba(126, 248, 255, 0.4);
   color: var(--accent-cyan);
   pointer-events: auto;
+}
+
+.mobile-hud-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 body[data-route-mode="mobile"] .topbar {
@@ -1076,6 +1100,15 @@ body[data-route-mode="mobile"] #titleScreen .screen-panel {
 
 body[data-route-mode="mobile"] #titleScreen .screen-panel > .title-side-stack {
   display: none;
+}
+
+body[data-route-mode="mobile"] .stage-overlay-panel,
+body[data-mobile="true"] .stage-overlay-panel {
+  top: 58px;
+  right: 8px;
+  left: 8px;
+  width: auto;
+  max-height: calc(100% - 66px);
 }
 
 body[data-route-mode="mobile"] #titleScreen h2 {

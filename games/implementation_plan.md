@@ -810,3 +810,46 @@
 ### 想定作業時間
 
 - 20〜35分（Workers seed 修正 + 縦画面対応 + deploy + 確認）
+
+## 追加方針（rev.31）
+
+### 目的
+
+- スマホ版で `Lobby` ボタンと `TOP10` ボタンを常に使えるようにする
+- `TOP10` / replay の導線を `titleScreen` 依存から外し、PC/スマホの両方で確実に使えるようにする
+
+### 変更対象ファイル
+
+1. `games/missile-command/index.html`
+- モバイル用 HUD に `Lobby` ボタンを追加する
+- leaderboard パネルを `titleScreen` の外でも扱える構造に見直す
+
+2. `games/missile-command/ui.js`
+- `TOP10` ボタンが常に実パネルを開くようにする
+- replay 開始中の状態表示が見えなくならないようにする
+
+3. `games/missile-command/styles.css`
+- モバイル HUD 上の `Lobby / TOP10` ボタンを操作可能な配置にする
+- leaderboard パネルが title 以外でも見えるように調整する
+
+4. `games/implementation_plan.md`
+- 今回の修正計画を追記する
+
+### 実施内容
+
+1. `titleScreen` の中に閉じている leaderboard 導線を分離する
+2. スマホ HUD に `Lobby` と `TOP10` を並べて、常時押せるようにする
+3. replay の開始状態が PC/スマホで分かるように UI を整える
+4. Playwright で PC replay 起動と mobile 操作導線を確認する
+5. `security-baseline` の必須スキャンを実行する
+
+### 検証
+
+1. モバイル画面に `Lobby` ボタンが表示されて押せること
+2. `TOP10` ボタンで leaderboard が確実に開くこと
+3. replay `PLAY` クリック後に `replay` 状態へ入り、時間表示が進むこと
+4. secret scan に致命的な指摘がないこと
+
+### 想定作業時間
+
+- 20〜30分（UI 導線整理 + Playwright 確認 + deploy）
