@@ -28,6 +28,7 @@ const VALID_REPLAY_EVENT_TYPES = new Set([
   'result'
 ]);
 const DEFAULT_GAME_VERSION = 'orbital-shield-rl-poc-v3';
+const STATIC_REPLAY_FORMAT = 'missile-replay-static-v1';
 const SEED_REPLAYS = new Map([
   ['ai-benchmark-01', aiBenchmarkReplay],
   ['claudeai-oracle-333ms-43527', claudeOracleReplay]
@@ -315,7 +316,7 @@ export const missileAdapter = {
         continue;
       }
 
-      const replayData = JSON.stringify(replay);
+      const replayKey = String(entry.replayId);
       const kind = entry.kind === 'ai' ? 'ai' : 'human';
       entries.push({
         id: String(entry.id ?? createEntryId('missile')),
@@ -326,8 +327,8 @@ export const missileAdapter = {
         summary: verifiedSummary,
         gameVersion: String(replay?.meta?.gameVersion ?? leaderboardSeed?.gameVersion ?? DEFAULT_GAME_VERSION),
         createdAt: String(entry.createdAt ?? new Date().toISOString()),
-        replayFormat: 'missile-replay-json-v1',
-        replayData,
+        replayFormat: STATIC_REPLAY_FORMAT,
+        replayData: replayKey,
         replayDigest: String(entry.replayDigest ?? `seed-${entry.id ?? entry.replayId}`)
       });
     }
@@ -375,6 +376,9 @@ export const missileAdapter = {
   },
 
   toReplayResponse(row) {
+    if (row.replay_format === STATIC_REPLAY_FORMAT) {
+      return SEED_REPLAYS.get(String(row.replay_data)) ?? null;
+    }
     return parseStoredJson(row.replay_data, null);
   }
 };
