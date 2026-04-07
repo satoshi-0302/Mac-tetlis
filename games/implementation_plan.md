@@ -768,3 +768,45 @@
 ### 想定作業時間
 
 - 10〜20分（commit + push + Cloudflare deploy + 反映確認）
+
+## 追加方針（rev.30）
+
+### 目的
+
+- `missile-command` が公開環境で replay 再生できない問題を修正する
+- スマホ版を縦画面でも遊べるようにする
+
+### 変更対象ファイル
+
+1. `cloudflare/lib/missile-adapter.mjs`
+- Workers 用 adapter に `loadSeedEntries()` を追加する
+- `games/missile-command/data/leaderboard.json` と対応 replay を seed として読み込み、公開 API の Top10 / replay を有効化する
+
+2. `games/missile-command/game.js`
+- スマホの横固定ロックを外し、縦画面でも開始できるようにする
+
+3. `games/missile-command/styles.css`
+- 縦画面時にゲームと HUD を隠しているルールをやめる
+- 縦画面でも canvas が収まるようにモバイルレイアウトを調整する
+
+4. `games/implementation_plan.md`
+- 今回の修正計画を追記する
+
+### 実施内容
+
+1. 公開 API の `missile-command` leaderboard が空である原因を Workers adapter 側で修正する
+2. seed leaderboard / replay が Cloudflare DB に投入されるようにする
+3. スマホの縦画面ブロックを解除し、縦でもプレイ可能なレイアウトへ変える
+4. 公開 API とページ応答を確認する
+5. `security-baseline` の必須スキャンを実行する
+
+### 検証
+
+1. `/api/leaderboard?gameId=missile-command` で entries が空でないこと
+2. `/api/replay?gameId=missile-command&entryId=...` が 200 で返ること
+3. スマホ縦画面で rotate 強制なしにゲーム UI が表示されること
+4. JS 構文チェックと secret scan に致命的な指摘がないこと
+
+### 想定作業時間
+
+- 20〜35分（Workers seed 修正 + 縦画面対応 + deploy + 確認）

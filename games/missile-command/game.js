@@ -160,26 +160,17 @@ export class Game {
   }
 
   async syncOrientationLock({ compactUi, isPortrait }) {
-    if (this.routeMode === "desktop") {
-      return;
-    }
-
     const orientation = window.screen?.orientation;
-    if (!orientation?.lock) {
+    if (!orientation) {
       return;
     }
 
     try {
-      if (compactUi && isPortrait) {
-        await orientation.lock("landscape");
-        return;
-      }
-
-      if (!compactUi && orientation.unlock) {
+      if (orientation.unlock) {
         orientation.unlock();
       }
     } catch (error) {
-      // Some browsers require fullscreen or user activation for orientation lock.
+      // Orientation handling is best-effort only.
     }
   }
 
@@ -198,7 +189,7 @@ export class Game {
       // Fullscreen is best-effort only.
     }
 
-    await this.syncOrientationLock({ compactUi: true, isPortrait: false });
+    await this.syncOrientationLock({ compactUi: true, isPortrait: window.innerHeight > window.innerWidth });
   }
 
   setupInput() {

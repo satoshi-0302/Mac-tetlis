@@ -1015,12 +1015,12 @@ body[data-mobile="true"][data-portrait="true"] .stage-frame {
   min-height: 0;
 }
 
-body[data-route-mode="mobile"][data-mode="playing"][data-portrait="false"] .mobile-hud-overlay,
-body[data-route-mode="mobile"][data-mode="deploying"][data-portrait="false"] .mobile-hud-overlay,
-body[data-route-mode="mobile"][data-mode="replay"][data-portrait="false"] .mobile-hud-overlay,
-body[data-mobile="true"][data-mode="playing"][data-portrait="false"] .mobile-hud-overlay,
-body[data-mobile="true"][data-mode="deploying"][data-portrait="false"] .mobile-hud-overlay,
-body[data-mobile="true"][data-mode="replay"][data-portrait="false"] .mobile-hud-overlay {
+body[data-route-mode="mobile"][data-mode="playing"] .mobile-hud-overlay,
+body[data-route-mode="mobile"][data-mode="deploying"] .mobile-hud-overlay,
+body[data-route-mode="mobile"][data-mode="replay"] .mobile-hud-overlay,
+body[data-mobile="true"][data-mode="playing"] .mobile-hud-overlay,
+body[data-mobile="true"][data-mode="deploying"] .mobile-hud-overlay,
+body[data-mobile="true"][data-mode="replay"] .mobile-hud-overlay {
   display: grid;
 }
 
@@ -1162,19 +1162,17 @@ body[data-mobile="true"][data-mode="replay"] .stage-frame {
 
 body[data-route-mode="mobile"][data-portrait="true"] .rotate-screen,
 body[data-mobile="true"][data-portrait="true"] .rotate-screen {
-  display: grid;
+  display: none;
 }
 
-body[data-route-mode="mobile"][data-portrait="true"] #gameCanvas,
-body[data-route-mode="mobile"][data-portrait="true"] .stage-grid,
-body[data-route-mode="mobile"][data-portrait="true"] .mobile-hud-overlay,
-body[data-route-mode="mobile"][data-portrait="true"] .screen,
-body[data-mobile="true"][data-portrait="true"] #gameCanvas,
-body[data-mobile="true"][data-portrait="true"] .stage-grid,
-body[data-mobile="true"][data-portrait="true"] .mobile-hud-overlay,
-body[data-mobile="true"][data-portrait="true"] .screen {
-  opacity: 0;
-  pointer-events: none;
+body[data-route-mode="mobile"][data-mode="playing"][data-portrait="true"] .stage-frame,
+body[data-route-mode="mobile"][data-mode="deploying"][data-portrait="true"] .stage-frame,
+body[data-route-mode="mobile"][data-mode="replay"][data-portrait="true"] .stage-frame,
+body[data-mobile="true"][data-mode="playing"][data-portrait="true"] .stage-frame,
+body[data-mobile="true"][data-mode="deploying"][data-portrait="true"] .stage-frame,
+body[data-mobile="true"][data-mode="replay"][data-portrait="true"] .stage-frame {
+  width: 100%;
+  margin-top: 0;
 }
 
 @media (max-height: 760px) and (min-width: 960px) {

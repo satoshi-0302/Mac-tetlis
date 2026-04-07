@@ -1,3 +1,6 @@
+import leaderboardSeed from '../../games/missile-command/data/leaderboard.json' with { type: 'json' };
+import aiBenchmarkReplay from '../../games/missile-command/data/replays/ai-benchmark-01.json' with { type: 'json' };
+import claudeOracleReplay from '../../games/missile-command/data/replays/claudeai-oracle-333ms-43527.json' with { type: 'json' };
 import { WORLD } from '../../games/missile-command/balance.js';
 import {
   REPLAY_CAPTURE_TICK_RATE,
@@ -24,6 +27,12 @@ const VALID_REPLAY_EVENT_TYPES = new Set([
   'barrier-intercept',
   'result'
 ]);
+const DEFAULT_GAME_VERSION = 'orbital-shield-rl-poc-v3';
+const SEED_REPLAYS = new Map([
+  ['ai-benchmark-01', aiBenchmarkReplay],
+  ['claudeai-oracle-333ms-43527', claudeOracleReplay]
+]);
+let seedEntriesCache = null;
 
 function createSubmissionError(message, statusCode = 400) {
   const error = new Error(message);
@@ -283,6 +292,49 @@ function deriveVerifiedReplaySummary(replay) {
 
 export const missileAdapter = {
   gameId: 'missile-command',
+
+  loadSeedEntries() {
+    if (Array.isArray(seedEntriesCache)) {
+      return seedEntriesCache;
+    }
+
+    const sourceEntries = [
+      ...(Array.isArray(leaderboardSeed?.humanEntries) ? leaderboardSeed.humanEntries : []),
+      ...(Array.isArray(leaderboardSeed?.aiEntries) ? leaderboardSeed.aiEntries : [])
+    ];
+
+    const entries = [];
+    for (const entry of sourceEntries) {
+      if (!entry?.replayAvailable || !entry?.replayId) {
+        continue;
+      }
+
+      const replay = SEED_REPLAYS.get(String(entry.replayId));
+      const verifiedSummary = replay ? deriveVerifiedReplaySummary(replay) : null;
+      if (!verifiedSummary) {
+        continue;
+      }
+
+      const replayData = JSON.stringify(replay);
+      const kind = entry.kind === 'ai' ? 'ai' : 'human';
+      entries.push({
+        id: String(entry.id ?? createEntryId('missile')),
+        kind,
+        name: sanitizePlayerName(entry.name, kind === 'ai' ? 'DEMO AI' : 'PILOT'),
+        comment: sanitizeComment(entry.comment ?? ''),
+        score: verifiedSummary.score,
+        summary: verifiedSummary,
+        gameVersion: String(replay?.meta?.gameVersion ?? leaderboardSeed?.gameVersion ?? DEFAULT_GAME_VERSION),
+        createdAt: String(entry.createdAt ?? new Date().toISOString()),
+        replayFormat: 'missile-replay-json-v1',
+        replayData,
+        replayDigest: String(entry.replayDigest ?? `seed-${entry.id ?? entry.replayId}`)
+      });
+    }
+
+    seedEntriesCache = entries;
+    return seedEntriesCache;
+  },
 
   async validateSubmission(payload) {
     const kind = payload?.kind === 'ai' ? 'ai' : 'human';
