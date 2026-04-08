@@ -14,6 +14,9 @@ export class Reel {
     public isSpinning: boolean = false;
     public isStopping: boolean = false;
     public targetOffset: number = 0;
+    public lastStopTargetIndex: number | null = null;
+    public lastStopTargetLoops: number = 0;
+    public lastStopWasForcedSeven: boolean = false;
 
     private symbolSprites: Phaser.GameObjects.Image[] = [];
 
@@ -63,6 +66,9 @@ export class Reel {
             const randomKey = symbolKeys[Math.floor(Math.random() * symbolKeys.length)];
             this.symbols.push(SYMBOL[randomKey]);
         }
+        if (!this.symbols.includes(SYMBOL.SEVEN)) {
+            this.symbols[this.id % this.symbols.length] = SYMBOL.SEVEN;
+        }
     }
 
     private drawOverlay(graphics: Phaser.GameObjects.Graphics) {
@@ -91,6 +97,9 @@ export class Reel {
     }
 
     public stop() {
+        this.lastStopWasForcedSeven = false;
+        this.lastStopTargetIndex = null;
+        this.lastStopTargetLoops = 0;
         if (!this.isSpinning) return;
         this.isStopping = true;
 
@@ -99,6 +108,44 @@ export class Reel {
         const extraDistance = symbolHeight * CONFIG.REEL_STOP_EXTRA_SYMBOLS;
         const snap = Math.ceil((currentPos + extraDistance) / symbolHeight) * symbolHeight;
         this.targetOffset = snap;
+    }
+
+    public stopOnSymbol(symbol: SymbolType, minExtraLoops: number): boolean {
+        if (!this.isSpinning) return false;
+
+        const symbolHeight = CONFIG.SYMBOL_SIZE;
+        const totalSymbols = this.symbols.length;
+        const stripPixels = totalSymbols * symbolHeight;
+        const minimumOffset = this.offset + Math.max(0, minExtraLoops) * stripPixels;
+
+        let bestOffset: number | null = null;
+        let bestIndex: number | null = null;
+
+        for (let index = 0; index < totalSymbols; index++) {
+            if (this.symbols[index] !== symbol) continue;
+            const startIndex = (index - 1 + totalSymbols) % totalSymbols;
+            const baseOffset = startIndex * symbolHeight;
+            let candidateOffset = baseOffset;
+            while (candidateOffset < minimumOffset) {
+                candidateOffset += stripPixels;
+            }
+            if (bestOffset === null || candidateOffset < bestOffset) {
+                bestOffset = candidateOffset;
+                bestIndex = index;
+            }
+        }
+
+        if (bestOffset === null || bestIndex === null) {
+            this.stop();
+            return false;
+        }
+
+        this.isStopping = true;
+        this.targetOffset = bestOffset;
+        this.lastStopWasForcedSeven = symbol === SYMBOL.SEVEN;
+        this.lastStopTargetIndex = bestIndex;
+        this.lastStopTargetLoops = Math.max(0, Math.floor(bestOffset / stripPixels) - Math.floor(this.offset / stripPixels));
+        return true;
     }
 
     public update(): boolean {

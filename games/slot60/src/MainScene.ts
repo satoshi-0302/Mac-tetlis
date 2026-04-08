@@ -15,6 +15,22 @@ interface RunStats {
     lastSpurtWins: number;
 }
 
+interface ReplayRound {
+    results: number[];
+    payout: number;
+    scoreAfter: number;
+    timeLeftMs: number;
+    feverMode: boolean;
+    reachMode: boolean;
+    comboCount: number;
+    forced777: boolean;
+    stopTargets: Array<{
+        symbolIndex: number | null;
+        loopsAhead: number;
+        forcedSeven: boolean;
+    }>;
+}
+
 export class MainScene extends Phaser.Scene {
     private reels: Reel[] = [];
     private particles!: ParticleSystem;
@@ -41,11 +57,12 @@ export class MainScene extends Phaser.Scene {
     private shakeTimer: number = 0;
     private shakePower: number = 0;
     private runStats!: RunStats;
-    private replayRounds: any[] = [];
+    private replayRounds: ReplayRound[] = [];
     private replaySeed: number = 0;
     private submittingScore: boolean = false;
     private finalSubmissionError: string = "";
     private finalRank: number | null = null;
+    private autoPlayTimerIds: number[] = [];
 
     private titleOverlay: HTMLElement | null = null;
     private uiGraphics!: Phaser.GameObjects.Graphics;
@@ -108,7 +125,7 @@ export class MainScene extends Phaser.Scene {
         this.updateOverlay();
         
         this.gameState = GAME_STATE.INTRO;
-        this.message = "TAP OR SPACE TO START";
+        this.message = CONFIG.FORCE_777_MODE ? `${CONFIG.FORCE_777_MODE_LABEL} READY` : "TAP OR SPACE TO START";
     }
 
     private createEmptyStats(): RunStats {
@@ -388,16 +405,21 @@ export class MainScene extends Phaser.Scene {
                 break;
             case GAME_STATE.IDLE:
             case GAME_STATE.RESULT:
-                this.spin();
+                if (!CONFIG.FORCE_777_MODE) {
+                    this.spin();
+                }
                 break;
             case GAME_STATE.SPINNING:
             case GAME_STATE.STOPPING:
-                this.stopReel();
+                if (!CONFIG.FORCE_777_MODE) {
+                    this.stopReel();
+                }
                 break;
         }
     }
 
     private resetGame() {
+        this.clearAutoPlayTimers();
         this.hideEndScreen();
         this.score = 0;
         this.feverMode = false;
@@ -424,6 +446,10 @@ export class MainScene extends Phaser.Scene {
         this.replayRounds = [];
         this.replaySeed = Math.floor(Math.random() * 0x7fffffff);
         this.updateOverlay();
+        if (CONFIG.FORCE_777_MODE) {
+            this.message = CONFIG.FORCE_777_MODE_LABEL;
+            this.scheduleAutoSpin();
+        }
         
         if (this.uiText) {
             this.uiText.fever.setVisible(false);
@@ -437,6 +463,7 @@ export class MainScene extends Phaser.Scene {
             this.endTimeAttack();
             return;
         }
+        this.clearAutoPlayTimers();
         this.runStats.spins++;
 
         if (this.feverMode) {
@@ -448,21 +475,29 @@ export class MainScene extends Phaser.Scene {
 
         this.gameState = GAME_STATE.SPINNING;
         this.stopIndex = 0;
-        this.message = "SPINNING...";
         this.reachMode = false;
+        this.message = CONFIG.FORCE_777_MODE ? CONFIG.FORCE_777_MODE_LABEL : "SPINNING...";
         this.audio.playSpinStart();
 
         this.reels.forEach(reel => reel.start());
+        if (CONFIG.FORCE_777_MODE) {
+            this.scheduleAutoStops();
+        }
     }
 
-    private stopReel() {
+    private stopReel(forceSeven: boolean = false) {
         if (this.stopIndex < this.reels.length) {
-            this.reels[this.stopIndex].stop();
+            const reel = this.reels[this.stopIndex];
+            if (forceSeven) {
+                reel.stopOnSymbol(SYMBOL.SEVEN, CONFIG.FORCE_777_MIN_EXTRA_LOOPS);
+            } else {
+                reel.stop();
+            }
             this.audio.playReelStop();
 
             if (this.stopIndex === 1) {
-                const r1 = this.reels[0].getResult();
-                const r2 = this.reels[1].getResult();
+                const r1 = forceSeven ? SYMBOL.SEVEN : this.reels[0].getResult();
+                const r2 = forceSeven ? SYMBOL.SEVEN : this.reels[1].getResult();
                 if (r1 === r2) {
                     this.reachMode = true;
                     this.runStats.reachHits++;
@@ -476,6 +511,41 @@ export class MainScene extends Phaser.Scene {
                 this.gameState = GAME_STATE.STOPPING;
             }
         }
+    }
+
+    private scheduleAutoSpin() {
+        if (!CONFIG.FORCE_777_MODE || !this.isTimeAttackRunning || this.gameState === GAME_STATE.TIMEUP) return;
+        if (this.gameState !== GAME_STATE.IDLE && this.gameState !== GAME_STATE.RESULT) return;
+
+        const timerId = window.setTimeout(() => {
+            this.autoPlayTimerIds = this.autoPlayTimerIds.filter((id) => id !== timerId);
+            if (this.isTimeAttackRunning && (this.gameState === GAME_STATE.IDLE || this.gameState === GAME_STATE.RESULT)) {
+                this.spin();
+            }
+        }, CONFIG.FORCE_777_AUTO_SPIN_DELAY_MS);
+        this.autoPlayTimerIds.push(timerId);
+    }
+
+    private scheduleAutoStops() {
+        CONFIG.FORCE_777_AUTO_STOP_DELAYS_MS.forEach((delayMs, reelIndex) => {
+            const timerId = window.setTimeout(() => {
+                this.autoPlayTimerIds = this.autoPlayTimerIds.filter((id) => id !== timerId);
+                if (
+                    !this.isTimeAttackRunning ||
+                    (this.gameState !== GAME_STATE.SPINNING && this.gameState !== GAME_STATE.STOPPING) ||
+                    this.stopIndex !== reelIndex
+                ) {
+                    return;
+                }
+                this.stopReel(true);
+            }, delayMs);
+            this.autoPlayTimerIds.push(timerId);
+        });
+    }
+
+    private clearAutoPlayTimers() {
+        this.autoPlayTimerIds.forEach((timerId) => window.clearTimeout(timerId));
+        this.autoPlayTimerIds = [];
     }
 
     private evaluateResult() {
@@ -577,8 +647,18 @@ export class MainScene extends Phaser.Scene {
             timeLeftMs: Math.max(0, Math.floor(this.timeLeftMs)),
             feverMode: this.feverMode,
             reachMode: this.reachMode,
-            comboCount: this.comboCount
+            comboCount: this.comboCount,
+            forced777: CONFIG.FORCE_777_MODE,
+            stopTargets: this.reels.map((reel) => ({
+                symbolIndex: reel.lastStopTargetIndex,
+                loopsAhead: reel.lastStopTargetLoops,
+                forcedSeven: reel.lastStopWasForcedSeven
+            }))
         });
+
+        if (CONFIG.FORCE_777_MODE && this.isTimeAttackRunning && this.timeLeftMs > 0) {
+            this.scheduleAutoSpin();
+        }
     }
 
     private triggerFever() {
@@ -587,6 +667,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     private endTimeAttack() {
+        this.clearAutoPlayTimers();
         this.isTimeAttackRunning = false;
         this.timeLeftMs = 0;
         this.gameState = GAME_STATE.TIMEUP;
