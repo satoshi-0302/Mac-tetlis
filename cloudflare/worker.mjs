@@ -112,6 +112,21 @@ async function ensureGames(db) {
       await insertVerifiedEntry(db, game.id, entry);
     }
 
+    if (game.id === 'slot60') {
+      await db
+        .prepare(
+          `DELETE FROM leaderboard_entries
+           WHERE game_id = 'slot60'
+             AND (
+               replay_format = 'none'
+               OR replay_data = ''
+               OR replay_digest = ''
+               OR trim(comment) = ''
+             )`
+        )
+        .run();
+    }
+
     await pruneEntriesToTopTen(db, game.id);
   }
 }
