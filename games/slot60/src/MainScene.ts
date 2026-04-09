@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CONFIG, GAME_STATE, GameSateType, SYMBOL, SYMBOL_DATA, SLOT_REPLAY_VERSION } from './Constants';
+import { CONFIG, GAME_STATE, GameSateType, SYMBOL, SYMBOL_DATA, SLOT_REPLAY_VERSION, SymbolType } from './Constants';
 import { Reel } from './Reel';
 import { ParticleSystem } from './ParticleSystem';
 import { AudioController } from './AudioController';
@@ -15,6 +15,29 @@ interface RunStats {
     lastSpurtWins: number;
 }
 
+interface LeaderboardRow {
+    id: string;
+    name: string;
+    score: number;
+    comment: string;
+    replayId: string;
+    replayAvailable: boolean;
+}
+
+interface SlotReplayRound {
+    results: number[];
+    payout: number;
+    scoreAfter: number;
+    timeLeftMs: number;
+    comboCount?: number;
+}
+
+interface SlotReplayPayload {
+    version: string;
+    strips: number[][];
+    rounds: SlotReplayRound[];
+}
+
 export class MainScene extends Phaser.Scene {
     private reels: Reel[] = [];
     private particles!: ParticleSystem;
@@ -22,7 +45,7 @@ export class MainScene extends Phaser.Scene {
     private gameState: GameSateType = GAME_STATE.LOADING;
     private score: number = 0;
     private highScore: number = 0;
-    private leaderboard: any[] = [];
+    private leaderboard: LeaderboardRow[] = [];
     private feverMode: boolean = false;
     private feverTurns: number = 0;
     private message: string = "LOADING...";
@@ -46,6 +69,29 @@ export class MainScene extends Phaser.Scene {
     private submittingScore: boolean = false;
     private finalSubmissionError: string = "";
     private finalRank: number | null = null;
+    private replayPlayback: {
+        active: boolean;
+        loading: boolean;
+        rounds: SlotReplayRound[];
+        strips: number[][];
+        row: LeaderboardRow | null;
+        roundIndex: number;
+        timerMs: number;
+        restoreScore: number;
+        restoreMessage: string;
+        restoreTimeLeftMs: number;
+    } = {
+        active: false,
+        loading: false,
+        rounds: [],
+        strips: [],
+        row: null,
+        roundIndex: 0,
+        timerMs: 0,
+        restoreScore: 0,
+        restoreMessage: "",
+        restoreTimeLeftMs: 0,
+    };
 
     private titleOverlay: HTMLElement | null = null;
     private uiGraphics!: Phaser.GameObjects.Graphics;
@@ -156,6 +202,8 @@ export class MainScene extends Phaser.Scene {
 
     update(_time: number, delta: number) {
         if (this.gameState === GAME_STATE.LOADING) return;
+
+        this.updateReplayPlayback(delta);
 
         if (this.isTimeAttackRunning && this.gameState !== GAME_STATE.TIMEUP) {
             this.timeLeftMs = Math.max(0, this.timeLeftMs - delta);
@@ -377,6 +425,7 @@ export class MainScene extends Phaser.Scene {
     handleInput(action: string) {
         if (this.gameState === GAME_STATE.LOADING) return;
         if (action !== 'primary') return;
+        if (this.replayPlayback.active || this.replayPlayback.loading) return;
         this.audio.init();
 
         switch (this.gameState) {
@@ -421,6 +470,7 @@ export class MainScene extends Phaser.Scene {
         this.finalRank = null;
         this.finalSubmissionError = '';
         this.submittingScore = false;
+        this.stopReplayPlayback(false);
         this.replayRounds = [];
         this.replaySeed = Math.floor(Math.random() * 0x7fffffff);
         this.updateOverlay();
@@ -655,6 +705,7 @@ export class MainScene extends Phaser.Scene {
             const payload = await response.json();
             if (!response.ok) {
                 this.finalSubmissionError = payload?.error || 'SCORE SAVE FAILED';
+                if (this.gameState === GAME_STATE.TIMEUP) this.showEndScreen();
                 return;
             }
 
@@ -665,11 +716,14 @@ export class MainScene extends Phaser.Scene {
                 const index = this.leaderboard.findIndex((row) => row.id === entryId);
                 this.finalRank = index >= 0 ? index + 1 : null;
             }
+            if (this.gameState === GAME_STATE.TIMEUP) this.showEndScreen();
         } catch (error) {
             console.warn('Failed to submit slot60 score:', error);
             this.finalSubmissionError = 'NETWORK ERROR';
+            if (this.gameState === GAME_STATE.TIMEUP) this.showEndScreen();
         } finally {
             this.submittingScore = false;
+            if (this.gameState === GAME_STATE.TIMEUP) this.showEndScreen();
         }
     }
 
@@ -679,14 +733,17 @@ export class MainScene extends Phaser.Scene {
         return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
     }
 
-    private normalizeLeaderboardRows(rows: any[]) {
+    private normalizeLeaderboardRows(rows: any[]): LeaderboardRow[] {
         if (!Array.isArray(rows)) return [];
         return rows
             .filter((row) => row && typeof row.name === 'string')
             .map((row) => ({
                 id: String(row.id || ''),
                 name: row.name.slice(0, 14),
-                score: Math.max(0, Math.floor(Number(row.score) || 0))
+                score: Math.max(0, Math.floor(Number(row.score) || 0)),
+                comment: String(row.comment || row.message || '').slice(0, 18) || 'NO COMMENT',
+                replayId: String(row.replayId || row.id || ''),
+                replayAvailable: Boolean(row.replayAvailable)
             }))
             .sort((a, b) => b.score - a.score)
             .slice(0, CONFIG.LEADERBOARD_LIMIT);
@@ -716,6 +773,124 @@ export class MainScene extends Phaser.Scene {
                 if (netVal) netVal.textContent = top.score.toLocaleString();
                 if (netName) netName.textContent = top.name;
             }
+        }
+    }
+
+    private updateReplayPlayback(delta: number) {
+        if (!this.replayPlayback.active) return;
+        this.replayPlayback.timerMs -= delta;
+        if (this.replayPlayback.timerMs > 0) return;
+
+        const nextRound = this.replayPlayback.rounds[this.replayPlayback.roundIndex];
+        if (!nextRound) {
+            this.stopReplayPlayback(true);
+            return;
+        }
+
+        this.applyReplayRound(nextRound);
+        this.replayPlayback.roundIndex += 1;
+        this.replayPlayback.timerMs = this.replayPlayback.roundIndex >= this.replayPlayback.rounds.length ? 1100 : 420;
+    }
+
+    private applyReplayRound(round: SlotReplayRound) {
+        round.results.forEach((symbol, index) => {
+            const reel = this.reels[index];
+            if (!reel) return;
+
+            const strip = Array.isArray(this.replayPlayback.strips[index]) && this.replayPlayback.strips[index].length > 0
+                ? this.replayPlayback.strips[index]
+                : reel.symbols;
+            reel.symbols = [...strip] as SymbolType[];
+            const targetIndex = Math.max(0, strip.findIndex((value) => value === symbol));
+            const startIndex = (targetIndex - 1 + strip.length) % strip.length;
+            reel.offset = startIndex * CONFIG.SYMBOL_SIZE;
+            reel.isSpinning = false;
+            reel.isStopping = false;
+            reel.speed = 0;
+            reel.preRender();
+        });
+
+        this.score = Math.max(0, Math.floor(Number(round.scoreAfter) || 0));
+        const label = this.replayPlayback.row?.name || 'REPLAY';
+        const combo = Math.max(0, Math.floor(Number(round.comboCount) || 0));
+        this.message = combo >= 2
+            ? `REPLAY ${label}  COMBO x${combo}`
+            : `REPLAY ${label}  +${Math.max(0, Math.floor(Number(round.payout) || 0))}`;
+        this.flashTimer = 180;
+    }
+
+    private async startReplayPlayback(row: LeaderboardRow) {
+        if (!row.replayAvailable || !row.replayId || this.replayPlayback.loading || this.replayPlayback.active) return;
+        this.replayPlayback.loading = true;
+        this.replayPlayback.row = row;
+        this.finalSubmissionError = '';
+        this.showEndScreen();
+
+        try {
+            const response = await fetch(`/api/replay?gameId=slot60&entryId=${encodeURIComponent(row.replayId)}`);
+            const payload = await response.json();
+            if (!response.ok) {
+                this.finalSubmissionError = payload?.error || 'REPLAY LOAD FAILED';
+                return;
+            }
+
+            const replay = payload as SlotReplayPayload;
+            if (!Array.isArray(replay?.strips) || !Array.isArray(replay?.rounds) || replay.rounds.length === 0) {
+                this.finalSubmissionError = 'REPLAY DATA INVALID';
+                return;
+            }
+
+            this.hideEndScreen();
+            this.replayPlayback = {
+                active: true,
+                loading: false,
+                rounds: replay.rounds.map((round) => ({
+                    results: Array.isArray(round?.results) ? round.results.map((value) => Math.max(0, Math.floor(Number(value) || 0))) : [0, 0, 0],
+                    payout: Math.max(0, Math.floor(Number(round?.payout) || 0)),
+                    scoreAfter: Math.max(0, Math.floor(Number(round?.scoreAfter) || 0)),
+                    timeLeftMs: Math.max(0, Math.floor(Number(round?.timeLeftMs) || 0)),
+                    comboCount: Math.max(0, Math.floor(Number(round?.comboCount) || 0))
+                })),
+                strips: replay.strips.map((strip) => Array.isArray(strip) ? strip.map((value) => Math.max(0, Math.floor(Number(value) || 0))) : []),
+                row,
+                roundIndex: 0,
+                timerMs: 0,
+                restoreScore: this.score,
+                restoreMessage: this.message,
+                restoreTimeLeftMs: this.timeLeftMs
+            };
+            this.timeLeftMs = CONFIG.TIME_LIMIT_MS;
+        } catch (error) {
+            console.warn('Failed to load slot60 replay:', error);
+            this.finalSubmissionError = 'REPLAY NETWORK ERROR';
+        } finally {
+            this.replayPlayback.loading = false;
+            if (!this.replayPlayback.active) {
+                this.showEndScreen();
+            }
+        }
+    }
+
+    private stopReplayPlayback(showBoard: boolean) {
+        if (this.replayPlayback.active) {
+            this.score = this.replayPlayback.restoreScore;
+            this.message = this.replayPlayback.restoreMessage;
+            this.timeLeftMs = this.replayPlayback.restoreTimeLeftMs;
+        }
+        this.replayPlayback = {
+            active: false,
+            loading: false,
+            rounds: [],
+            strips: [],
+            row: null,
+            roundIndex: 0,
+            timerMs: 0,
+            restoreScore: this.score,
+            restoreMessage: this.message,
+            restoreTimeLeftMs: this.timeLeftMs
+        };
+        if (showBoard && this.gameState === GAME_STATE.TIMEUP) {
+            this.showEndScreen();
         }
     }
 
@@ -777,21 +952,61 @@ export class MainScene extends Phaser.Scene {
 
         container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 286, 'TOP 10 LEADERBOARD', { font: 'bold 18px Courier New', color: '#fff' }).setOrigin(0.5));
 
-        const baseY = 314;
+        const tableX = 54;
+        const headerY = 320;
+        const baseY = 348;
         const rowH = 22;
+        const columns = {
+            rank: tableX,
+            name: tableX + 62,
+            score: tableX + 220,
+            comment: tableX + 360,
+            replay: tableX + 620
+        };
         const shorten = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
+        const headerStyle = { font: 'bold 15px Courier New', color: '#7af0ff' };
+        container.add(this.add.text(columns.rank, headerY, '順位', headerStyle));
+        container.add(this.add.text(columns.name, headerY, '名前', headerStyle));
+        container.add(this.add.text(columns.score, headerY, 'スコア', headerStyle));
+        container.add(this.add.text(columns.comment, headerY, 'コメント', headerStyle));
+        container.add(this.add.text(columns.replay, headerY, 'リプレイ', headerStyle));
+
+        const line = this.add.rectangle(CONFIG.CANVAS_WIDTH / 2, headerY + 18, 700, 1, 0x7af0ff, 0.55).setOrigin(0.5);
+        container.add(line);
 
         for (let i = 0; i < CONFIG.LEADERBOARD_LIMIT; i++) {
             const row = this.leaderboard[i];
             const y = baseY + i * rowH;
+            const color = i < 3 ? '#ffd166' : '#d9e6ff';
+            container.add(this.add.text(columns.rank, y, `${i + 1}`, { font: 'bold 17px Courier New', color }).setOrigin(0, 0.5));
+
             if (!row) {
-                container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, y, `${i + 1}. ---`, { font: 'bold 18px Courier New', color: 'rgba(255,255,255,0.35)' }).setOrigin(0.5));
+                container.add(this.add.text(columns.name, y, '---', { font: 'bold 17px Courier New', color: 'rgba(255,255,255,0.35)' }).setOrigin(0, 0.5));
+                container.add(this.add.text(columns.score, y, '-', { font: 'bold 17px Courier New', color: 'rgba(255,255,255,0.35)' }).setOrigin(0, 0.5));
+                container.add(this.add.text(columns.comment, y, '-', { font: 'bold 17px Courier New', color: 'rgba(255,255,255,0.35)' }).setOrigin(0, 0.5));
+                container.add(this.add.text(columns.replay, y, '-', { font: 'bold 17px Courier New', color: 'rgba(255,255,255,0.35)' }).setOrigin(0, 0.5));
                 continue;
             }
-            const marker = i === 0 ? '★' : '';
-            const color = i < 3 ? '#ffd166' : '#d9e6ff';
-            const rowText = `${i + 1}. ${shorten(row.name, 10)} ${row.score}${marker}`;
-            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, y, rowText, { font: 'bold 18px Courier New', color }).setOrigin(0.5));
+
+            container.add(this.add.text(columns.name, y, shorten(row.name, 12), { font: 'bold 17px Courier New', color }).setOrigin(0, 0.5));
+            container.add(this.add.text(columns.score, y, row.score.toLocaleString(), { font: 'bold 17px Courier New', color }).setOrigin(0, 0.5));
+            container.add(this.add.text(columns.comment, y, shorten(row.comment, 15), { font: 'bold 17px Courier New', color: '#ffffff' }).setOrigin(0, 0.5));
+
+            const replayLabel = this.replayPlayback.loading && this.replayPlayback.row?.id === row.id
+                ? 'LOAD'
+                : row.replayAvailable ? 'VIEW' : 'NONE';
+            const replayColor = row.replayAvailable ? '#7af0ff' : '#667085';
+            const replayButton = this.add.text(columns.replay, y, replayLabel, { font: 'bold 16px Courier New', color: replayColor, backgroundColor: row.replayAvailable ? '#13243f' : '#1a1a1a' })
+                .setOrigin(0, 0.5)
+                .setPadding(6, 2, 6, 2);
+            if (row.replayAvailable) {
+                replayButton
+                    .setInteractive({ useHandCursor: true })
+                    .on('pointerdown', () => {
+                        void this.startReplayPlayback(row);
+                    });
+            }
+            container.add(replayButton);
         }
 
         container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 582, 'TAP OR SPACE TO RETRY', { font: 'bold 24px Courier New', color: '#fff' }).setOrigin(0.5));

@@ -1,6 +1,12 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { createEntryId, parseStoredJson, sanitizePlayerName, sanitizeRequiredComment, sha256 } from '../sanitize.mjs';
 
 const CURRENT_RULE_VERSION = 'slot60-rule-v1';
+const ROOT_DIR = fileURLToPath(new URL('../../games/slot60/', import.meta.url));
+const SEED_PATH = join(ROOT_DIR, 'data', 'leaderboard-seed.json');
 
 function createSubmissionError(message, statusCode = 400) {
   const error = new Error(message);
@@ -62,7 +68,39 @@ export const slot60Adapter = {
   currentGameVersion: CURRENT_RULE_VERSION,
 
   loadSeedEntries() {
-    return [];
+    try {
+      const parsed = JSON.parse(readFileSync(SEED_PATH, 'utf8'));
+      const entries = Array.isArray(parsed?.entries) ? parsed.entries : [];
+      return entries
+        .map((entry) => {
+          const replayData = typeof entry?.replayData === 'string' ? entry.replayData : '';
+          const replayDigest = typeof entry?.replayDigest === 'string' ? entry.replayDigest.toLowerCase() : '';
+          if (!replayData || !/^[a-f0-9]{64}$/i.test(replayDigest) || sha256(replayData) !== replayDigest) {
+            return null;
+          }
+
+          const replay = parseReplayPayload(replayData);
+          const verifiedScore = Math.max(0, Math.floor(Number(replay?.rounds?.at(-1)?.scoreAfter) || 0));
+          return {
+            id: String(entry?.id || createEntryId('slot60')),
+            kind: entry?.kind === 'ai' ? 'ai' : 'human',
+            name: sanitizePlayerName(entry?.name, 'PLAYER'),
+            comment: sanitizeRequiredComment(entry?.comment ?? '', 'NO COMMENT'),
+            score: verifiedScore,
+            summary: {
+              rounds: replay.rounds.length
+            },
+            gameVersion: CURRENT_RULE_VERSION,
+            createdAt: String(entry?.createdAt || new Date().toISOString()),
+            replayFormat: 'slot60-round-log-v1',
+            replayData,
+            replayDigest
+          };
+        })
+        .filter(Boolean);
+    } catch {
+      return [];
+    }
   },
 
   validateSubmission(payload) {
