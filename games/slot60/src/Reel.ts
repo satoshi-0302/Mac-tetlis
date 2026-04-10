@@ -85,7 +85,8 @@ export class Reel {
     public start() {
         this.isSpinning = true;
         this.isStopping = false;
-        const baseSpeed = CONFIG.REEL_BASE_SPEED + (this.id * CONFIG.REEL_SPEED_STEP);
+        const speedStepIndex = Math.min(this.id, 1);
+        const baseSpeed = CONFIG.REEL_BASE_SPEED + (speedStepIndex * CONFIG.REEL_SPEED_STEP);
         const speedRate = CONFIG.REEL_SPEED_MULTIPLIERS[this.id] || 1;
         this.speed = baseSpeed * speedRate;
     }
