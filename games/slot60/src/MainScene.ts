@@ -24,18 +24,18 @@ interface LeaderboardRow {
     replayAvailable: boolean;
 }
 
-interface SlotReplayRound {
-    results: number[];
-    payout: number;
-    scoreAfter: number;
-    timeLeftMs: number;
-    comboCount?: number;
+interface SlotReplayAction {
+    tick: number;
+    action: 'primary';
 }
 
 interface SlotReplayPayload {
     version: string;
     strips: number[][];
-    rounds: SlotReplayRound[];
+    totalTicks: number;
+    actions: SlotReplayAction[];
+    finalScore?: number;
+    seed?: number;
 }
 
 export class MainScene extends Phaser.Scene {
@@ -50,6 +50,8 @@ export class MainScene extends Phaser.Scene {
     private feverTurns: number = 0;
     private message: string = "LOADING...";
     private timeLeftMs: number = CONFIG.TIME_LIMIT_MS;
+    private currentTick: number = 0;
+    private tickAccumulator: number = 0;
     private isTimeAttackRunning: boolean = false;
     private comboCount: number = 0;
     private comboChainTimer: number = 0;
@@ -64,7 +66,7 @@ export class MainScene extends Phaser.Scene {
     private shakeTimer: number = 0;
     private shakePower: number = 0;
     private runStats!: RunStats;
-    private replayRounds: any[] = [];
+    private replayActions: SlotReplayAction[] = [];
     private replaySeed: number = 0;
     private submittingScore: boolean = false;
     private finalSubmissionError: string = "";
@@ -72,25 +74,29 @@ export class MainScene extends Phaser.Scene {
     private replayPlayback: {
         active: boolean;
         loading: boolean;
-        rounds: SlotReplayRound[];
+        actions: SlotReplayAction[];
         strips: number[][];
         row: LeaderboardRow | null;
-        roundIndex: number;
-        timerMs: number;
+        actionIndex: number;
+        totalTicks: number;
+        completionDelayTicks: number;
         restoreScore: number;
         restoreMessage: string;
         restoreTimeLeftMs: number;
+        restoreTick: number;
     } = {
         active: false,
         loading: false,
-        rounds: [],
+        actions: [],
         strips: [],
         row: null,
-        roundIndex: 0,
-        timerMs: 0,
+        actionIndex: 0,
+        totalTicks: CONFIG.TOTAL_TICKS,
+        completionDelayTicks: 0,
         restoreScore: 0,
         restoreMessage: "",
         restoreTimeLeftMs: 0,
+        restoreTick: 0,
     };
 
     private uiGraphics!: Phaser.GameObjects.Graphics;
@@ -106,6 +112,7 @@ export class MainScene extends Phaser.Scene {
         comboBonus: Phaser.GameObjects.Text;
         hyper: Phaser.GameObjects.Text;
         fever: Phaser.GameObjects.Text;
+        replay: Phaser.GameObjects.Text;
     } | null = null;
 
     private comboBar!: Phaser.GameObjects.Graphics;
@@ -185,7 +192,8 @@ export class MainScene extends Phaser.Scene {
             message: this.add.text(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT - 40, '', { font: 'bold 40px Courier New', color: '#fff' }).setOrigin(0.5, 0.5),
             comboBonus: this.add.text(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT - 100, '', { font: 'bold 26px Courier New', color: '#ffe082' }).setOrigin(0.5, 0.5).setVisible(false),
             hyper: this.add.text(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT - 140, 'HYPER CHAIN!', { font: 'bold 24px Courier New', color: '#8cfbff' }).setOrigin(0.5, 0.5).setVisible(false),
-            fever: this.add.text(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT - 100, '', { font: 'bold 40px Courier New', color: '#ff0000' }).setOrigin(0.5, 0.5).setVisible(false)
+            fever: this.add.text(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT - 100, '', { font: 'bold 40px Courier New', color: '#ff0000' }).setOrigin(0.5, 0.5).setVisible(false),
+            replay: this.add.text(CONFIG.CANVAS_WIDTH / 2, 118, CONFIG.REPLAY_BANNER_TEXT, { font: 'bold 24px Courier New', color: '#7af0ff' }).setOrigin(0.5, 0.5).setVisible(false)
         };
         
         // Add neon glow to UI text if possible or just use shadow
@@ -212,30 +220,57 @@ export class MainScene extends Phaser.Scene {
 
     update(_time: number, delta: number) {
         if (this.gameState === GAME_STATE.LOADING) return;
-
-        this.updateReplayPlayback(delta);
         const overlayVisible = Boolean(this.endScreenContainer) && !this.replayPlayback.active;
-        if (overlayVisible) {
-            this.drawPhaser();
-            return;
-        }
-
-        if (this.isTimeAttackRunning && this.gameState !== GAME_STATE.TIMEUP) {
-            this.timeLeftMs = Math.max(0, this.timeLeftMs - delta);
-            if (this.timeLeftMs <= 0) {
-                this.endTimeAttack();
+        if (!overlayVisible) {
+            this.tickAccumulator += Math.min(Math.max(delta, 0), 250);
+            let guard = 0;
+            while (this.tickAccumulator >= CONFIG.TICK_MS && guard < 8) {
+                this.stepFixedTick();
+                this.tickAccumulator -= CONFIG.TICK_MS;
+                guard += 1;
             }
         }
-
         this.particles.update();
+        this.drawPhaser();
+    }
 
-        if (this.flashTimer > 0) this.flashTimer -= delta;
-        if (this.comboFlashTimer > 0) this.comboFlashTimer -= delta;
-        if (this.lastSpurtFxTimer > 0) this.lastSpurtFxTimer -= delta;
-        if (this.timeUpFxTimer > 0) this.timeUpFxTimer -= delta;
+    private stepFixedTick() {
+        this.advanceReplayActions();
+        this.advanceTimers();
+        this.advanceReels();
+
+        if (this.isTimeAttackRunning && this.gameState !== GAME_STATE.TIMEUP) {
+            this.currentTick = Math.min(this.getActiveTotalTicks(), this.currentTick + 1);
+            this.syncTimeLeftFromTick();
+            if (this.currentTick >= this.getActiveTotalTicks()) {
+                this.endTimeAttack();
+            }
+        } else if (this.replayPlayback.active && this.gameState === GAME_STATE.TIMEUP) {
+            this.replayPlayback.completionDelayTicks -= 1;
+            if (this.replayPlayback.completionDelayTicks <= 0) {
+                this.stopReplayPlayback(true);
+            }
+        }
+    }
+
+    private advanceReplayActions() {
+        if (!this.replayPlayback.active) return;
+        while (this.replayPlayback.actionIndex < this.replayPlayback.actions.length) {
+            const nextAction = this.replayPlayback.actions[this.replayPlayback.actionIndex];
+            if (!nextAction || nextAction.tick !== this.currentTick) break;
+            this.processPrimaryAction(true);
+            this.replayPlayback.actionIndex += 1;
+        }
+    }
+
+    private advanceTimers() {
+        if (this.flashTimer > 0) this.flashTimer = Math.max(0, this.flashTimer - CONFIG.TICK_MS);
+        if (this.comboFlashTimer > 0) this.comboFlashTimer = Math.max(0, this.comboFlashTimer - CONFIG.TICK_MS);
+        if (this.lastSpurtFxTimer > 0) this.lastSpurtFxTimer = Math.max(0, this.lastSpurtFxTimer - CONFIG.TICK_MS);
+        if (this.timeUpFxTimer > 0) this.timeUpFxTimer = Math.max(0, this.timeUpFxTimer - CONFIG.TICK_MS);
 
         if (this.comboCount > 0 && this.isTimeAttackRunning && this.gameState !== GAME_STATE.TIMEUP) {
-            this.comboChainTimer = Math.max(0, this.comboChainTimer - delta);
+            this.comboChainTimer = Math.max(0, this.comboChainTimer - CONFIG.TICK_MS);
             if (this.comboChainTimer <= 0) {
                 this.comboCount = 0;
                 this.comboText = "";
@@ -245,14 +280,16 @@ export class MainScene extends Phaser.Scene {
         }
 
         if (this.shakeTimer > 0) {
-            this.shakeTimer -= delta;
+            this.shakeTimer = Math.max(0, this.shakeTimer - CONFIG.TICK_MS);
             if (this.shakeTimer <= 0) {
                 this.shakePower = 0;
             }
         }
+    }
 
+    private advanceReels() {
         let allStopped = true;
-        this.reels.forEach(reel => {
+        this.reels.forEach((reel) => {
             const stopped = reel.update();
             if (!stopped && reel.isSpinning) allStopped = false;
         });
@@ -260,8 +297,6 @@ export class MainScene extends Phaser.Scene {
         if (this.gameState === GAME_STATE.STOPPING && allStopped) {
             this.evaluateResult();
         }
-
-        this.drawPhaser();
     }
 
     private drawPhaser() {
@@ -405,7 +440,7 @@ export class MainScene extends Phaser.Scene {
         this.uiText.score.setText(`CREDITS: ${this.score}`);
         this.uiText.best.setText(`RECORD: ${this.highScore}`);
         
-        const secondsLeft = this.timeLeftMs / 1000;
+        const secondsLeft = this.getRemainingTicks() / CONFIG.TICKS_PER_SECOND;
         this.uiText.time.setText(`TIME: ${secondsLeft.toFixed(1)}`);
         
         let timeColor = '#ffffff';
@@ -431,6 +466,8 @@ export class MainScene extends Phaser.Scene {
         
         this.uiText.fever.setVisible(this.feverMode);
         this.uiText.fever.setText(`FEVER: ${this.feverTurns}`);
+        this.uiText.replay.setVisible(this.replayPlayback.active || this.replayPlayback.loading);
+        this.uiText.replay.setText(this.replayPlayback.loading ? 'REPLAY LOADING' : CONFIG.REPLAY_BANNER_TEXT);
 
         if (this.gameState === GAME_STATE.TIMEUP) {
             this.uiText.message.setText("TIME UP"); // Will be centered in end screen logic if needed or just use current text
@@ -442,7 +479,7 @@ export class MainScene extends Phaser.Scene {
         if (!this.top10Button) return;
         const overlayVisible = Boolean(this.endScreenContainer);
         const locked = this.replayPlayback.loading || this.replayPlayback.active;
-        const label = overlayVisible && this.gameState !== GAME_STATE.TIMEUP ? 'CLOSE' : 'TOP10';
+        const label = this.replayPlayback.active ? 'REPLAY' : overlayVisible && this.gameState !== GAME_STATE.TIMEUP ? 'CLOSE' : 'TOP10';
         this.top10Button.setText(label);
         this.top10Button.setAlpha(locked ? 0.45 : 1);
     }
@@ -459,7 +496,16 @@ export class MainScene extends Phaser.Scene {
             }
             return;
         }
-        this.audio.init();
+        this.processPrimaryAction(false);
+    }
+
+    private processPrimaryAction(fromReplay: boolean) {
+        if (!fromReplay) {
+            this.audio.init();
+        }
+        if (!fromReplay && this.shouldRecordReplayAction()) {
+            this.replayActions.push({ tick: this.currentTick, action: 'primary' });
+        }
 
         switch (this.gameState) {
             case GAME_STATE.INTRO:
@@ -479,8 +525,23 @@ export class MainScene extends Phaser.Scene {
         }
     }
 
+    private shouldRecordReplayAction() {
+        if (!this.isTimeAttackRunning || this.gameState === GAME_STATE.TIMEUP) return false;
+        return this.gameState === GAME_STATE.IDLE
+            || this.gameState === GAME_STATE.RESULT
+            || this.gameState === GAME_STATE.SPINNING
+            || this.gameState === GAME_STATE.STOPPING;
+    }
+
     private resetGame() {
         this.hideEndScreen();
+        this.stopReplayPlayback(false);
+        this.replaySeed = Math.floor(Math.random() * 0x7fffffff);
+        this.replayActions = [];
+        this.initializeRunState();
+    }
+
+    private initializeRunState() {
         this.score = 0;
         this.feverMode = false;
         this.feverTurns = 0;
@@ -488,7 +549,8 @@ export class MainScene extends Phaser.Scene {
         this.message = "TAP OR SPACE";
         this.reachMode = false;
         this.stopIndex = 0;
-        this.timeLeftMs = CONFIG.TIME_LIMIT_MS;
+        this.currentTick = 0;
+        this.tickAccumulator = 0;
         this.isTimeAttackRunning = true;
         this.comboCount = 0;
         this.comboFlashTimer = 0;
@@ -499,19 +561,33 @@ export class MainScene extends Phaser.Scene {
         this.currentComboWindowMs = CONFIG.COMBO_CHAIN_WINDOW_MS;
         this.timeUpFxTimer = 0;
         this.lastSpurtFxTimer = 0;
+        this.flashTimer = 0;
         this.runStats = this.createEmptyStats();
         this.finalRank = null;
         this.finalSubmissionError = '';
         this.submittingScore = false;
-        this.stopReplayPlayback(false);
-        this.replayRounds = [];
-        this.replaySeed = Math.floor(Math.random() * 0x7fffffff);
-        
+        this.syncTimeLeftFromTick();
+        this.reels.forEach((reel) => reel.resetPosition());
+
         if (this.uiText) {
             this.uiText.fever.setVisible(false);
             this.uiText.combo.setVisible(false);
             this.uiText.hyper.setVisible(false);
+            this.uiText.replay.setVisible(false);
         }
+        this.updateTop10Button();
+    }
+
+    private getRemainingTicks() {
+        return Math.max(0, this.getActiveTotalTicks() - this.currentTick);
+    }
+
+    private getActiveTotalTicks() {
+        return this.replayPlayback.active ? this.replayPlayback.totalTicks : CONFIG.TOTAL_TICKS;
+    }
+
+    private syncTimeLeftFromTick() {
+        this.timeLeftMs = Math.round(this.getRemainingTicks() * CONFIG.TICK_MS);
     }
 
     private spin() {
@@ -652,15 +728,6 @@ export class MainScene extends Phaser.Scene {
             this.message = "TRY AGAIN";
         }
 
-        this.replayRounds.push({
-            results: [...results],
-            payout,
-            scoreAfter: this.score,
-            timeLeftMs: Math.max(0, Math.floor(this.timeLeftMs)),
-            feverMode: this.feverMode,
-            reachMode: this.reachMode,
-            comboCount: this.comboCount
-        });
     }
 
     private triggerFever() {
@@ -670,10 +737,10 @@ export class MainScene extends Phaser.Scene {
 
     private endTimeAttack() {
         this.isTimeAttackRunning = false;
-        this.timeLeftMs = 0;
+        this.currentTick = this.getActiveTotalTicks();
+        this.syncTimeLeftFromTick();
         this.gameState = GAME_STATE.TIMEUP;
         this.showEndScreen();
-        // ... (remaining)
         this.finalRank = null;
         this.message = `TIME UP! SCORE: ${this.score}`;
         this.reachMode = false;
@@ -702,6 +769,12 @@ export class MainScene extends Phaser.Scene {
             reel.speed = 0;
         });
 
+        if (this.replayPlayback.active) {
+            this.message = 'REPLAY COMPLETE';
+            this.replayPlayback.completionDelayTicks = CONFIG.REPLAY_COMPLETE_DELAY_TICKS;
+            return;
+        }
+
         this.submitScoreToServer(this.score);
     }
 
@@ -719,7 +792,9 @@ export class MainScene extends Phaser.Scene {
                 version: SLOT_REPLAY_VERSION,
                 seed: this.replaySeed,
                 strips: this.reels.map((reel) => [...reel.symbols]),
-                rounds: this.replayRounds.map((round) => ({ ...round }))
+                totalTicks: CONFIG.TOTAL_TICKS,
+                finalScore: score,
+                actions: this.replayActions.map((entry) => ({ ...entry }))
             });
             const replayDigest = await this.sha256Hex(replayData);
             const response = await fetch('/api/submit', {
@@ -796,49 +871,6 @@ export class MainScene extends Phaser.Scene {
         }
     }
 
-    private updateReplayPlayback(delta: number) {
-        if (!this.replayPlayback.active) return;
-        this.replayPlayback.timerMs -= delta;
-        if (this.replayPlayback.timerMs > 0) return;
-
-        const nextRound = this.replayPlayback.rounds[this.replayPlayback.roundIndex];
-        if (!nextRound) {
-            this.stopReplayPlayback(true);
-            return;
-        }
-
-        this.applyReplayRound(nextRound);
-        this.replayPlayback.roundIndex += 1;
-        this.replayPlayback.timerMs = this.replayPlayback.roundIndex >= this.replayPlayback.rounds.length ? 1100 : 420;
-    }
-
-    private applyReplayRound(round: SlotReplayRound) {
-        round.results.forEach((symbol, index) => {
-            const reel = this.reels[index];
-            if (!reel) return;
-
-            const strip = Array.isArray(this.replayPlayback.strips[index]) && this.replayPlayback.strips[index].length > 0
-                ? this.replayPlayback.strips[index]
-                : reel.symbols;
-            reel.symbols = [...strip] as SymbolType[];
-            const targetIndex = Math.max(0, strip.findIndex((value) => value === symbol));
-            const startIndex = (targetIndex - 1 + strip.length) % strip.length;
-            reel.offset = startIndex * CONFIG.SYMBOL_SIZE;
-            reel.isSpinning = false;
-            reel.isStopping = false;
-            reel.speed = 0;
-            reel.preRender();
-        });
-
-        this.score = Math.max(0, Math.floor(Number(round.scoreAfter) || 0));
-        const label = this.replayPlayback.row?.name || 'REPLAY';
-        const combo = Math.max(0, Math.floor(Number(round.comboCount) || 0));
-        this.message = combo >= 2
-            ? `REPLAY ${label}  COMBO x${combo}`
-            : `REPLAY ${label}  +${Math.max(0, Math.floor(Number(round.payout) || 0))}`;
-        this.flashTimer = 180;
-    }
-
     private async startReplayPlayback(row: LeaderboardRow) {
         if (!row.replayAvailable || !row.replayId || this.replayPlayback.loading || this.replayPlayback.active) return;
         this.replayPlayback.loading = true;
@@ -855,31 +887,41 @@ export class MainScene extends Phaser.Scene {
             }
 
             const replay = payload as SlotReplayPayload;
-            if (!Array.isArray(replay?.strips) || !Array.isArray(replay?.rounds) || replay.rounds.length === 0) {
+            if (!Array.isArray(replay?.strips) || !Array.isArray(replay?.actions) || replay.actions.length === 0) {
                 this.finalSubmissionError = 'REPLAY DATA INVALID';
                 return;
             }
 
             this.hideEndScreen();
+            const restoreScore = this.score;
+            const restoreMessage = this.message;
+            const restoreTimeLeftMs = this.timeLeftMs;
+            const restoreTick = this.currentTick;
+            this.replayActions = [];
+            this.initializeRunState();
+            this.applyReplayStrips(replay.strips);
             this.replayPlayback = {
                 active: true,
                 loading: false,
-                rounds: replay.rounds.map((round) => ({
-                    results: Array.isArray(round?.results) ? round.results.map((value) => Math.max(0, Math.floor(Number(value) || 0))) : [0, 0, 0],
-                    payout: Math.max(0, Math.floor(Number(round?.payout) || 0)),
-                    scoreAfter: Math.max(0, Math.floor(Number(round?.scoreAfter) || 0)),
-                    timeLeftMs: Math.max(0, Math.floor(Number(round?.timeLeftMs) || 0)),
-                    comboCount: Math.max(0, Math.floor(Number(round?.comboCount) || 0))
-                })),
+                actions: replay.actions
+                    .map((entry) => ({
+                        tick: Math.max(0, Math.min(CONFIG.TOTAL_TICKS - 1, Math.floor(Number(entry?.tick) || 0))),
+                        action: 'primary' as const
+                    }))
+                    .sort((a, b) => a.tick - b.tick),
                 strips: replay.strips.map((strip) => Array.isArray(strip) ? strip.map((value) => Math.max(0, Math.floor(Number(value) || 0))) : []),
                 row,
-                roundIndex: 0,
-                timerMs: 0,
-                restoreScore: this.score,
-                restoreMessage: this.message,
-                restoreTimeLeftMs: this.timeLeftMs
+                actionIndex: 0,
+                totalTicks: Math.max(1, Math.floor(Number(replay.totalTicks) || CONFIG.TOTAL_TICKS)),
+                completionDelayTicks: 0,
+                restoreScore,
+                restoreMessage,
+                restoreTimeLeftMs,
+                restoreTick
             };
-            this.timeLeftMs = CONFIG.TIME_LIMIT_MS;
+            this.currentTick = 0;
+            this.syncTimeLeftFromTick();
+            this.message = `REPLAY ${row.name}`;
         } catch (error) {
             console.warn('Failed to load slot60 replay:', error);
             this.finalSubmissionError = 'REPLAY NETWORK ERROR';
@@ -897,23 +939,37 @@ export class MainScene extends Phaser.Scene {
             this.score = this.replayPlayback.restoreScore;
             this.message = this.replayPlayback.restoreMessage;
             this.timeLeftMs = this.replayPlayback.restoreTimeLeftMs;
+            this.currentTick = this.replayPlayback.restoreTick;
         }
         this.replayPlayback = {
             active: false,
             loading: false,
-            rounds: [],
+            actions: [],
             strips: [],
             row: null,
-            roundIndex: 0,
-            timerMs: 0,
+            actionIndex: 0,
+            totalTicks: CONFIG.TOTAL_TICKS,
+            completionDelayTicks: 0,
             restoreScore: this.score,
             restoreMessage: this.message,
-            restoreTimeLeftMs: this.timeLeftMs
+            restoreTimeLeftMs: this.timeLeftMs,
+            restoreTick: this.currentTick
         };
+        this.syncTimeLeftFromTick();
         if (showBoard) {
             this.showEndScreen();
         }
         this.updateTop10Button();
+    }
+
+    private applyReplayStrips(strips: number[][]) {
+        this.reels.forEach((reel, index) => {
+            const strip = Array.isArray(strips[index]) && strips[index].length > 0
+                ? strips[index].map((value) => Math.max(0, Math.floor(Number(value) || 0))) as SymbolType[]
+                : reel.symbols;
+            reel.setSymbols(strip);
+            reel.resetPosition();
+        });
     }
 
     public resize() {

@@ -157,4 +157,20 @@ export class Reel {
     public preRender() {
         this.updateSprites();
     }
+
+    public setSymbols(symbols: SymbolType[]) {
+        if (Array.isArray(symbols) && symbols.length > 0) {
+            this.symbols = [...symbols];
+        }
+        this.updateSprites();
+    }
+
+    public resetPosition() {
+        this.offset = 0;
+        this.speed = 0;
+        this.targetOffset = 0;
+        this.isSpinning = false;
+        this.isStopping = false;
+        this.updateSprites();
+    }
 }

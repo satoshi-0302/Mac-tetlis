@@ -2,7 +2,7 @@ import leaderboardSeed from '../../games/slot60/data/leaderboard-seed.json' with
 import { createEntryId, parseStoredJson, sanitizeComment, sanitizePlayerName, sha256 } from './worker-sanitize.mjs';
 
 const CURRENT_RULE_VERSION = 'slot60-rule-v1';
-const REPLAY_VERSION = 'slot60-replay-v1';
+const REPLAY_VERSION = 'slot60-replay-v2';
 let seedEntriesCache = null;
 
 function createSubmissionError(message, statusCode = 400) {
@@ -39,27 +39,27 @@ function parseReplayPayload(replayData) {
     }
   }
 
-  if (!Array.isArray(parsed.rounds) || parsed.rounds.length === 0) {
-    throw createSubmissionError('replayData.rounds must contain at least one round');
+  if (Math.max(0, Math.floor(Number(parsed.totalTicks) || 0)) !== 3600) {
+    throw createSubmissionError('replayData.totalTicks must be exactly 3600');
   }
 
-  let previousScore = 0;
-  let previousTimeLeft = Number.POSITIVE_INFINITY;
-  for (const round of parsed.rounds) {
-    if (!Array.isArray(round?.results) || round.results.length !== 3 || round.results.some((symbol) => !isSymbol(symbol))) {
-      throw createSubmissionError('Each replay round must have 3 slot results');
+  if (!Array.isArray(parsed.actions) || parsed.actions.length === 0) {
+    throw createSubmissionError('replayData.actions must contain at least one action');
+  }
+
+  let previousTick = -1;
+  for (const action of parsed.actions) {
+    const tick = Math.max(0, Math.floor(Number(action?.tick) || 0));
+    if (tick < previousTick) {
+      throw createSubmissionError('Replay actions must be ordered by tick');
     }
-    const payout = Math.max(0, Math.floor(Number(round?.payout) || 0));
-    const scoreAfter = Math.max(0, Math.floor(Number(round?.scoreAfter) || 0));
-    const timeLeftMs = Math.max(0, Math.floor(Number(round?.timeLeftMs) || 0));
-    if (scoreAfter < previousScore || scoreAfter - previousScore !== payout) {
-      throw createSubmissionError('Replay rounds must have consistent score progression');
+    if (tick >= 3600) {
+      throw createSubmissionError('Replay actions must stay within the 3600 tick window');
     }
-    if (timeLeftMs > previousTimeLeft) {
-      throw createSubmissionError('Replay rounds must be ordered by time');
+    if (action?.action !== 'primary') {
+      throw createSubmissionError('Replay actions only support primary input');
     }
-    previousScore = scoreAfter;
-    previousTimeLeft = timeLeftMs;
+    previousTick = tick;
   }
 
   return parsed;
@@ -85,7 +85,7 @@ export const slotAdapter = {
 
       const parsedReplay = parseReplayPayload(replayData);
 
-      const verifiedScore = Math.max(0, Math.floor(Number(parsedReplay?.rounds?.at(-1)?.scoreAfter) || 0));
+      const verifiedScore = Math.max(0, Math.floor(Number(parsedReplay?.finalScore ?? entry?.score) || 0));
       entries.push({
         id: String(entry?.id ?? createEntryId('slot60')),
         kind: entry?.kind === 'ai' ? 'ai' : 'human',
@@ -93,11 +93,12 @@ export const slotAdapter = {
         comment: sanitizeRequiredComment(entry?.comment ?? '', 'NO COMMENT'),
         score: verifiedScore,
         summary: {
-          rounds: Array.isArray(parsedReplay?.rounds) ? parsedReplay.rounds.length : 0
+          actions: Array.isArray(parsedReplay?.actions) ? parsedReplay.actions.length : 0,
+          totalTicks: Math.max(0, Math.floor(Number(parsedReplay?.totalTicks) || 0))
         },
         gameVersion: CURRENT_RULE_VERSION,
         createdAt: String(entry?.createdAt ?? new Date().toISOString()),
-        replayFormat: 'slot60-round-log-v1',
+        replayFormat: 'slot60-action-log-v2',
         replayData,
         replayDigest
       });
@@ -125,7 +126,7 @@ export const slotAdapter = {
     }
 
     const replay = parseReplayPayload(replayData);
-    const verifiedScore = Math.max(0, Math.floor(Number(replay?.rounds?.at(-1)?.scoreAfter) || 0));
+    const verifiedScore = Math.max(0, Math.floor(Number(replay?.finalScore ?? 0) || 0));
     if (verifiedScore !== score) {
       throw createSubmissionError(`score mismatch after verification (submitted ${score}, verified ${verifiedScore})`);
     }
@@ -137,11 +138,12 @@ export const slotAdapter = {
       comment: sanitizeRequiredComment(payload?.message ?? payload?.comment ?? '', 'NO COMMENT'),
       score: verifiedScore,
       summary: {
-        rounds: replay.rounds.length
+        actions: replay.actions.length,
+        totalTicks: replay.totalTicks
       },
       gameVersion: CURRENT_RULE_VERSION,
       createdAt: new Date().toISOString(),
-      replayFormat: 'slot60-round-log-v1',
+      replayFormat: 'slot60-action-log-v2',
       replayData,
       replayDigest
     };
