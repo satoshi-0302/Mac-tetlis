@@ -97,16 +97,16 @@ export class Reel {
         const symbolHeight = CONFIG.SYMBOL_SIZE;
         const currentPos = this.offset;
         const extraDistance = symbolHeight * CONFIG.REEL_STOP_EXTRA_SYMBOLS;
-        const snap = Math.ceil((currentPos + extraDistance) / symbolHeight) * symbolHeight;
+        const snap = Math.floor((currentPos - extraDistance) / symbolHeight) * symbolHeight;
         this.targetOffset = snap;
     }
 
     public update(): boolean {
         if (this.isSpinning) {
             if (this.isStopping) {
-                if (this.offset < this.targetOffset) {
-                    this.offset += this.speed * 1.2;
-                    if (this.offset >= this.targetOffset) {
+                if (this.offset > this.targetOffset) {
+                    this.offset -= this.speed * 1.2;
+                    if (this.offset <= this.targetOffset) {
                         this.offset = this.targetOffset;
                         this.isSpinning = false;
                         this.isStopping = false;
@@ -116,7 +116,7 @@ export class Reel {
                     }
                 }
             } else {
-                this.offset += this.speed;
+                this.offset -= this.speed;
             }
             this.updateSprites();
         }
@@ -126,8 +126,9 @@ export class Reel {
     private updateSprites() {
         const symbolHeight = CONFIG.SYMBOL_SIZE;
         const totalSymbols = this.symbols.length;
-        const startIdx = Math.floor(this.offset / symbolHeight) % totalSymbols;
-        const pixelShift = this.offset % symbolHeight;
+        const normalizedOffset = ((this.offset % (totalSymbols * symbolHeight)) + (totalSymbols * symbolHeight)) % (totalSymbols * symbolHeight);
+        const startIdx = Math.floor(normalizedOffset / symbolHeight) % totalSymbols;
+        const pixelShift = normalizedOffset % symbolHeight;
 
         for (let i = -1; i < CONFIG.VISIBLE_SYMBOLS + 1; i++) {
             let symbolIdx = (startIdx + i);
@@ -146,8 +147,9 @@ export class Reel {
     public getResult(): SymbolType {
         const symbolHeight = CONFIG.SYMBOL_SIZE;
         const totalSymbols = this.symbols.length;
-        const startIdx = Math.floor(this.offset / symbolHeight) % totalSymbols;
-        let middleIdx = (startIdx + 1) % totalSymbols;
+        const normalizedOffset = ((this.offset % (totalSymbols * symbolHeight)) + (totalSymbols * symbolHeight)) % (totalSymbols * symbolHeight);
+        const startIdx = Math.floor(normalizedOffset / symbolHeight) % totalSymbols;
+        const middleIdx = (startIdx + 1) % totalSymbols;
         return this.symbols[middleIdx];
     }
 
