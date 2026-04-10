@@ -93,9 +93,9 @@ export class MainScene extends Phaser.Scene {
         restoreTimeLeftMs: 0,
     };
 
-    private titleOverlay: HTMLElement | null = null;
     private uiGraphics!: Phaser.GameObjects.Graphics;
     private paylineGraphics!: Phaser.GameObjects.Graphics;
+    private top10Button!: Phaser.GameObjects.Text;
     private uiText: {
         score: Phaser.GameObjects.Text;
         best: Phaser.GameObjects.Text;
@@ -137,24 +137,19 @@ export class MainScene extends Phaser.Scene {
         this.comboBar = this.add.graphics().setDepth(20);
 
         this.createUI();
+        this.createActionButtons();
 
-        this.titleOverlay = document.getElementById('title-screen');
-        const playBtn = document.getElementById('play-button');
-        if (playBtn) {
-            playBtn.addEventListener('click', () => this.handleInput('primary'));
-        }
-        
-        this.input.on('pointerdown', () => this.handleInput('primary'));
+        this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
+            if (currentlyOver.length > 0) return;
+            this.handleInput('primary');
+        });
         this.input.keyboard?.on('keydown-SPACE', () => this.handleInput('primary'));
         this.input.keyboard?.on('keydown-ENTER', () => this.handleInput('primary'));
         this.input.keyboard?.on('keydown-S', () => this.handleInput('primary'));
 
         this.loadLeaderboardFromServer();
         this.reels.forEach(reel => reel.preRender());
-        this.updateOverlay();
-        
-        this.gameState = GAME_STATE.INTRO;
-        this.message = "TAP OR SPACE TO START";
+        this.resetGame();
     }
 
     private createEmptyStats(): RunStats {
@@ -200,10 +195,30 @@ export class MainScene extends Phaser.Scene {
         });
     }
 
+    private createActionButtons() {
+        this.top10Button = this.add.text(CONFIG.CANVAS_WIDTH - 58, 104, 'TOP10', {
+            font: 'bold 20px Courier New',
+            color: '#7af0ff',
+            backgroundColor: '#13243f'
+        })
+            .setOrigin(1, 0.5)
+            .setDepth(35)
+            .setPadding(12, 6, 12, 6)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.toggleLeaderboardOverlay();
+            });
+    }
+
     update(_time: number, delta: number) {
         if (this.gameState === GAME_STATE.LOADING) return;
 
         this.updateReplayPlayback(delta);
+        const overlayVisible = Boolean(this.endScreenContainer) && !this.replayPlayback.active;
+        if (overlayVisible) {
+            this.drawPhaser();
+            return;
+        }
 
         if (this.isTimeAttackRunning && this.gameState !== GAME_STATE.TIMEUP) {
             this.timeLeftMs = Math.max(0, this.timeLeftMs - delta);
@@ -420,12 +435,30 @@ export class MainScene extends Phaser.Scene {
         if (this.gameState === GAME_STATE.TIMEUP) {
             this.uiText.message.setText("TIME UP"); // Will be centered in end screen logic if needed or just use current text
         }
+        this.updateTop10Button();
+    }
+
+    private updateTop10Button() {
+        if (!this.top10Button) return;
+        const overlayVisible = Boolean(this.endScreenContainer);
+        const locked = this.replayPlayback.loading || this.replayPlayback.active;
+        const label = overlayVisible && this.gameState !== GAME_STATE.TIMEUP ? 'CLOSE' : 'TOP10';
+        this.top10Button.setText(label);
+        this.top10Button.setAlpha(locked ? 0.45 : 1);
     }
 
     handleInput(action: string) {
         if (this.gameState === GAME_STATE.LOADING) return;
         if (action !== 'primary') return;
         if (this.replayPlayback.active || this.replayPlayback.loading) return;
+        if (this.endScreenContainer) {
+            if (this.gameState === GAME_STATE.TIMEUP) {
+                this.resetGame();
+            } else {
+                this.hideEndScreen();
+            }
+            return;
+        }
         this.audio.init();
 
         switch (this.gameState) {
@@ -473,7 +506,6 @@ export class MainScene extends Phaser.Scene {
         this.stopReplayPlayback(false);
         this.replayRounds = [];
         this.replaySeed = Math.floor(Math.random() * 0x7fffffff);
-        this.updateOverlay();
         
         if (this.uiText) {
             this.uiText.fever.setVisible(false);
@@ -756,23 +788,11 @@ export class MainScene extends Phaser.Scene {
             const payload = await response.json();
             this.leaderboard = this.normalizeLeaderboardRows(payload?.combinedEntries || payload?.entries || []);
             this.highScore = this.leaderboard[0]?.score || 0;
-            this.updateOverlay();
+            if (this.endScreenContainer && !this.replayPlayback.active) {
+                this.showEndScreen();
+            }
         } catch (error) {
             console.warn('Failed to load slot60 leaderboard:', error);
-        }
-    }
-
-    private updateOverlay() {
-        const isActive = this.gameState === GAME_STATE.INTRO;
-        if (this.titleOverlay) {
-            this.titleOverlay.classList.toggle('active', isActive);
-            if (isActive && this.leaderboard.length > 0) {
-                const top = this.leaderboard[0];
-                const netVal = document.getElementById('net-high-score-value');
-                const netName = document.getElementById('net-high-score-name');
-                if (netVal) netVal.textContent = top.score.toLocaleString();
-                if (netName) netName.textContent = top.name;
-            }
         }
     }
 
@@ -868,6 +888,7 @@ export class MainScene extends Phaser.Scene {
             if (!this.replayPlayback.active) {
                 this.showEndScreen();
             }
+            this.updateTop10Button();
         }
     }
 
@@ -889,9 +910,10 @@ export class MainScene extends Phaser.Scene {
             restoreMessage: this.message,
             restoreTimeLeftMs: this.timeLeftMs
         };
-        if (showBoard && this.gameState === GAME_STATE.TIMEUP) {
+        if (showBoard) {
             this.showEndScreen();
         }
+        this.updateTop10Button();
     }
 
     public resize() {
@@ -928,33 +950,65 @@ export class MainScene extends Phaser.Scene {
     // End Screen Leaders
     private endScreenContainer: Phaser.GameObjects.Container | null = null;
 
+    private toggleLeaderboardOverlay() {
+        if (this.replayPlayback.loading || this.replayPlayback.active) return;
+        if (this.endScreenContainer) {
+            if (this.gameState !== GAME_STATE.TIMEUP) {
+                this.hideEndScreen();
+            }
+            return;
+        }
+        this.showEndScreen();
+    }
+
     private showEndScreen() {
         if (this.endScreenContainer) this.endScreenContainer.destroy();
         
         const container = this.add.container(0, 0).setDepth(100);
         this.endScreenContainer = container;
 
-        const bg = this.add.rectangle(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT, 0x000000, 0.75).setOrigin(0, 0);
+        const bg = this.add.rectangle(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT, 0x000000, 0.78)
+            .setOrigin(0, 0)
+            .setInteractive();
         container.add(bg);
 
+        const isTimeUp = this.gameState === GAME_STATE.TIMEUP;
         const commonStyle = { font: 'bold 30px Courier New', color: '#fff' };
-        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 110, 'TIME UP', { font: 'bold 48px Courier New', color: '#fff' }).setOrigin(0.5));
-        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 155, `FINAL: ${this.score}`, commonStyle).setOrigin(0.5));
-        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 192, `BEST: ${this.highScore}`, commonStyle).setOrigin(0.5));
-
-        if (this.finalRank) {
-            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 238, `TOP10 RANK #${this.finalRank}`, { font: 'bold 22px Courier New', color: '#7af0ff' }).setOrigin(0.5));
-        } else if (this.submittingScore) {
-            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 238, 'SAVING SCORE...', { font: 'bold 20px Courier New', color: '#ffd166' }).setOrigin(0.5));
-        } else if (this.finalSubmissionError) {
-            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 238, this.finalSubmissionError, { font: 'bold 18px Courier New', color: '#ff8a80' }).setOrigin(0.5));
+        const title = isTimeUp ? 'TIME UP' : 'TOP 10 LEADERBOARD';
+        const subtitle = isTimeUp ? `FINAL: ${this.score}` : `BEST: ${this.highScore}`;
+        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 102, title, { font: 'bold 42px Courier New', color: '#fff' }).setOrigin(0.5));
+        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 144, subtitle, commonStyle).setOrigin(0.5));
+        if (!isTimeUp) {
+            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 180, 'VIEW REPLAYS WITHOUT LEAVING THE GAME', { font: 'bold 18px Courier New', color: '#7af0ff' }).setOrigin(0.5));
+            const closeButton = this.add.text(CONFIG.CANVAS_WIDTH - 54, 54, 'CLOSE', {
+                font: 'bold 18px Courier New',
+                color: '#7af0ff',
+                backgroundColor: '#13243f'
+            })
+                .setOrigin(1, 0.5)
+                .setPadding(10, 6, 10, 6)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => {
+                    this.hideEndScreen();
+                });
+            container.add(closeButton);
+        } else {
+            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 180, `BEST: ${this.highScore}`, commonStyle).setOrigin(0.5));
         }
 
-        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 286, 'TOP 10 LEADERBOARD', { font: 'bold 18px Courier New', color: '#fff' }).setOrigin(0.5));
+        if (this.finalRank) {
+            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 224, `TOP10 RANK #${this.finalRank}`, { font: 'bold 22px Courier New', color: '#7af0ff' }).setOrigin(0.5));
+        } else if (this.submittingScore) {
+            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 224, 'SAVING SCORE...', { font: 'bold 20px Courier New', color: '#ffd166' }).setOrigin(0.5));
+        } else if (this.finalSubmissionError) {
+            container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 224, this.finalSubmissionError, { font: 'bold 18px Courier New', color: '#ff8a80' }).setOrigin(0.5));
+        }
+
+        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 264, 'RANK / NAME / SCORE / COMMENT / REPLAY', { font: 'bold 18px Courier New', color: '#fff' }).setOrigin(0.5));
 
         const tableX = 54;
-        const headerY = 320;
-        const baseY = 348;
+        const headerY = 296;
+        const baseY = 324;
         const rowH = 22;
         const columns = {
             rank: tableX,
@@ -1009,7 +1063,9 @@ export class MainScene extends Phaser.Scene {
             container.add(replayButton);
         }
 
-        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 582, 'TAP OR SPACE TO RETRY', { font: 'bold 24px Courier New', color: '#fff' }).setOrigin(0.5));
+        const footer = isTimeUp ? 'TAP OR SPACE TO RETRY' : 'TAP / SPACE / TOP10 TO CLOSE';
+        container.add(this.add.text(CONFIG.CANVAS_WIDTH / 2, 582, footer, { font: 'bold 24px Courier New', color: '#fff' }).setOrigin(0.5));
+        this.updateTop10Button();
     }
 
     private hideEndScreen() {
@@ -1017,5 +1073,6 @@ export class MainScene extends Phaser.Scene {
             this.endScreenContainer.destroy();
             this.endScreenContainer = null;
         }
+        this.updateTop10Button();
     }
 }
